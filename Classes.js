@@ -1,19 +1,5 @@
-function projections(a, b, hypothesis){//a, b - расстояния до цели, hyp. - длина шага, возвращает объект с проекциями шага
-	y = hypothesis * b / (Math.sqrt(a ** 2 / b ** 2 + 1) * Math.abs(b))
-    return {
-		x: y * a / b,
-		y: y
-	}
-}
-
-
-function defenceCount(dmg, defence){
-	return dmg * 200 / (defence + 200);
-}
-
-
 class Box{
-	constructor(boxScreen = map, x = 5, y = 5, hitbox = {x1: -5, x2: 5, y1: -5, y2: 5, radius: 10}, damage = {type: "generic", amount: 1, iFrame: 3000}, life = 5000, draw = function(){}, tickMove = function(){enableDamage(this.touch())}) {
+	constructor(boxScreen = map, x = 5, y = 5, hitbox = {x1: -5, x2: 5, y1: -5, y2: 5, radius: 10}, damage = {type: "generic", amount: 1, iFrame: 3000}, life = 5000, draw = function(){}, tickMove = function(){this.enableDamage(this.touch()); this.age();}) {
 		this.map = boxScreen;
 		this.life = life;
 		this.parameters = {};
@@ -39,7 +25,11 @@ class Box{
 	}
 
 	remove(){
-		this.map.boxList.splice(this.id, 1);
+		for (let a = this.id; a < this.map.boxList.length - 1; a++){
+			this.map.boxList[a] = this.map.boxList[a + 1];
+			this.map.boxList[a].id--; 
+		}
+		this.map.boxList.splice(this.map.boxList.length - 1, 1);
 	}
 
 	age(){
@@ -49,11 +39,11 @@ class Box{
 		this.life--;
 	}
 	
-	iFrameRemover(id, box){
-		box.touchedEntities.splice(id, 1)
+	iFrameRemover(id, box){//removes entities with expired iFrame timer from untouchable entity list
+		box.touchedEntities[id] = undefined;
 	}
 	
-	enableDamage(list){
+	enableDamage(list){//list is a list of entities to who the damage is enabled
 		for(let a = 0; a < list.length; a++){
 			let unTouched = true;
 			for (let b = 0; b < this.touchedEntities.length; b++){
@@ -113,21 +103,21 @@ class Box{
 
 
 class Tool{
-	constructor(user, use = function(){}, meleeDamage = {type: "generic", amount: 1, iFrame: 3000}){
+	constructor(use = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 1, iFrame: 3000}){
 		this.use = use;
-		this.user = user;
 		this.meleeDamage = meleeDamage;
-		this.hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2}
 	}
 	
-	meleeStrike(){
-		new Box(this.user.map, this.user.x, this.user.y, this.hitbox, this.meleeDamage);
+	meleeStrike(user){
+		this.hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2};
+		let meleeHitbox = new Box(user.map, user.x, user.y, this.hitbox, this.meleeDamage, this.meleeDamage.iFrame / (2 * user.map.framerate),);
+		meleeHitbox.bind(user);
 	}
 }
 
 
 class Entity{//создаёт сущность с параметрами, хитбокс - это смещение относительно координат тела
-	constructor(entityScreen = map, x = 0, y = 0, hp = 10, defence = 0, hitbox = {x1: -10, x2: 10, y1: -10, y2: 10}, life = 5000, draw = function(){}, tickMove = function(){this.move(1)}, goal = {x: 0, y: 0}){
+	constructor(entityScreen = map, x = 0, y = 0, hp = 10, defence = 0, hitbox = {x1: -10, x2: 10, y1: -10, y2: 10}, life = 5000, drawer = function(){draw.entity(this)}, tickMove = function(){}, goal = {x: 0, y: 0}){
 		this.x = x;
 		this.y = y;
 		this.life = life;
@@ -137,13 +127,12 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.hp = hp;
 		this.maxHp = hp;
 		this.defence = defence;
-		this.draw = draw;
+		this.draw = drawer;
 		this.tickMove = tickMove;
-		this.id = this.map.entityList.length;
+		this.id = this.map.entityList.push(this) - 1;
 		this.goal = goal;
 		this.bindedHitboxes = [];
 		this.inventory = {mainhand: []};
-		this.map.entityList.push(this);
 		this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
 	}
 	
@@ -187,6 +176,8 @@ class Entity{//создаёт сущность с параметрами, хит
 	}
 	
 	contact(direction){
+		this.moveWithoutRounding(Math.round(direction.x * 10) / 10, 0);
+		this.moveWithoutRounding(0, Math.round(direction.y * 10) / 10);
 		while (this.overlap(direction.x / 10, direction.y / 10)){
 			this.moveWithoutRounding(direction.x / 10, direction.y / 10);
 		}
@@ -218,9 +209,17 @@ class Entity{//создаёт сущность с параметрами, хит
 	
 	checkDeath(){
 		if (this.hp <= 0){
-			this.map.entityList.splice(this.id, 1);
+			for (let a = this.id; a < this.map.entityList.length - 1; a++){
+				this.map.entityList[a] = this.map.entityList[a + 1];
+				this.map.entityList[a].id--; 
+			}
+			this.map.entityList.splice(this.map.entityList.length - 1, 1);
 			this.reloadEntityZone();
-			this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.zoneId, 1);
+			for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
+				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
+				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
+			}
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
 		}
 	}
 
@@ -230,6 +229,12 @@ class Entity{//создаёт сущность с параметрами, хит
 			this.checkDeath();
 		}
 		this.life--;
+	}
+
+	useHand(){
+		for (let a = 0; a < this.inventory.mainhand.length; a++) {
+			this.inventory.mainhand[a].use(this);
+		}
 	}
 	
 	overlap(xshift = 0, yshift = 0){
@@ -251,7 +256,10 @@ class Entity{//создаёт сущность с параметрами, хит
 	
 	reloadEntityZone(){
 		if (Math.floor(this.x / this.map.size) != this.loadingZone.x || Math.floor(this.y / this.map.size) != this.loadingZone.y){
-			this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.zoneId, 1);
+			for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
+				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
+				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
+			}
 			this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
 			this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this);
 		}
@@ -259,33 +267,8 @@ class Entity{//создаёт сущность с параметрами, хит
 }
 
 
-class Player extends Entity{
-	constructor(entityScreen = map, x = 0, y = 0, hp = 100, defence = 0, hitbox = {x1: -5, x2: 5, y1: -5, y2: 5}, id = 0, draw = drawer.drawPlayer, speed = 3){
-		super(entityScreen, x, y, hp, defence, hitbox, id, draw);
-		this.moveVectoring = {x: 0, y: 0};
-	}
-	
-	movePlayer(x, y){
-		this.moveDirection(x, y, speed);
-	}
-	
-	upPress(){
-		this.moveVectoring.y += 1;
-	}
-	downPress(){
-		this.moveVectoring.y -= 1;
-	}
-	leftPress(){
-		this.moveVectoring.x -= 1;
-	}
-	rightPress(){
-		this.moveVectoring.x += 1;
-	}
-}
-
-
 class ObjectHitbox{
-	constructor(x1 = 20, x2 = 50, y1 = 0, y2 = 10, x = undefined, y = undefined, objectScreen = map){
+	constructor(x1 = 20, x2 = 50, y1 = 0, y2 = 10, x = undefined, y = undefined, objectScreen = map, drawer = function(){draw.object(this)}){
 		if (x === undefined || y === undefined){
 			this.x = (x1 + x2) / 2;
 			this.y = (y1 + y2) / 2;
@@ -293,6 +276,7 @@ class ObjectHitbox{
 			this.x = x;
 			this.y = y;
 		}
+		this.draw = drawer;
 		this.hitbox = {x1: x1 - this.x, x2: x2 - this.x, y1: y1 - this.y, y2: y2 - this.y};
 		this.map = objectScreen;
 		this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
@@ -340,6 +324,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		this.entityList = [];
 		this.boxList = [];
 		this.loadingZones = [];
+		this.loadedZone = {x: 0, y: 0};
 		for (let column = 0; column < height; column++) {
 			this.loadingZones[column] = [];
 			for (let row = 0; row < width; row++) {
@@ -358,15 +343,21 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	drawEverything(){
 		draw.background1(this);
 		for (let a = 0; a < this.entityList.length; a++){
-			draw.entity(this.entityList[a]);
+			this.entityList[a].draw();
+		}
+		for (let a = 0; a < this.loadingZones[0][0].length; a++){
+			this.loadingZones[0][0][a].draw();
 		}
 	}
 	
 	tick(){
 		this.drawEverything();
-		map.boxList[0].enableDamage(map.boxList[0].touch());
-		console.log(map.entityList[0].hp);
-		console.log(map.entityList[1].hp);
+		for (let a = 0; a < this.boxList.length; a++){
+			map.boxList[a].tickMove();
+		}
+		for (let a = 0; a < this.entityList.length; a++){
+			map.entityList[a].tickMove();
+		}
 	}
 }
 
@@ -376,23 +367,18 @@ class DevKit{
 	
 	spawn(){
 		new ObjectHitbox;
-		let a = new Box;
-		a.bind(new Entity);
+		//let a = new Box;
+		//a.bind(new Entity);
 		new Entity;
+		new Entity;
+		map.entityList[0].inventory.mainhand.push(new Tool);
 		map.drawEverything();
+		setInterval(() => {
+			map.tick();
+		}, map.framerate);
 	}
 	
 	mover(){
 		setInterval(() => {map.entityList[0].moveToGoal(100, 200, 3)}, 1000);
 	}
-	
-	damageHitbox(){
-		setInterval(() => {
-			map.tick();
-		}, map.framerate);
-	}
 }
-
-let devKit = new DevKit;
-let map = new Map(600, 20, 20);
-let draw = new Draw;
