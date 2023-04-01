@@ -1,5 +1,5 @@
 class Box{
-	constructor(boxScreen = map, x = 5, y = 5, hitbox = {x1: -5, x2: 5, y1: -5, y2: 5, radius: 10}, damage = {type: "generic", amount: 1, iFrame: 3000}, life = 5000, draw = function(){}, tickMove = function(){this.enableDamage(this.touch()); this.age();}) {
+	constructor(boxScreen = map, x = 5, y = 5, hitbox = {x1: -5, x2: 5, y1: -5, y2: 5, radius: 10}, damage = {type: "generic", amount: 1, iFrame: 3000}, life = -1000, draw = function(){}, tickMove = function(){this.enableDamage(this.touch()); this.age();}) {
 		this.map = boxScreen;
 		this.life = life;
 		this.parameters = {};
@@ -33,7 +33,7 @@ class Box{
 	}
 
 	age(){
-		if (this.life === 0){
+		if (this.life <= 0 && this.life > -1000){
 			this.remove();
 		}
 		this.life--;
@@ -56,6 +56,8 @@ class Box{
 					list[a].damageGeneric(this.damage.amount);
 				} else if (this.damage.type === "piercing"){
 					list[a].damagePiercing(this.damage.amount);
+				} else if (this.damage.type === "enemy"){
+					list[a].damageEnemy(this.damage.amount);
 				}
 				setTimeout(this.iFrameRemover, this.damage.iFrame - this.map.framerate / 2, touchedId, this);
 			}
@@ -103,15 +105,43 @@ class Box{
 
 
 class Tool{
-	constructor(use = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 1, iFrame: 3000}){
+	constructor(use = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 4, iFrame: 240}){
 		this.use = use;
 		this.meleeDamage = meleeDamage;
 	}
 	
 	meleeStrike(user){
 		this.hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2};
-		let meleeHitbox = new Box(user.map, user.x, user.y, this.hitbox, this.meleeDamage, this.meleeDamage.iFrame / (2 * user.map.framerate),);
+		let meleeHitbox = new Box(user.map, user.x, user.y, this.hitbox, this.meleeDamage, this.meleeDamage.iFrame / (2 * user.map.framerate));
 		meleeHitbox.bind(user);
+	}
+}
+
+
+class Particle{
+	constructor(particleScreen = map, x = 0, y = 0, life = 12, drawer = function(){draw.particle(this)}, tick = function(){this.age()}){
+		this.coordinates = {x: x, y: y};
+		this.hitbox = {x1: -40, x2: 0, y1: -20, y2: 20};
+		this.life = life;
+		this.map = particleScreen;
+		this.id = particleScreen.particles.push(this) - 1;
+		this.draw = drawer;
+		this.tickMove = tick;
+		draw.startParticle(this);
+	}
+
+	age(){
+		if (this.life <= 0){
+			for (let a = this.id; a < this.map.particles.length - 1; a++){
+				this.map.particles[a] = this.map.particles[a + 1];
+			}
+			this.map.particles.splice(this.map.particles.length - 1, 1);
+		}
+		this.life--;
+	}
+
+	bind(parentEntity){
+		this.coordinates = parentEntity;
 	}
 }
 
@@ -134,6 +164,7 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.bindedHitboxes = [];
 		this.inventory = {mainhand: []};
 		this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
+		this.enemyDamageMultiplier = 1;
 	}
 	
 	move(x = 0, y = 0){
@@ -178,8 +209,10 @@ class Entity{//создаёт сущность с параметрами, хит
 	contact(direction){
 		this.moveWithoutRounding(Math.round(direction.x * 10) / 10, 0);
 		this.moveWithoutRounding(0, Math.round(direction.y * 10) / 10);
-		while (this.overlap(direction.x / 10, direction.y / 10)){
+		let a = 0;
+		while (this.overlap(direction.x / 10, direction.y / 10) && a < 10){
 			this.moveWithoutRounding(direction.x / 10, direction.y / 10);
+			a++;
 		}
 		this.x = Math.round(this.x * 10) / 10;
 		this.y = Math.round(this.y * 10) / 10;
@@ -206,6 +239,11 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.hp -= dmg;
 		this.checkDeath();
 	}
+
+	damageEnemy(dmg){
+		this.hp -= (defenceCount(dmg, this.defence) * this.enemyDamageMultiplier);
+		this.checkDeath();
+	}
 	
 	checkDeath(){
 		if (this.hp <= 0){
@@ -220,11 +258,14 @@ class Entity{//создаёт сущность с параметрами, хит
 				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
 			}
 			this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
+			for (let a = 0; a < this.bindedHitboxes.length; a++){
+				this.bindedHitboxes[a].remove();
+			}
 		}
 	}
 
 	age(){
-		if (this.life === 0){
+		if (this.life <= 0){
 			this.hp = 0;
 			this.checkDeath();
 		}
@@ -260,8 +301,9 @@ class Entity{//создаёт сущность с параметрами, хит
 				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
 				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
 			}
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
 			this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
-			this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this);
+			this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
 		}
 	}
 }
@@ -324,6 +366,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		this.entityList = [];
 		this.boxList = [];
 		this.loadingZones = [];
+		this.particles = [];
 		this.loadedZone = {x: 0, y: 0};
 		for (let column = 0; column < height; column++) {
 			this.loadingZones[column] = [];
@@ -348,6 +391,9 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		for (let a = 0; a < this.loadingZones[0][0].length; a++){
 			this.loadingZones[0][0][a].draw();
 		}
+		for (let a = 0; a < this.particles.length; a++){
+			this.particles[a].draw();
+		}
 	}
 	
 	tick(){
@@ -357,6 +403,9 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		}
 		for (let a = 0; a < this.entityList.length; a++){
 			map.entityList[a].tickMove();
+		}
+		for (let a = 0; a < this.particles.length; a++){
+			this.particles[a].tickMove();
 		}
 	}
 }
@@ -380,5 +429,17 @@ class DevKit{
 	
 	mover(){
 		setInterval(() => {map.entityList[0].moveToGoal(100, 200, 3)}, 1000);
+	}
+
+	swarm(){
+		for (let d = 0; d < 20; d++){
+			new Grunt();
+		}
+		for (let b = 0; b < 50; b++){
+			new Swarmer();
+		}
+		for (let c = 0; c < 4; c++){
+			new Praetorian();
+		}
 	}
 }

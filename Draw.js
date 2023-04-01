@@ -10,6 +10,13 @@ class Draw{
 		this.murasama.src = "Murasama.jpeg";
 		this.hornet.src = "player.png";
 		this.obstacle.src = "Obstacle.png";
+		this.particleImg = [new Image, new Image, new Image, new Image, new Image, new Image];
+		this.particleImg[0].src = "Particle1.png";
+		this.particleImg[1].src = "Particle2.png";
+		this.particleImg[2].src = "Particle3.png";
+		this.particleImg[3].src = "Particle4.png";
+		this.particleImg[4].src = "Particle5.png";
+		this.particleImg[5].src = "Particle6.png";
 	}
 
 	player(ent){
@@ -26,5 +33,16 @@ class Draw{
 	
 	background1(field){
 		this.can.drawImage(this.murasama, 0, 0, field.size, field.size);
+	}
+
+	startParticle(ptl){
+		ptl.animation = 0;
+		for (let a = 1; a < this.particleImg.length; a++){
+			setTimeout((ptl) => {if (ptl.animation < draw.particleImg.length){ptl.animation++;}}, ptl.map.framerate * 2 * a, ptl);
+		}
+	}
+
+	particle(ptl){
+		this.can.drawImage(this.particleImg[ptl.animation], ptl.coordinates.x + ptl.hitbox.x1 + xshift(ptl.map), ptl.coordinates.y + ptl.hitbox.y1 + yshift(ptl.map), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1)
 	}
 }

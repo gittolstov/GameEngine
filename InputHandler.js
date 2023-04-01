@@ -21,6 +21,8 @@ function keyUpHandler(){
     } else if (event.keyCode === 83){
         player.upPress();
     } else if (event.keyCode === 32){
+        a = new Particle();
+        a.bind(player);
         player.useHand();
     }
 }
