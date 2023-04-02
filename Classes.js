@@ -25,11 +25,12 @@ class Box{
 	}
 
 	remove(){
-		for (let a = this.id; a < this.map.boxList.length - 1; a++){
-			this.map.boxList[a] = this.map.boxList[a + 1];
-			this.map.boxList[a].id--; 
-		}
-		this.map.boxList.splice(this.map.boxList.length - 1, 1);
+		//for (let a = this.id; a < this.map.boxList.length - 1; a++){
+		//	this.map.boxList[a] = this.map.boxList[a + 1];
+		//	this.map.boxList[a].id--; 1
+		//}
+		//this.map.boxList.splice(this.map.boxList.length - 1, 1);
+		this.map.boxList[this.id] = undefined;
 	}
 
 	age(){
@@ -58,11 +59,16 @@ class Box{
 					list[a].damagePiercing(this.damage.amount);
 				} else if (this.damage.type === "enemy"){
 					list[a].damageEnemy(this.damage.amount);
+				} else if (this.damage.type === "playerGeneric"){
+					list[a].damagePlayer(this.damage.amount);
 				}
 				setTimeout(this.iFrameRemover, this.damage.iFrame - this.map.framerate / 2, touchedId, this);
+				this.damageFunction(list[a]);
 			}
 		}
 	}
+
+	damageFunction(a){}
 	
 	contact(){
 		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
@@ -72,6 +78,9 @@ class Box{
 		let y2 = this.coordinates.y + this.hitbox.y2;
 		let collisionList = [];
 		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined){
+				continue;
+			}
 			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
@@ -91,6 +100,9 @@ class Box{
 		let y2 = this.coordinates.y + this.hitbox.y2;
 		let overlapList = [];
 		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined){
+				continue;
+			}
 			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
@@ -132,10 +144,11 @@ class Particle{
 
 	age(){
 		if (this.life <= 0){
-			for (let a = this.id; a < this.map.particles.length - 1; a++){
-				this.map.particles[a] = this.map.particles[a + 1];
-			}
-			this.map.particles.splice(this.map.particles.length - 1, 1);
+			//for (let a = this.id; a < this.map.particles.length - 1; a++){
+			//	this.map.particles[a] = this.map.particles[a + 1];
+			//}
+			//this.map.particles.splice(this.map.particles.length - 1, 1);
+			this.map.particles[this.id] = undefined;
 		}
 		this.life--;
 	}
@@ -165,6 +178,7 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.inventory = {mainhand: []};
 		this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
 		this.enemyDamageMultiplier = 1;
+		this.playerDamageMultiplier = 1;
 	}
 	
 	move(x = 0, y = 0){
@@ -244,20 +258,27 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.hp -= (defenceCount(dmg, this.defence) * this.enemyDamageMultiplier);
 		this.checkDeath();
 	}
+
+	damagePlayer(dmg){
+		this.hp -= (defenceCount(dmg, this.defence) * this.playerDamageMultiplier);
+		this.checkDeath();
+	}
 	
 	checkDeath(){
-		if (this.hp <= 0){
-			for (let a = this.id; a < this.map.entityList.length - 1; a++){
-				this.map.entityList[a] = this.map.entityList[a + 1];
-				this.map.entityList[a].id--; 
-			}
-			this.map.entityList.splice(this.map.entityList.length - 1, 1);
-			this.reloadEntityZone();
-			for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
-				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
-				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
-			}
-			this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
+		if (this.hp <= 0 && this.hp > -1000){
+			//for (let a = this.id; a < this.map.entityList.length - 1; a++){
+			//	this.map.entityList[a] = this.map.entityList[a + 1];
+			//	this.map.entityList[a].id--; 
+			//}
+			//this.map.entityList.splice(this.map.entityList.length - 1, 1);
+			this.map.entityList[this.id] = undefined;
+			//this.reloadEntityZone();
+			//for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
+			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
+			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
+			//}
+			//this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
 			for (let a = 0; a < this.bindedHitboxes.length; a++){
 				this.bindedHitboxes[a].remove();
 			}
@@ -290,18 +311,19 @@ class Entity{//создаёт сущность с параметрами, хит
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
-			permission = permission && !(x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2)
+			permission = permission && !(x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2)
 		}
 		return permission;
 	}
 	
 	reloadEntityZone(){
 		if (Math.floor(this.x / this.map.size) != this.loadingZone.x || Math.floor(this.y / this.map.size) != this.loadingZone.y){
-			for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
-				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
-				this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
-			}
-			this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
+			//for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
+			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
+			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
+			//}
+			//this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId];
 			this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
 			this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
 		}
@@ -386,12 +408,21 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	drawEverything(){
 		draw.background1(this);
 		for (let a = 0; a < this.entityList.length; a++){
+			if (this.entityList[a] === undefined){
+				continue;
+			}
 			this.entityList[a].draw();
 		}
-		for (let a = 0; a < this.loadingZones[0][0].length; a++){
-			this.loadingZones[0][0][a].draw();
+		for (let a = 0; a < this.loadingZones[this.loadedZone.x][this.loadedZone.y].length; a++){
+			if (this.loadingZones[this.loadedZone.x][this.loadedZone.y][a] === undefined){
+				continue;
+			}
+			this.loadingZones[this.loadedZone.x][this.loadedZone.y][a].draw();
 		}
 		for (let a = 0; a < this.particles.length; a++){
+			if (this.particles[a] === undefined){
+				continue;
+			}
 			this.particles[a].draw();
 		}
 	}
@@ -399,12 +430,21 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	tick(){
 		this.drawEverything();
 		for (let a = 0; a < this.boxList.length; a++){
+			if (this.boxList[a] === undefined){
+				continue;
+			}
 			map.boxList[a].tickMove();
 		}
 		for (let a = 0; a < this.entityList.length; a++){
+			if (this.entityList[a] === undefined){
+				continue;
+			}
 			map.entityList[a].tickMove();
 		}
 		for (let a = 0; a < this.particles.length; a++){
+			if (this.particles[a] === undefined){
+				continue;
+			}
 			this.particles[a].tickMove();
 		}
 	}
@@ -438,7 +478,7 @@ class DevKit{
 		for (let b = 0; b < 50; b++){
 			new Swarmer();
 		}
-		for (let c = 0; c < 4; c++){
+		for (let c = 0; c < 2; c++){
 			new Praetorian();
 		}
 	}

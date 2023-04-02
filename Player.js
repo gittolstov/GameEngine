@@ -5,6 +5,7 @@ class Player extends Entity{
 		});
 		this.moveVectoring = {x: 0, y: 0};
 		this.speed = speed;
+		this.playerDamageMultiplier = 0;
 	}
 	
 	movePlayer(x, y){

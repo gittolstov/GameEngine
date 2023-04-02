@@ -24,5 +24,6 @@ function keyUpHandler(){
         a = new Particle();
         a.bind(player);
         player.useHand();
+        new Bullet(player, 5, map.entityList[3]);
     }
 }
