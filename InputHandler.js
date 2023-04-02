@@ -24,6 +24,10 @@ function keyUpHandler(){
         a = new Particle();
         a.bind(player);
         player.useHand();
-        new Bullet(player, 5, map.entityList[3]);
+        new Bullet(player, 5, {x: player.mousePosition.x + xshift(map), y: player.mousePosition.y + xshift(map)});
     }
+}
+
+function mouseMoveHandler(){
+    player.mousePosition = {x: Math.floor(event.layerX * 10) / 10, y: Math.floor(event.layerY * 10) / 10}
 }

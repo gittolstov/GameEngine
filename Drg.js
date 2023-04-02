@@ -11,6 +11,9 @@ class Glyphid extends Entity{
 class Grunt extends Glyphid{
     constructor(){
         super(10, 10, 2, 20);
+        this.draw = function(){
+            draw.grunt(this);
+        }
     }
 }
 
@@ -18,6 +21,9 @@ class Grunt extends Glyphid{
 class Swarmer extends Glyphid{
     constructor(){
         super(6, 3, 1, 0);
+        this.draw = function(){
+            draw.swarmer(this);
+        }
     }
 }
 
@@ -25,6 +31,9 @@ class Swarmer extends Glyphid{
 class Praetorian extends Glyphid{
     constructor(){
         super(20, 30, 3, 100);
+        this.draw = function(){
+            draw.praetorian(this);
+        }
     }
 }
 
