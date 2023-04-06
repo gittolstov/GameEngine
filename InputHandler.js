@@ -7,6 +7,10 @@ function keyDownHandler(){
         player.rightPress();
     } else if (event.keyCode === 83){
         player.downPress();
+    } else if (event.keyCode === 32){
+        a = new Particle();
+        a.bind(player);
+        player.useHand();
     }
 }
 
@@ -21,10 +25,7 @@ function keyUpHandler(){
     } else if (event.keyCode === 83){
         player.upPress();
     } else if (event.keyCode === 32){
-        a = new Particle();
-        a.bind(player);
-        player.useHand();
-        new Bullet(player, 5, {x: player.mousePosition.x + xshift(map), y: player.mousePosition.y + xshift(map)});
+        player.unUseHand();
     }
 }
 

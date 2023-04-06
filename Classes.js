@@ -11,6 +11,8 @@ class Box{
 		this.id = this.map.boxList.push(this) - 1;
 		this.loadingZone = {x: Math.floor(this.coordinates.x / this.map.size), y: Math.floor(this.coordinates.y / this.map.size)};
 		this.touchedEntities = [];
+		this.map.reloadBoxActiveList();
+		this.damageSetter();
 	}
 	
 	bind(parentEntity){
@@ -25,12 +27,8 @@ class Box{
 	}
 
 	remove(){
-		//for (let a = this.id; a < this.map.boxList.length - 1; a++){
-		//	this.map.boxList[a] = this.map.boxList[a + 1];
-		//	this.map.boxList[a].id--; 1
-		//}
-		//this.map.boxList.splice(this.map.boxList.length - 1, 1);
 		this.map.boxList[this.id] = undefined;
+		this.map.reloadBoxActiveList();
 	}
 
 	age(){
@@ -48,27 +46,32 @@ class Box{
 		for(let a = 0; a < list.length; a++){
 			let unTouched = true;
 			for (let b = 0; b < this.touchedEntities.length; b++){
-				if (list[a] === this.touchedEntities[b])
-				unTouched = false;
+				if (list[a] === this.touchedEntities[b]){
+					unTouched = false;
+				}
 			}
 			if (unTouched){
 				let touchedId = this.touchedEntities.push(list[a]) - 1;
-				if (this.damage.type === "generic"){
-					list[a].damageGeneric(this.damage.amount);
-				} else if (this.damage.type === "piercing"){
-					list[a].damagePiercing(this.damage.amount);
-				} else if (this.damage.type === "enemy"){
-					list[a].damageEnemy(this.damage.amount);
-				} else if (this.damage.type === "playerGeneric"){
-					list[a].damagePlayer(this.damage.amount);
-				}
+				this.damageEntity(list[a]);
 				setTimeout(this.iFrameRemover, this.damage.iFrame - this.map.framerate / 2, touchedId, this);
 				this.damageFunction(list[a]);
 			}
 		}
 	}
 
-	damageFunction(a){}
+	damageFunction(){}
+
+	damageSetter(){
+		if (this.damage.type === "generic"){
+			this.damageEntity = function(ent){ent.damageGeneric(this.damage.amount, this);};
+		} else if (this.damage.type === "piercing"){
+			this.damageEntity = function(ent){ent.damagePiercing(this.damage.amount, this);};
+		} else if (this.damage.type === "enemy"){
+			this.damageEntity = function(ent){ent.damageEnemy(this.damage.amount, this);};
+		} else if (this.damage.type === "playerGeneric"){
+			this.damageEntity = function(ent){ent.damagePlayer(this.damage.amount, this);};
+		}
+	}
 	
 	contact(){
 		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
@@ -117,15 +120,34 @@ class Box{
 
 
 class Tool{
-	constructor(use = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 4, iFrame: 240}){
-		this.use = use;
+	constructor(functionality = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 4, iFrame: 240}){
+		this.functionality = functionality;
 		this.meleeDamage = meleeDamage;
+		this.cooldown = true;
+		this.maxCooldown = 500;
+		this.active = false;
 	}
 	
 	meleeStrike(user){
 		this.hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2};
 		let meleeHitbox = new Box(user.map, user.x, user.y, this.hitbox, this.meleeDamage, this.meleeDamage.iFrame / (2 * user.map.framerate));
 		meleeHitbox.bind(user);
+	}
+
+	activate(){
+		this.active = true;
+	}
+
+	deactivate(){
+		this.active = false;
+	}
+
+	use(ent){
+		if (this.cooldown) {
+			setTimeout((tool, enti) => {tool.cooldown = true; if (tool.active){tool.use(enti)}}, this.maxCooldown, this, ent);
+			this.functionality(ent);
+			this.cooldown = false;
+		}
 	}
 }
 
@@ -140,6 +162,7 @@ class Particle{
 		this.draw = drawer;
 		this.tickMove = tick;
 		draw.startParticle(this);
+		this.map.reloadParticleActiveList();
 	}
 
 	age(){
@@ -149,6 +172,7 @@ class Particle{
 			//}
 			//this.map.particles.splice(this.map.particles.length - 1, 1);
 			this.map.particles[this.id] = undefined;
+			this.map.reloadParticleActiveList();
 		}
 		this.life--;
 	}
@@ -179,6 +203,7 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
 		this.enemyDamageMultiplier = 1;
 		this.playerDamageMultiplier = 1;
+		this.map.reloadEntityActiveList();
 	}
 	
 	move(x = 0, y = 0){
@@ -266,22 +291,12 @@ class Entity{//создаёт сущность с параметрами, хит
 	
 	checkDeath(){
 		if (this.hp <= 0 && this.hp > -1000){
-			//for (let a = this.id; a < this.map.entityList.length - 1; a++){
-			//	this.map.entityList[a] = this.map.entityList[a + 1];
-			//	this.map.entityList[a].id--; 
-			//}
-			//this.map.entityList.splice(this.map.entityList.length - 1, 1);
 			this.map.entityList[this.id] = undefined;
-			//this.reloadEntityZone();
-			//for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
-			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
-			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
-			//}
-			//this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
 			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
 			for (let a = 0; a < this.bindedHitboxes.length; a++){
 				this.bindedHitboxes[a].remove();
 			}
+			this.map.reloadEntityActiveList();
 		}
 	}
 
@@ -296,6 +311,13 @@ class Entity{//создаёт сущность с параметрами, хит
 	useHand(){
 		for (let a = 0; a < this.inventory.mainhand.length; a++) {
 			this.inventory.mainhand[a].use(this);
+			this.inventory.mainhand[a].activate();
+		}
+	}
+
+	unUseHand(){
+		for (let a = 0; a < this.inventory.mainhand.length; a++) {
+			this.inventory.mainhand[a].deactivate();
 		}
 	}
 	
@@ -318,15 +340,15 @@ class Entity{//создаёт сущность с параметрами, хит
 	
 	reloadEntityZone(){
 		if (Math.floor(this.x / this.map.size) != this.loadingZone.x || Math.floor(this.y / this.map.size) != this.loadingZone.y){
-			//for (let a = this.zoneId; a < this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1; a++){
-			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a] = this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a + 1];
-			//	this.map.entityZones[this.loadingZone.x][this.loadingZone.y][a].zoneId--;
-			//}
-			//this.map.entityZones[this.loadingZone.x][this.loadingZone.y].splice(this.map.entityZones[this.loadingZone.x][this.loadingZone.y].length - 1, 1);
-			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId];
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
 			this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
 			this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
 		}
+	}
+
+	removeProjection(){
+		this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
+		this.reloadEntityZone = function (){};
 	}
 }
 
@@ -386,9 +408,12 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		this.fieldWidth = width;
 		this.fieldHeight = height;
 		this.entityList = [];
+		this.entityListActive = [];
 		this.boxList = [];
+		this.boxListActive = [];
 		this.loadingZones = [];
 		this.particles = [];
+		this.particleListActive = [];
 		this.loadedZone = {x: 0, y: 0};
 		for (let column = 0; column < height; column++) {
 			this.loadingZones[column] = [];
@@ -429,23 +454,44 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	
 	tick(){
 		this.drawEverything();
-		for (let a = 0; a < this.boxList.length; a++){
-			if (this.boxList[a] === undefined){
-				continue;
-			}
-			map.boxList[a].tickMove();
+		for (let a = 0; a < this.boxListActive.length; a++){
+			this.boxList[this.boxListActive[a]].tickMove();
 		}
+		for (let a = 0; a < this.entityListActive.length; a++){
+			this.entityList[this.entityListActive[a]].tickMove();
+		}
+		for (let a = 0; a < this.particleListActive.length; a++){
+			this.particles[this.particleListActive[a]].tickMove();
+		}
+	}
+
+	reloadEntityActiveList(){
+		this.entityListActive = [];
 		for (let a = 0; a < this.entityList.length; a++){
 			if (this.entityList[a] === undefined){
 				continue;
 			}
-			map.entityList[a].tickMove();
+			map.entityListActive.push(a);
 		}
+	}
+
+	reloadBoxActiveList(){
+		this.boxListActive = [];
+		for (let a = 0; a < this.boxList.length; a++){
+			if (this.boxList[a] === undefined){
+				continue;
+			}
+			map.boxListActive.push(a);
+		}
+	}
+
+	reloadParticleActiveList(){
+		this.particleListActive = [];
 		for (let a = 0; a < this.particles.length; a++){
 			if (this.particles[a] === undefined){
 				continue;
 			}
-			this.particles[a].tickMove();
+			map.particleListActive.push(a);
 		}
 	}
 }
@@ -460,7 +506,8 @@ class DevKit{
 		//a.bind(new Entity);
 		new Entity;
 		new Entity;
-		map.entityList[0].inventory.mainhand.push(new Tool);
+		player.inventory.mainhand.push(new Weapon(20, 60));
+		//player.inventory.mainhand.push(new Weapon(2, 900));
 		map.drawEverything();
 		setInterval(() => {
 			map.tick();
@@ -472,10 +519,10 @@ class DevKit{
 	}
 
 	swarm(){
-		for (let d = 0; d < 20; d++){
+		for (let d = 0; d < 50; d++){
 			new Grunt();
 		}
-		for (let b = 0; b < 50; b++){
+		for (let b = 0; b < 20; b++){
 			new Swarmer();
 		}
 		for (let c = 0; c < 2; c++){
