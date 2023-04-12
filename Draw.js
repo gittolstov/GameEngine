@@ -6,16 +6,24 @@ class Draw{
 		this.shade = new Image;
 		this.hornet = new Image;
 		this.obstacle = new Image;
-		this.glyphidGrunt = new Image;
-		this.glyphidSwarmer = new Image;
-		this.glyphidPraetorian = new Image;
+		this.fireImg = [new Image, new Image];
+		this.glyphidGrunt = {right: new Image, left: new Image};
+		this.glyphidSwarmer = {right: new Image, left: new Image};
+		this.glyphidPraetorian = {right: new Image, left: new Image};
+		this.bulletImg = new Image;
 		this.shade.src = "enemy.png";
 		this.murasama.src = "Murasama.jpeg";
 		this.hornet.src = "player.png";
 		this.obstacle.src = "Obstacle.png";
-		this.glyphidGrunt.src = "Glyphid_grunt.png";
-		this.glyphidSwarmer.src = "Glyphid_swarmer.png";
-		this.glyphidPraetorian.src = "Glyphid_praetorian.png";
+		this.glyphidGrunt.right.src = "Glyphid_grunt.png";
+		this.glyphidSwarmer.right.src = "Glyphid_swarmer.png";
+		this.glyphidPraetorian.right.src = "Glyphid_praetorian.png";
+		this.glyphidGrunt.left.src = "Glyphid_grunt2.png";
+		this.glyphidSwarmer.left.src = "Glyphid_swarmer2.png";
+		this.glyphidPraetorian.left.src = "Glyphid_praetorian2.png";
+		this.fireImg[0].src = "Fire.png";
+		this.fireImg[1].src = "Fire2.png";
+		this.bulletImg.src = "bullet.png";
 		this.particleImg = [new Image, new Image, new Image, new Image, new Image, new Image];
 		this.particleImg[0].src = "Particle1.png";
 		this.particleImg[1].src = "Particle2.png";
@@ -32,9 +40,22 @@ class Draw{
 	entity(ent){
 		this.can.drawImage(this.shade, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
 	}
+	
+	bullet(ent){
+		this.can.drawImage(this.bulletImg, ent.x + ent.hitbox.x1 / 5 + xshift(ent.map), ent.y + ent.hitbox.y1 / 5 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1 / 5, ent.hitbox.y2 - ent.hitbox.y1 / 5);
+	}
 
 	object(obj){
 		this.can.drawImage(this.obstacle, obj.x + obj.hitbox.x1 + xshift(obj.map), obj.y + obj.hitbox.y1 + yshift(obj.map), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	interface(part){
+		this.can.fillStyle = "red"
+		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+	}
+	interface2(part){
+		this.can.fillStyle = "pink"
+		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
 	
 	background1(field){
@@ -54,15 +75,35 @@ class Draw{
 		this.can.drawImage(this.particleImg[ptl.animation], ptl.coordinates.x + ptl.hitbox.x1 + xshift(ptl.map), ptl.coordinates.y + ptl.hitbox.y1 + yshift(ptl.map), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1)
 	}
 
+	fire(ptl){
+		this.can.drawImage(this.fireImg[Math.floor(ptl.fireStage) % 2], ptl.coordinates.x + ptl.hitbox.x1 + xshift(ptl.map), ptl.coordinates.y + ptl.hitbox.y1 + yshift(ptl.map), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1)
+	}
+
+	flame(ent){
+		this.can.drawImage(this.fireImg[Math.floor(ent.fireStage) % 2], ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1)
+	}
+
 	grunt(ent){
-		this.can.drawImage(this.glyphidGrunt, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		if (ent.side){
+			this.can.drawImage(this.glyphidGrunt.right, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		} else {
+			this.can.drawImage(this.glyphidGrunt.left, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		}
 	}
 	
 	praetorian(ent){
-		this.can.drawImage(this.glyphidPraetorian, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		if (ent.side){
+			this.can.drawImage(this.glyphidPraetorian.right, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		} else {
+			this.can.drawImage(this.glyphidPraetorian.left, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		}
 	}
 	
 	swarmer(ent){
-		this.can.drawImage(this.glyphidSwarmer, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		if (ent.side){
+			this.can.drawImage(this.glyphidSwarmer.right, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		} else {
+			this.can.drawImage(this.glyphidSwarmer.left, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		}
 	}
 }

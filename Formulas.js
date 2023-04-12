@@ -27,3 +27,12 @@ function xshift(map){
 function yshift(map){
     return -map.loadedZone.y * map.size;
 }
+
+function spreadCounter(x, y, spread){
+    let angle = Math.atan(y/x);
+    let random = Math.floor(Math.random() * spread - spread / 2) / 180 * Math.PI;
+    let angle2 = ((angle + random) + (Math.PI * 2)) % (Math.PI * 2);
+    let x2 = x;
+    let y2 = Math.abs(Math.tan(angle2)) * y / Math.abs(y/x);
+    return {x: x2, y: y2};
+}
