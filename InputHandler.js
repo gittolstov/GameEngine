@@ -1,10 +1,12 @@
 function keyDownHandler(){
     if (event.keyCode === 65){
         player.leftPress();
+		player.turn = -1;
     } else if (event.keyCode === 87){
         player.upPress();
     } else if (event.keyCode === 68){
         player.rightPress();
+		player.turn = 1;
     } else if (event.keyCode === 83){
         player.downPress();
     } else if (event.keyCode === 32){

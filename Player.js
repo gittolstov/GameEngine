@@ -7,6 +7,7 @@ class Player extends Entity{
 		this.mousePosition = {x: 0, y: 0};
 		this.mouseBox = new Box(this.mousePosition.x, this.mousePosition.y, {x1: -8, x2: 8, y1: -8, y2: 8});
 		this.mouseBox.player = this;
+		this.turn = 1;
 		this.mouseBox.tickPlaceholderMain = function(){
 			let list = this.touch();
 			if (list.length > 0){

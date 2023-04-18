@@ -5,25 +5,24 @@ class Draw{
 		this.murasama = new Image;
 		this.shade = new Image;
 		this.hornet = new Image;
+		this.doomguy = new Image;
 		this.obstacle = new Image;
 		this.fireImg = [new Image, new Image];
-		this.glyphidGrunt = {right: new Image, left: new Image};
-		this.glyphidSwarmer = {right: new Image, left: new Image};
-		this.glyphidPraetorian = {right: new Image, left: new Image};
+		this.glyphidGrunt = new Image;
+		this.glyphidSwarmer = new Image;
+		this.glyphidPraetorian = new Image;
 		this.bulletImg = new Image;
 		this.shade.src = "enemy.png";
 		this.murasama.src = "Murasama.jpeg";
 		this.hornet.src = "player.png";
+		this.doomguy.src = "slayer.png";
 		this.obstacle.src = "Obstacle.png";
-		this.glyphidGrunt.right.src = "Glyphid_grunt.png";
-		this.glyphidSwarmer.right.src = "Glyphid_swarmer.png";
-		this.glyphidPraetorian.right.src = "Glyphid_praetorian.png";
-		this.glyphidGrunt.left.src = "Glyphid_grunt2.png";
-		this.glyphidSwarmer.left.src = "Glyphid_swarmer2.png";
-		this.glyphidPraetorian.left.src = "Glyphid_praetorian2.png";
+		this.glyphidGrunt.src = "Glyphid_grunt.png";
+		this.glyphidSwarmer.src = "Glyphid_swarmer.png";
+		this.glyphidPraetorian.src = "Glyphid_praetorian.png";
 		this.fireImg[0].src = "Fire.png";
 		this.fireImg[1].src = "Fire2.png";
-		this.bulletImg.src = "bullet.png";
+		this.bulletImg.src = "Bullet.png";
 		this.particleImg = [new Image, new Image, new Image, new Image, new Image, new Image];
 		this.particleImg[0].src = "Particle1.png";
 		this.particleImg[1].src = "Particle2.png";
@@ -34,7 +33,9 @@ class Draw{
 	}
 
 	player(ent){
-		this.can.drawImage(this.hornet, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		this.modifyContextMatrix(0, ent.x + xshift(ent.map), ent.y + yshift(ent.map), ent.turn);
+		this.can.drawImage(this.doomguy, ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		this.can.restore();
 	}
 	
 	entity(ent){
@@ -85,25 +86,37 @@ class Draw{
 
 	grunt(ent){
 		if (ent.side){
-			this.can.drawImage(this.glyphidGrunt.right, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.can.drawImage(this.glyphidGrunt, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
 		} else {
-			this.can.drawImage(this.glyphidGrunt.left, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.modifyContextMatrix(0, ent.x + xshift(ent.map), ent.y + yshift(ent.map), -1);
+			this.can.drawImage(this.glyphidGrunt, ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.can.restore();
 		}
 	}
 	
 	praetorian(ent){
 		if (ent.side){
-			this.can.drawImage(this.glyphidPraetorian.right, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.can.drawImage(this.glyphidPraetorian, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
 		} else {
-			this.can.drawImage(this.glyphidPraetorian.left, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.modifyContextMatrix(0, ent.x + xshift(ent.map), ent.y + yshift(ent.map), -1);
+			this.can.drawImage(this.glyphidPraetorian, ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.can.restore();
 		}
 	}
 	
 	swarmer(ent){
 		if (ent.side){
-			this.can.drawImage(this.glyphidSwarmer.right, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.can.drawImage(this.glyphidSwarmer, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
 		} else {
-			this.can.drawImage(this.glyphidSwarmer.left, ent.x + ent.hitbox.x1 + xshift(ent.map), ent.y + ent.hitbox.y1 + yshift(ent.map), ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.modifyContextMatrix(0, ent.x + xshift(ent.map), ent.y + yshift(ent.map), -1);
+			this.can.drawImage(this.glyphidSwarmer, ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+			this.can.restore();
 		}
+	}
+
+	modifyContextMatrix(angle, xShift, yShift, xTurn = 1, yTurn = 1){
+		this.can.save();
+		this.can.setTransform(xTurn, 0, 0, yTurn, xShift, yShift);
+		this.can.rotate(angle / 180 * Math.PI);
 	}
 }
