@@ -124,8 +124,8 @@ class Box{
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
 			if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
 				collisionList.push(collisionZone[a]);
-			} else {
-				for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+			}/* else {
+				for (let b = 0; b < this.hitbox.additional.length; b++){
 					let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
 					let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
 					let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
@@ -134,7 +134,7 @@ class Box{
 						collisionList.push(collisionZone[a]);
 					}
 				}
-			}
+			}*/
 		}
 		return collisionList;
 	}
@@ -156,8 +156,8 @@ class Box{
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
 			if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
 				overlapList.push(collisionZone[a]);
-			} else {
-				for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+			}/* else {
+				for (let b = 0; b < this.hitbox.additional.length; b++){
 					let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
 					let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
 					let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
@@ -166,7 +166,7 @@ class Box{
 						overlaplist.push(collisionZone[a]);
 					}
 				}
-			}
+			}*/
 		}
 		return overlapList;
 	}
@@ -185,8 +185,6 @@ class Tool{
 		this.maxCooldown = 500;
 		this.active = false;
 	}
-
-	draw(){}
 	
 	meleeStrike(user){
 		this.hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2};
@@ -216,8 +214,6 @@ class Tool{
 
 class PlaceholderItem{
 	constructor(){}
-
-	draw(){}
 
 	functionality(){}
 
@@ -545,13 +541,13 @@ class Entity{//создаёт сущность с параметрами, хит
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
 			permission = permission && !(x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2);
-			for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+			/*for (let b = 0; b < this.hitbox.additional.length; b++){
 				let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
 				let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
 				let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
 				let objectY2 = collisionZone[a].hitbox.additional[b].y2 + collisionZone[a].y;
 				permission = permission && !(x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2);
-			}
+			}*/
 		}
 		return permission;
 	}
@@ -573,8 +569,12 @@ class Entity{//создаёт сущность с параметрами, хит
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
 			if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
 				collisionList.push(collisionZone[a]);
-			} else {
-				for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+			}/* else {
+				let x1 = this.x + this.hitbox.x1;
+				let x2 = this.x + this.hitbox.x2;
+				let y1 = this.y + this.hitbox.y1;
+				let y2 = this.y + this.hitbox.y2;
+				for (let b = 0; b < this.hitbox.additional.length; b++){
 					let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
 					let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
 					let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
@@ -583,7 +583,7 @@ class Entity{//создаёт сущность с параметрами, хит
 						collisionList.push(collisionZone[a]);
 					}
 				}
-			}
+			}*/
 		}
 		return collisionList;
 	}

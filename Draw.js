@@ -63,6 +63,11 @@ class Draw{
 		this.can.fillStyle = "rgba(0, 128, 0, 0.5)";
 		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
+
+	placeholderSlot(part){
+		this.can.fillStyle = "rgba(128, 128, 128, 0.5)";
+		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+	}
 	
 	background1(field){
 		//this.can.drawImage(this.murasama, 0, 0, field.size, field.size);

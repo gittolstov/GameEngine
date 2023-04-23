@@ -27,6 +27,6 @@ setInterval(() => {
 //}
 //a.functionality = function(){player.inventory.mainhand[0].maxCooldown -= 10}
 player.inventoryIsActive = false;
-devKit.swarm();
-setInterval(devKit.swarm, 9000);
+//devKit.swarm();
+//setInterval(devKit.swarm, 9000);
 devKit.worldBorder();

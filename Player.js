@@ -95,7 +95,7 @@ class Player extends Entity{
 }
 
 class Inventory extends Interface{
-	constructor(entity, slotNumber = 40, lines = 4, rowShift = 5, lineShift = 5, iconSize = 40, slotBg = function(){draw.interface(this)}){
+	constructor(entity, slotNumber = 40, lines = 4, rowShift = 5, lineShift = 5, iconSize = 40, slotBg = function(){draw.placeholderSlot(this)}){
 		let rows = Math.ceil(slotNumber / lines);
 		let sizeX = rows * (iconSize + rowShift) + rowShift;
 		let sizeY = (lines + 1) * (iconSize + lineShift) + lineShift;
@@ -123,7 +123,6 @@ class Inventory extends Interface{
 				c.bgFunction = slotBg;
 				c.draw = function(){
 					this.bgFunction();
-					this.parentInterface.slots[this.inventorySlotId].draw();
 				}
 				c.functionality = function(){
 					let buffer2 = this.parentInterface.buffer;
@@ -150,12 +149,13 @@ class Inventory extends Interface{
 			c.bgFunction = slotBg;
 			c.draw = function(){
 				this.bgFunction();
-				this.parentInterface.slots[this.hotbarId].draw();
 			}
 			c.functionality = function(){
+				this.parentInterface.owner.unUseHand();
 				let buffer2 = this.parentInterface.buffer;
 				this.parentInterface.buffer = this.slotGetter();
 				this.slotSetter(buffer2);
+				this.parentInterface.mainhand[0] = this.slotGetter();
 			};
 			c.slotSetter = function(replacement){
 				this.parentInterface.hotbar[this.hotbarId] = replacement;
