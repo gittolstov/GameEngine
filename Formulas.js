@@ -21,13 +21,6 @@ function defenceCount(dmg, defence){
 }
 
 
-function xshift(map){
-    return -map.loadedZone.x * map.size;
-}
-function yshift(map){
-    return -map.loadedZone.y * map.size;
-}
-
 function spreadCounter(x, y, spread){
     let angle = Math.atan(y/x);
     let random = Math.floor(Math.random() * spread - spread / 2) / 180 * Math.PI;

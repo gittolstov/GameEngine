@@ -21,12 +21,12 @@ function keyDownHandler(){
         player.unUseHand();
         player.inventory.mainhand[0] = player.inventory.hotbar[2];
     } else if (event.keyCode === 13){
-        if (!player.activeWeaponEditor){
-            player.activeWeaponEditor = true;
-            player.weaponEditorId = player.map.activeInterfaces.push(player.mainInterface) - 1;
+        if (!player.inventoryIsActive){
+            player.inventoryIsActive = true;
+            player.inventoryId = player.map.activeInterfaces.push(player.inventory) - 1;
         } else {
-            player.activeWeaponEditor = false;
-            player.map.activeInterfaces[player.weaponEditorId] = undefined;
+            player.inventoryIsActive = false;
+            player.map.activeInterfaces[player.inventoryId] = undefined;
         }
     }
 }
@@ -48,9 +48,9 @@ function keyUpHandler(){
 
 function mouseMoveHandler(){
     player.mousePosition = {x: Math.floor(event.layerX * 10) / 10, y: Math.floor(event.layerY * 10) / 10}
-    player.mouseBox.tp(player.mousePosition.x - xshift(player.map), player.mousePosition.y - yshift(player.map));
+    player.mouseBox.tp(player.mousePosition.x - player.map.xshift(), player.mousePosition.y - player.map.yshift());
     for (let a = 0; a < player.activeRockets.length; a++){
-        player.rockets[player.activeRockets[a]].goal = {x: player.mousePosition.x - xshift(map), y: player.mousePosition.y - yshift(map)};
+        player.rockets[player.activeRockets[a]].goal = {x: player.mousePosition.x - player.map.xshift(), y: player.mousePosition.y - player.map.yshift()};
     }
     map.manageCursor(event.layerX, event.layerY);
 }

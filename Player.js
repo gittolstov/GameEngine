@@ -8,6 +8,10 @@ class Player extends Entity{
 		this.mouseBox = new Box(this.mousePosition.x, this.mousePosition.y, {x1: -8, x2: 8, y1: -8, y2: 8});
 		this.mouseBox.player = this;
 		this.turn = 1;
+		this.xshift = 0;
+		this.yshift = 0;
+		this.inventory = new Inventory(this);
+		this.maxShiftBox = {x1: 100, x2: 500, y1: 100, y2: 500};
 		this.mouseBox.tickPlaceholderMain = function(){
 			let list = this.touch();
 			if (list.length > 0){
@@ -21,6 +25,10 @@ class Player extends Entity{
 
 	draw(){
 		draw.player(this);
+	}
+
+	movePlaceholder1(){
+		this.shiftRefresh();
 	}
 
 	tickPlaceholder1(){
@@ -67,6 +75,94 @@ class Player extends Entity{
 				continue;
 			}
 			this.activeRockets.push(a);
+		}
+	}
+
+	shiftRefresh(){
+		let screenX = this.x + this.xshift;
+		let screenY = this.y + this.yshift;
+		if (screenX > this.maxShiftBox.x2){
+			this.xshift = -this.x + this.maxShiftBox.x2;
+		} else if (screenX < this.maxShiftBox.x1){
+			this.xshift = -this.x + this.maxShiftBox.x1;
+		}
+		if (screenY > this.maxShiftBox.y2){
+			this.yshift = -this.y + this.maxShiftBox.y2;
+		} else if (screenY < this.maxShiftBox.y1){
+			this.yshift = -this.y + this.maxShiftBox.y1;
+		}
+	}
+}
+
+class Inventory extends Interface{
+	constructor(entity, slotNumber = 40, lines = 4, rowShift = 5, lineShift = 5, iconSize = 40, slotBg = function(){draw.interface(this)}){
+		let rows = Math.ceil(slotNumber / lines);
+		let sizeX = rows * (iconSize + rowShift) + rowShift;
+		let sizeY = (lines + 1) * (iconSize + lineShift) + lineShift;
+		super((entity.map.size - sizeX) / 2, (entity.map.size - sizeX) / 2 + sizeX, (entity.map.size - sizeY) / 2, (entity.map.size - sizeY) / 2 + sizeY);
+		this.owner = entity;
+		this.mainhand = [];
+		this.hotbar = [
+			new PlaceholderItem, new PlaceholderItem, new PlaceholderItem, new PlaceholderItem, new PlaceholderItem, new PlaceholderItem, new PlaceholderItem, new PlaceholderItem, new PlaceholderItem, new PlaceholderItem
+		];
+		this.slots = [];
+		this.buffer = new PlaceholderItem;
+		for (let a = 0; a < slotNumber; a++){
+			this.slots.push(new PlaceholderItem);
+		}
+		for (let a = 0; a < lines; a++){
+			for (let b = 0; b < rows; b++){
+				let c = new InterfaceElement(
+					this,
+					(entity.map.size - sizeX) / 2 + rowShift + b * (iconSize + lineShift),
+					(entity.map.size - sizeX) / 2 + (b + 1) * (iconSize + lineShift),
+					(entity.map.size - sizeY) / 2 + lineShift + (a + 1) * (iconSize + lineShift),
+					(entity.map.size - sizeY) / 2 + (a + 2) * (iconSize + lineShift)
+				);
+				c.inventorySlotId = (a + 1) + b;
+				c.bgFunction = slotBg;
+				c.draw = function(){
+					this.bgFunction();
+					this.parentInterface.slots[this.inventorySlotId].draw();
+				}
+				c.functionality = function(){
+					let buffer2 = this.parentInterface.buffer;
+					this.parentInterface.buffer = this.slotGetter();
+					this.slotSetter(buffer2);
+				}
+				c.slotSetter = function(replacement){
+					this.parentInterface.slots[this.inventorySlotId] = replacement;
+				}
+				c.slotGetter = function(){
+					return this.parentInterface.slots[this.inventorySlotId];
+				}
+			}
+		}
+		for (let a = 0; a < rows; a++){
+			let c = new InterfaceElement(
+				this,
+				(entity.map.size - sizeX) / 2 + rowShift + a * (iconSize + lineShift),
+				(entity.map.size - sizeX) / 2 + (a + 1) * (iconSize + lineShift),
+				(entity.map.size - sizeY) / 2 + lineShift,
+				(entity.map.size - sizeY) / 2 + iconSize + lineShift
+			);
+			c.hotbarId = a;
+			c.bgFunction = slotBg;
+			c.draw = function(){
+				this.bgFunction();
+				this.parentInterface.slots[this.hotbarId].draw();
+			}
+			c.functionality = function(){
+				let buffer2 = this.parentInterface.buffer;
+				this.parentInterface.buffer = this.slotGetter();
+				this.slotSetter(buffer2);
+			};
+			c.slotSetter = function(replacement){
+				this.parentInterface.hotbar[this.hotbarId] = replacement;
+			}
+			c.slotGetter = function(){
+				return this.parentInterface.hotbar[this.hotbarId];
+			}
 		}
 	}
 }

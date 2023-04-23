@@ -5,6 +5,7 @@ class Box{
 		this.parameters = {};
 		this.coordinates = {x: x, y: y};
 		this.hitbox = hitbox;
+		this.hitbox.additional = [];
 		this.damage = damage;
 		this.id = this.map.boxList.push(this) - 1;
 		this.touchedEntities = [];
@@ -123,33 +124,21 @@ class Box{
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
 			if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
 				collisionList.push(collisionZone[a]);
+			} else {
+				for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+					let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
+					let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
+					let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
+					let objectY2 = collisionZone[a].hitbox.additional[b].y2 + collisionZone[a].y;
+					if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
+						collisionList.push(collisionZone[a]);
+					}
+				}
 			}
 		}
 		return collisionList;
 	}
 
-	contactList(){
-		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
-		let x1 = this.coordinates.x + this.hitbox.x1;
-		let x2 = this.coordinates.x + this.hitbox.x2;
-		let y1 = this.coordinates.y + this.hitbox.y1;
-		let y2 = this.coordinates.y + this.hitbox.y2;
-		let contactlist = [];
-		for (let a = 0; a < collisionZone.length; a++){
-			if (collisionZone[a] === undefined){
-				continue;
-			}
-			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
-			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
-			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
-			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
-			if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
-				contactlist.push(collisionZone[a]);
-			}
-		}
-		return contactlist;
-	}
-	
 	touch(){
 		let collisionZone = this.map.entityZones[this.loadingZone.x][this.loadingZone.y];
 		let x1 = this.coordinates.x + this.hitbox.x1;
@@ -167,6 +156,16 @@ class Box{
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
 			if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
 				overlapList.push(collisionZone[a]);
+			} else {
+				for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+					let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
+					let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
+					let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
+					let objectY2 = collisionZone[a].hitbox.additional[b].y2 + collisionZone[a].y;
+					if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
+						overlaplist.push(collisionZone[a]);
+					}
+				}
 			}
 		}
 		return overlapList;
@@ -186,6 +185,8 @@ class Tool{
 		this.maxCooldown = 500;
 		this.active = false;
 	}
+
+	draw(){}
 	
 	meleeStrike(user){
 		this.hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2};
@@ -213,13 +214,27 @@ class Tool{
 }
 
 
-class Resource{
+class PlaceholderItem{
+	constructor(){}
+
+	draw(){}
+
+	functionality(){}
+
+	tickMove(){}
+
+	use(){}
+
+	activate(){}
+
+	deactivate(){}
+}
+class Resource extends PlaceholderItem{
 	constructor(amount = 1, type = "bullet"){
+		super();
 		this.amount = amount;
 		this.type = type;
 	}
-
-	functionality(){}
 }
 
 
@@ -328,6 +343,7 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.map = entityScreen;
 		this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
 		this.hitbox = hitbox;
+		this.hitbox.additional = [];
 		this.hp = hp;
 		this.maxHp = hp;
 		this.defence = defence;
@@ -379,6 +395,8 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.y = y;
 	}
 
+	movePlaceholder1(){};
+
 	move(x = 0, y = 0){
 		if (this.overlap(x, y)){
 			this.x += x;
@@ -387,7 +405,9 @@ class Entity{//создаёт сущность с параметрами, хит
 			this.contact({x: x, y: y});
 		}
 		this.reloadEntityZone();
+		this.movePlaceholder1();
 	}
+
 
 	moveToGoal(a, b, step){
 		let stepProjections = projections(a - this.x, b - this.y, step);
@@ -398,6 +418,7 @@ class Entity{//создаёт сущность с параметрами, хит
 			this.contact(stepProjections);
 		}
 		this.reloadEntityZone();
+		this.movePlaceholder1();
 	}
 
 	moveDirection(a, b, step){
@@ -409,6 +430,7 @@ class Entity{//создаёт сущность с параметрами, хит
 			this.contact(stepProjections);
 		}
 		this.reloadEntityZone();
+		this.movePlaceholder1();
 	}
 	
 	moveWithoutRounding(a, b){
@@ -522,9 +544,48 @@ class Entity{//создаёт сущность с параметрами, хит
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
 			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
-			permission = permission && !(x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2)
+			permission = permission && !(x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2);
+			for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+				let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
+				let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
+				let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
+				let objectY2 = collisionZone[a].hitbox.additional[b].y2 + collisionZone[a].y;
+				permission = permission && !(x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2);
+			}
 		}
 		return permission;
+	}
+	
+	overlapList(){
+		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
+		let x1 = this.x + this.hitbox.x1;
+		let x2 = this.x + this.hitbox.x2;
+		let y1 = this.y + this.hitbox.y1;
+		let y2 = this.y + this.hitbox.y2;
+		let collisionList = [];
+		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined){
+				continue;
+			}
+			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
+			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
+			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
+			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
+			if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
+				collisionList.push(collisionZone[a]);
+			} else {
+				for (let b = 0; b < collisionZone[a].hitbox.additional.length; b++){
+					let objectX1 = collisionZone[a].hitbox.additional[b].x1 + collisionZone[a].x;
+					let objectY1 = collisionZone[a].hitbox.additional[b].y1 + collisionZone[a].y;
+					let objectX2 = collisionZone[a].hitbox.additional[b].x2 + collisionZone[a].x;
+					let objectY2 = collisionZone[a].hitbox.additional[b].y2 + collisionZone[a].y;
+					if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
+						collisionList.push(collisionZone[a]);
+					}
+				}
+			}
+		}
+		return collisionList;
 	}
 	
 	reloadEntityZone(){
@@ -562,7 +623,7 @@ class ObjectHitbox{
 			this.x = x;
 			this.y = y;
 		}
-		this.hitbox = {x1: x1 - this.x, x2: x2 - this.x, y1: y1 - this.y, y2: y2 - this.y};
+		this.hitbox = {x1: x1 - this.x, x2: x2 - this.x, y1: y1 - this.y, y2: y2 - this.y, additional: []};
 		this.map = objectScreen;
 		this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
 		let minRange = this.map.size / 10;
@@ -650,9 +711,14 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		for (let a = 0; a < this.entityListActive.length; a++){
 			this.entityList[this.entityListActive[a]].draw();
 		}
-		for (let a = 0; a < this.loadingZones[this.loadedZone.x][this.loadedZone.y].length; a++){
-			if (this.loadingZones[this.loadedZone.x][this.loadedZone.y][a] === undefined){continue}
-			this.loadingZones[this.loadedZone.x][this.loadedZone.y][a].draw();
+		let zonesToLoad = [
+			{x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
+		];
+		for (let b = 0; b < zonesToLoad.length; b++){
+			for (let a = 0; a < this.loadingZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y].length; a++){
+				if (this.loadingZones[this.loadedZone.x][this.loadedZone.y][a] === undefined){continue}
+				this.loadingZones[this.loadedZone.x][this.loadedZone.y][a].draw();
+			}
 		}
 		for (let a = 0; a < this.particleListActive.length; a++){
 			this.particles[this.particleListActive[a]].draw();
@@ -722,6 +788,18 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			this.activeInterfaces[a].click();
 		}
 	}
+
+	xshift(){
+    	//return -this.loadedZone.x * this.size; //camera switches between screens
+		//return -player.x + this.size / 2; //camera attached to the player
+		return player.xshift;
+	}
+
+	yshift(){
+    	//return -this.loadedZone.y * this.size;
+		//return -player.y + this.size / 2;
+		return player.yshift;
+	}
 }
 
 
@@ -760,16 +838,15 @@ class Interface{
 	createBackground(x1, x2, y1, y2){
 		let a = new InterfaceElement(this, x1, x2, y1, y2);
 		a.drawActive = function(){
-			draw.interface2(this);
+			draw.placeholderInterfaceBackground(this);
 		}
-		a.drawUnactive = function(){
-			draw.interface(this);
-		}
+		a.drawUnactive = a.drawActive;
 	}
 }
 class InterfaceElement{
 	constructor(parentInterface, x1, x2, y1, y2){
 		parentInterface.elements.push(this);
+		this.parentInterface = parentInterface;
 		this.hitbox = {x1: x1, x2: x2, y1: y1, y2: y2};
 		this.active = false;
 	}

@@ -24,11 +24,7 @@ class Glyphid extends Entity{
 
     tickPlaceholder1(){
         this.moveToGoal(player.x, player.y, this.speed);
-        if (this.x - player.x < 0){
-            this.side = false;
-        } else {
-            this.side = true;
-        }
+        this.side = (player.x - this.x) / Math.abs(player.x - this.x);
     }
 }
 
@@ -112,7 +108,7 @@ class Bullet extends Entity{
 
 class Weapon extends Tool{
     constructor(dmg, bpm, functionality = function(ent){
-        let spread = spreadCounter(ent.mousePosition.x - ent.x - xshift(map), ent.mousePosition.y - ent.y - yshift(map), this.spread);
+        let spread = spreadCounter(ent.mousePosition.x - ent.x - map.xshift(), ent.mousePosition.y - ent.y - map.yshift(), this.spread);
         let a = projections(spread.x, spread.y, ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
         new Bullet(ent, this.gunDamage, {x: a.x, y: a.y});
     }, spread = 20){
@@ -170,7 +166,7 @@ class Breaker extends Box{
     }
     
     tickPlaceholderMain(){
-        let b = this.contactList();
+        let b = this.contact();
         for (let a = 0; a < b.length; a++){
             b[a].remove();
         }
@@ -222,7 +218,7 @@ class Missile extends Bullet{
 class Flamethrower extends Weapon{
     constructor(dmg, bpm){
         super(dmg / 2, bpm, function(ent){
-            let a = projections((ent.mousePosition.x - ent.x - xshift(map)), (ent.mousePosition.y - ent.y - yshift(map)), ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
+            let a = projections((ent.mousePosition.x - ent.x - map.xshift()), (ent.mousePosition.y - ent.y - map.yshift()), ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
             new Flame(ent, this.gunDamage.amount, {x: a.x, y: a.y});
         });
     }    
