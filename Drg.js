@@ -1,6 +1,6 @@
 class Glyphid extends Entity{
     constructor(size, hp, damage, defence){
-        super(Math.floor(Math.random() * 600) + 600, Math.floor(Math.random() * 600), hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size}, player.map);
+        super(Math.floor(Math.random() * 600) + 600, Math.floor(Math.random() * 600), hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, player.map);
         this.box = new Box( undefined, undefined, this.hitbox, {type: "enemy", amount: damage, iFrame: 3000});
         this.box.bind(this);
         this.speed = 1;
@@ -125,7 +125,7 @@ class Flame extends Bullet{
         super(gunner, {type: "fire", amount: damage, iFrame: 10}, goal);
         this.speed = 10;
         this.life = 75;
-        this.hitbox = {x1: -5, x2: 5, y1: -5, y2: 5};
+        this.hitbox = {x1: -5, x2: 5, y1: -5, y2: 5, additional: []};
         this.fireStage = 0;
         this.box.damagePlaceholderFunction = function(damaged){
             //if (damaged != player){
