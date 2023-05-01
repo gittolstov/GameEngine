@@ -11,7 +11,7 @@ class Player extends Entity{
 		this.xshift = 0;
 		this.yshift = 0;
 		this.inventory = new Inventory(this);
-		this.maxShiftBox = {x1: 100, x2: 500, y1: 100, y2: 500};
+		this.maxShiftBox = {x1: 200, x2: 400, y1: 200, y2: 400};
 		this.mouseBox.tickPlaceholderMain = function(){
 			let list = this.touch();
 			if (list.length > 0){
@@ -41,6 +41,10 @@ class Player extends Entity{
 	
 	movePlayer(x, y){
 		this.moveDirection(x, y, this.speed);
+	}
+
+	deathPlaceholder1(){
+		alert("Game over!");
 	}
 	
 	upPress(){
@@ -119,7 +123,7 @@ class Inventory extends Interface{
 					(entity.map.size - sizeY) / 2 + lineShift + (a + 1) * (iconSize + lineShift),
 					(entity.map.size - sizeY) / 2 + (a + 2) * (iconSize + lineShift)
 				);
-				c.inventorySlotId = (a + 1) + b;
+				c.inventorySlotId = a * rows + b;
 				c.bgFunction = slotBg;
 				c.draw = function(){
 					this.bgFunction();

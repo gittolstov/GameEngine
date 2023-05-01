@@ -1,6 +1,17 @@
 class Glyphid extends Entity{
     constructor(size, hp, damage, defence){
-        super(Math.floor(Math.random() * 600) + 600, Math.floor(Math.random() * 600), hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, player.map);
+        super(0, 0, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, player.map);
+        while (true){
+            this.x = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
+            this.y = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
+            this.reloadEntityZone();
+            if (this.overlapAnyway()){
+                break;
+            } else {
+                this.x = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
+                this.y = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
+            }
+        }
         this.box = new Box( undefined, undefined, this.hitbox, {type: "enemy", amount: damage, iFrame: 3000});
         this.box.bind(this);
         this.speed = 1;
@@ -110,7 +121,7 @@ class Weapon extends Tool{
     constructor(dmg, bpm, functionality = function(ent){
         let spread = spreadCounter(ent.mousePosition.x - ent.x - map.xshift(), ent.mousePosition.y - ent.y - map.yshift(), this.spread);
         let a = projections(spread.x, spread.y, ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
-        new Bullet(ent, this.gunDamage, {x: a.x, y: a.y});
+        new Bullet(ent, this.gunDamage, a);
     }, spread = 20){
         super(functionality);
         this.gunDamage = {type: "playerGeneric", amount: dmg, iFrame: 3000};
@@ -166,7 +177,7 @@ class Breaker extends Box{
     }
     
     tickPlaceholderMain(){
-        let b = this.contact();
+        let b = this.contactAnyway();
         for (let a = 0; a < b.length; a++){
             b[a].remove();
         }
@@ -222,4 +233,61 @@ class Flamethrower extends Weapon{
             new Flame(ent, this.gunDamage.amount, {x: a.x, y: a.y});
         });
     }    
+}
+
+
+class caveGenerator{
+    constructor(x1, y1, x2, y2, size = 20, roomAmount = 4, maP = map){
+        this.rooms = [];
+        this.boundary = {x1: x1 * size, x2: x2 * size, y1: y1 * size, y2: y2 * size};
+        for (let a = 0; a < x2 - x1; a++){
+            for (let b = 0; b < y2 - y1; b++){
+                new ObjectHitbox(a * size, (a + 1) * size, b * size, (b + 1) * size, true, undefined, undefined, maP);
+            }
+        }
+        for (let a = 0; a < roomAmount; a++){
+            this.roomCreator();
+        }
+        let a = new Breaker(player.x, player.y, {x1: -80, x2: 80, y1: -80, y2: 80});
+        a.bind(player);
+    }
+
+    roomOverlap(hitbox, x, y){
+        for (let a = 0; a < this.rooms.length; a++){
+			let x1 = x + hitbox.x1;
+			let x2 = x + hitbox.x2;
+			let y1 = y + hitbox.y1;
+			let y2 = y + hitbox.y2;
+			if (this.rooms[a] === undefined){
+				continue;
+			}
+			let objectX1 = this.rooms[a].x + this.rooms[a].box.x1 * 1.2;
+			let objectY1 = this.rooms[a].y + this.rooms[a].box.y1 * 1.2;
+			let objectX2 = this.rooms[a].x + this.rooms[a].box.x2 * 1.2;
+			let objectY2 = this.rooms[a].y + this.rooms[a].box.y2 * 1.2;
+			if (x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2){
+				return false;
+			}
+        }
+        return true;
+    }
+
+    roomCreator(scaling = 600){
+        while (true){
+            let rand1 = Math.random() * scaling ** 2 + 10000;
+            let rand2 = Math.random() * scaling ** 2 + 10000;
+            let xSize = Math.floor(Math.sqrt(Math.abs(rand1)));
+            let ySize = Math.floor(Math.sqrt(Math.abs(rand2)));
+            let x = this.boundary.x1 + xSize / 2 + Math.floor(Math.random() * (this.boundary.x2 - this.boundary.x1 - xSize));
+            let y = this.boundary.y1 + ySize / 2 + Math.floor(Math.random() * (this.boundary.y2 - this.boundary.y1 - ySize));
+            let hitbox = {x1: -xSize / 2, y1: -ySize / 2, x2: xSize / 2, y2: ySize / 2};
+            if (this.roomOverlap(hitbox, x, y)){
+                new Breaker(x, y, hitbox);
+                this.rooms.push({box: hitbox, x: x, y: y});
+                break;
+            } else {
+                continue;
+            }
+        }
+    }
 }

@@ -12,6 +12,7 @@ class Draw{
 		this.glyphidSwarmer = new Image;
 		this.glyphidPraetorian = new Image;
 		this.bulletImg = new Image;
+		this.caveBg = new Image;
 		this.shade.src = "enemy.png";
 		this.murasama.src = "Murasama.jpeg";
 		this.hornet.src = "player.png";
@@ -20,6 +21,7 @@ class Draw{
 		this.glyphidGrunt.src = "Glyphid_grunt.png";
 		this.glyphidSwarmer.src = "Glyphid_swarmer.png";
 		this.glyphidPraetorian.src = "Glyphid_praetorian.png";
+		this.caveBg.src = "caveBackground1.png"
 		this.fireImg[0].src = "Fire.png";
 		this.fireImg[1].src = "Fire2.png";
 		this.bulletImg.src = "Bullet.png";
@@ -73,6 +75,10 @@ class Draw{
 		//this.can.drawImage(this.murasama, 0, 0, field.size, field.size);
 		this.can.fillStyle = "lightgrey"
 		this.can.fillRect(0, 0, field.size, field.size);
+	}
+
+	backgroundDrg(field){
+		this.can.drawImage(this.caveBg, -field.xshift() % field.size + field.size, -field.yshift() % field.size + field.size, field.size, field.size, 0, 0, field.size, field.size);
 	}
 
 	startParticle(ptl){

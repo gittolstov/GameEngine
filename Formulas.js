@@ -22,6 +22,8 @@ function defenceCount(dmg, defence){
 
 
 function spreadCounter(x, y, spread){
+    if (x === 0){return spreadCounter(0.001, y, spread);}
+    if (y === 0){return spreadCounter(x, 0.001, spread);}
     let angle = Math.atan(y/x);
     let random = Math.floor(Math.random() * spread - spread / 2) / 180 * Math.PI;
     let angle2 = ((angle + random) + (Math.PI * 2)) % (Math.PI * 2);

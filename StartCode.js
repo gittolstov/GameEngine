@@ -1,7 +1,8 @@
-let map = new Map(600, 20, 20);
+let map = new Map(600, 10, 10);
 let player = new Player;
 let draw = new Draw;
 let devKit = new DevKit;
+let checker = 0;
 player.inventory.hotbar[0] = new Weapon(0.1, 400, function(ent){
     new Missile(ent, this.gunDamage, player.target);
 });
@@ -11,7 +12,7 @@ player.inventory.hotbar[2] = new Weapon(1, 300, function(ent){
     for (let b = 0; b < 5; b++){
         let spread = spreadCounter(ent.mousePosition.x - ent.x - map.xshift(), ent.mousePosition.y - ent.y - map.yshift(), this.spread);
         let a = projections(spread.x, spread.y, ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
-        new Bullet(ent, this.gunDamage, {x: a.x, y: a.y});
+        new Bullet(ent, this.gunDamage, a);
     }
 }, 15);
 map.drawEverything();
@@ -27,6 +28,10 @@ setInterval(() => {
 //}
 //a.functionality = function(){player.inventory.mainhand[0].maxCooldown -= 10}
 player.inventoryIsActive = false;
-//devKit.swarm();
-//setInterval(devKit.swarm, 9000);
+//devKit.swarm());
+let swarmAllowed = false;
+setInterval(() => {if(swarmAllowed){devKit.swarm();}}, 25000);
 devKit.worldBorder();
+let b = new caveGenerator(0, 0, 300, 300, undefined, 20);
+let a = new Breaker(100, 100, {x1: -30, x2: 30, y1: -30, y2: 30}, 10000);
+a.bind(player);
