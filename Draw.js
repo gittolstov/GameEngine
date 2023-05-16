@@ -35,7 +35,7 @@ class Draw{
 	}
 
 	player(ent){
-		this.modifyContextMatrix(0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), ent.turn);
+		this.modifyContextMatrix(/*turn(ent.mouseShift.x, ent.mouseShift.y).angle*/0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), turn(ent.mouseShift.x, ent.mouseShift.y).side/*ent.turn*/);
 		this.can.drawImage(this.doomguy, ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
 		this.can.restore();
 	}
@@ -81,6 +81,16 @@ class Draw{
 		this.can.drawImage(this.caveBg, -field.xshift() % field.size + field.size, -field.yshift() % field.size + field.size, field.size, field.size, 0, 0, field.size, field.size);
 	}
 
+	item(icon, x1, x2, y1, y2){
+		this.can.drawImage(icon, x1, y1, x2 - x1, y2 - y1);
+	}
+
+	tool(sprite, ent, x1, x2, y1, y2){
+		this.modifyContextMatrix(turn(ent.mouseShift.x, ent.mouseShift.y).angle, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), turn(ent.mouseShift.x, ent.mouseShift.y).side/*ent.turn*/);
+		this.can.drawImage(sprite, x1, y1, x2 - x1, y2 - y1);
+		this.can.restore();
+	}
+
 	startParticle(ptl){
 		ptl.animation = 0;
 		for (let a = 1; a < this.particleImg.length; a++){
@@ -121,6 +131,6 @@ class Draw{
 	modifyContextMatrix(angle, xShift, yShift, xTurn = 1, yTurn = 1){
 		this.can.save();
 		this.can.setTransform(xTurn, 0, 0, yTurn, xShift, yShift);
-		this.can.rotate(angle / 180 * Math.PI);
+		this.can.rotate(angle);
 	}
 }

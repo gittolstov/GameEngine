@@ -261,8 +261,21 @@ class Tool{
 		this.functionality = functionality;
 		this.meleeDamage = meleeDamage;
 		this.cooldown = true;
+		this.hitbox = {x1: -40, x2: 40, y1: 5, y2: -15};
 		this.maxCooldown = 500;
 		this.active = false;
+		this.toolIcon = new Image;
+		this.toolIcon.src = "toolPlaceholder.png";
+		this.sprite = new Image;
+		this.sprite.src = "toolPlaceholder.png";
+	}
+
+	draw(x1, x2, y1, y2){
+		draw.item(this.toolIcon, x1, x2, y1, y2);
+	}
+
+	handSprite(ent){
+		draw.tool(this.sprite, ent, this.hitbox.x1, this.hitbox.x2, this.hitbox.y1, this.hitbox.y2);
 	}
 	
 	meleeStrike(user){
@@ -292,7 +305,11 @@ class Tool{
 
 
 class PlaceholderItem{
-	constructor(){}
+	constructor(){
+		this.isPlaceholder = true;
+	}
+
+	draw(){}
 
 	functionality(){}
 
@@ -305,10 +322,29 @@ class PlaceholderItem{
 	deactivate(){}
 }
 class Resource extends PlaceholderItem{
-	constructor(amount = 1, type = "bullet"){
+	constructor(amount = 1, type = "stick", ammoType = "NotAmmo", image = "bulletPlaceholder.png"){
 		super();
-		this.amount = amount;
 		this.type = type;
+		this.amount = amount;
+		this.ammoType = ammoType;
+		this.isPlaceholder = true;
+		this.icon = new Image;
+		this.icon.src = image;
+	}
+
+	draw(x1, x2, y1, y2){
+		draw.item(this.icon, x1, x2, y1, y2);
+	}
+
+	handSprite(){}
+
+	decrease(amount){
+		this.amount -= amount;
+		if (this.amount <= 0){
+			this.ammoType = "NotAmmo";
+		}
+		return this.amount;
+		this.amount = 0;
 	}
 }
 
@@ -427,7 +463,7 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.bindedParticles = [];
 		this.statusEffects = [];
 		this.activeEffects = [];
-		this.inventory = {mainhand: [], hotbar: []};
+		this.inventory = {mainhand: [], hotbar: [], slots: []};
 		this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
 		this.enemyDamageMultiplier = 1;
 		this.playerDamageMultiplier = 1;
@@ -456,6 +492,44 @@ class Entity{//создаёт сущность с параметрами, хит
 	}
 	
 	tickPlaceholder3(){
+	}
+
+	ammunitionGetter(type){
+		let ammoCounter = 0;
+		for (let d = 0; d < this.inventory.slots.length; d++){
+			if (this.inventory.slots[d].ammoType === type){
+				ammoCounter += this.inventory.slots[d].amount;
+			}
+		}
+		for (let d = 0; d < this.inventory.hotbar.length; d++){
+			if (this.inventory.hotbar[d].ammoType === type){
+				ammoCounter += this.inventory.hotbar[d].amount;
+			}
+		}
+		return ammoCounter;
+	}
+
+	ammunitionDecreaser(type, amount = 1){
+		for (let d = 0; d < this.inventory.hotbar.length; d++){
+			if (this.inventory.hotbar[d].ammoType === type){
+				let decreased = this.inventory.hotbar[d].decrease(amount);
+				if (decreased >= 0){
+					return;
+				} else {
+					amount += decreased;
+				}
+			}
+		}
+		for (let d = 0; d < this.inventory.slots.length; d++){
+			if (this.inventory.slots[d].ammoType === type){
+				let decreased = this.inventory.slots[d].decrease(amount);
+				if (decreased >= 0){
+					return;
+				} else {
+					amount += decreased;
+				}
+			}
+		}
 	}
 
 	increasedHitbox(scale){
@@ -545,6 +619,21 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.hp += amount;
 		if (this.hp > this.maxHp){
 			this.hp = this.maxHp;
+		}
+	}
+
+	give(item){
+		for (let d = 0; d < this.inventory.slots.length; d++){
+			if (this.inventory.slots[d].isPlaceholder){
+				this.inventory.slots[d] = item;
+				return;
+			}
+		}
+		for (let d = 0; d < this.inventory.hotbar.length; d++){
+			if (this.inventory.slots[d].isPlaceholder){
+				this.inventory.hotbar[d] = item;
+				return;
+			}
 		}
 	}
 	
@@ -853,6 +942,9 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		draw.backgroundDrg(this);
 		for (let a = 0; a < this.entityListActive.length; a++){
 			this.entityList[this.entityListActive[a]].draw();
+			for (let b = 0; b < this.entityList[this.entityListActive[a]].inventory.mainhand.length; b++){
+				this.entityList[this.entityListActive[a]].inventory.mainhand[b].handSprite(this.entityList[this.entityListActive[a]]);
+			}
 		}
 		let zonesToLoad = [
 			{x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
@@ -1008,7 +1100,7 @@ class InterfaceElement{
 	drawUnactive(){}
 
 	functionality(){
-		console.log("click");
+		//console.log("click");
 	}
 }
 

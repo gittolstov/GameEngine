@@ -90,7 +90,7 @@ class Praetorian extends Glyphid{
 
 class Bullet extends Entity{
     constructor(gunner, damage, goal){
-        super(gunner.x, gunner.y, -1000, 1000000, {x1: -5, x2: 5, y1: -5, y2: 5}, gunner.map);
+        super(gunner.x, gunner.y + magicConstant1, -1000, 1000000, {x1: -5, x2: 5, y1: -5, y2: 5}, gunner.map);
         this.box = new Box(undefined, undefined, this.hitbox, damage);
         this.speed = 30;
         this.damage = damage;//doesn't affect real damage number
@@ -119,9 +119,12 @@ class Bullet extends Entity{
 
 class Weapon extends Tool{
     constructor(dmg, bpm, functionality = function(ent){
-        let spread = spreadCounter(ent.mousePosition.x - ent.x - map.xshift(), ent.mousePosition.y - ent.y - map.yshift(), this.spread);
-        let a = projections(spread.x, spread.y, ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
-        new Bullet(ent, this.gunDamage, a);
+        if (ent.ammunitionGetter("shell") > 0){
+            let spread = spreadCounter(ent.mousePosition.x - ent.x - ent.map.xshift(), ent.mousePosition.y - ent.y - ent.map.yshift(), this.spread);
+            let a = projections(spread.x, spread.y, ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
+            new Bullet(ent, this.gunDamage, {x: ent.x + a.x, y: ent.y + a.y});
+            ent.ammunitionDecreaser("shell", 1);
+        }
     }, spread = 20){
         super(functionality);
         this.gunDamage = {type: "playerGeneric", amount: dmg, iFrame: 3000};
@@ -229,9 +232,14 @@ class Missile extends Bullet{
 class Flamethrower extends Weapon{
     constructor(dmg, bpm){
         super(dmg / 2, bpm, function(ent){
-            let a = projections((ent.mousePosition.x - ent.x - map.xshift()), (ent.mousePosition.y - ent.y - map.yshift()), ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
-            new Flame(ent, this.gunDamage.amount, {x: a.x, y: a.y});
+            if (ent.ammunitionGetter("flame") > 0){
+                let a = projections((ent.mousePosition.x - ent.x - ent.map.xshift()), (ent.mousePosition.y - ent.y - ent.map.yshift()), ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
+                new Flame(ent, this.gunDamage.amount, {x: ent.x + a.x, y: ent.y + a.y});
+                ent.ammunitionDecreaser("flame", 1);
+            }
         });
+        this.sprite.src = "Flamethrower.png";
+        this.toolIcon.src = "Fire.png";
     }    
 }
 

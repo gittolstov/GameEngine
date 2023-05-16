@@ -1,10 +1,11 @@
 class Player extends Entity{
-	constructor(x = 100, y = 100, hp = 100, defence = 0, hitbox = {x1: -15, x2: 15, y1: -15, y2: 15}, entityScreen = map, speed = 3){
+	constructor(x = 100, y = 100, hp = 100, defence = 0, hitbox = {x1: -7.5, x2: 7.5, y1: -15, y2: 15}, entityScreen = map, speed = 3){
 		super(x, y, hp, defence, hitbox, entityScreen);
 		this.moveVectoring = {x: 0, y: 0};
 		this.speed = speed;
 		this.playerDamageMultiplier = 0;
 		this.mousePosition = {x: 0, y: 0};
+		this.mouseShift = {x: 0, y: 0}
 		this.mouseBox = new Box(this.mousePosition.x, this.mousePosition.y, {x1: -8, x2: 8, y1: -8, y2: 8});
 		this.mouseBox.player = this;
 		this.turn = 1;
@@ -127,6 +128,7 @@ class Inventory extends Interface{
 				c.bgFunction = slotBg;
 				c.draw = function(){
 					this.bgFunction();
+					this.slotGetter().draw(this.hitbox.x1, this.hitbox.x2, this.hitbox.y1, this.hitbox.y2);
 				}
 				c.functionality = function(){
 					let buffer2 = this.parentInterface.buffer;
@@ -153,6 +155,7 @@ class Inventory extends Interface{
 			c.bgFunction = slotBg;
 			c.draw = function(){
 				this.bgFunction();
+				this.slotGetter().draw(this.hitbox.x1, this.hitbox.x2, this.hitbox.y1, this.hitbox.y2);
 			}
 			c.functionality = function(){
 				this.parentInterface.owner.unUseHand();

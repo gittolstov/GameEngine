@@ -3,12 +3,12 @@ function projections(a, b, hypothesis){//a, b - расстояния до цел
         return {x: 0, y: 0};
     }
     if (a === 0){
-        return {x: 0, y: hypothesis * b / Math.abs(b)};
+        return {x: 0, y: hypothesis * Math.sign(b)};
     }
     if (b === 0){
-        return {y: 0, x: hypothesis * a / Math.abs(a)};
+        return {y: 0, x: hypothesis * Math.sign(a)};
     }
-	y = hypothesis * b / (Math.sqrt(a ** 2 / b ** 2 + 1) * Math.abs(b))
+	y = hypothesis * Math.sign(b) / Math.sqrt(a ** 2 / b ** 2 + 1);
     return {
 		x: y * a / b,
 		y: y
@@ -30,4 +30,9 @@ function spreadCounter(x, y, spread){
     let x2 = x;
     let y2 = Math.abs(Math.tan(angle2)) * y / Math.abs(y/x);
     return {x: x2, y: y2};
+}
+
+
+function turn(x, y){
+    return {angle: Math.atan(y/x) * Math.sign(x), side: Math.sign(x), sidey: Math.sign(y)};
 }
