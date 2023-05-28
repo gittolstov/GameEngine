@@ -37,6 +37,32 @@ class Glyphid extends Entity{
         this.moveToGoal(player.x, player.y, this.speed);
         this.side = (player.x - this.x) / Math.abs(player.x - this.x);
     }
+
+    deathPlaceholder1(){
+        player.killCount++;
+    }
+
+    shadowRealmSibasAttempt(){
+        if (euclidianDistance(this.x, this.y, player.x, player.y) > player.map.size * 2){
+            this.mapTransfer(this.map.shadowRealm);
+        }
+    }
+    shadowRealmReturnAttempt(){
+        if (euclidianDistance(this.x, this.y, player.x, player.y) <= player.map.size * 2){
+            this.mapTransfer(this.map.backLink);
+        }
+    }
+}
+
+
+class ShadowRealm extends Map{
+    constructor(upper){
+        super(upper.size, upper.fieldWidth, upper.fieldHeight);
+        this.backLink = upper;
+        upper.shadowRealm = this;
+    }
+
+    tick(){}
 }
 
 
@@ -247,8 +273,10 @@ class Flamethrower extends Weapon{
 class caveGenerator{
     constructor(x1, y1, x2, y2, size = 20, roomAmount = 4, maP = map){
         this.rooms = [];
+        this.roomsWithoutTunnels = [];
+        this.roomsWithTunnels = [];
         this.boundary = {x1: x1 * size, x2: x2 * size, y1: y1 * size, y2: y2 * size};
-        for (let a = 0; a < x2 - x1; a++){
+        for (let a = 0; a < x2 - x1; a++){//creates theRock
             for (let b = 0; b < y2 - y1; b++){
                 new ObjectHitbox(a * size, (a + 1) * size, b * size, (b + 1) * size, true, undefined, undefined, maP);
             }
@@ -256,8 +284,25 @@ class caveGenerator{
         for (let a = 0; a < roomAmount; a++){
             this.roomCreator();
         }
-        let a = new Breaker(player.x, player.y, {x1: -80, x2: 80, y1: -80, y2: 80});
-        a.bind(player);
+        this.roomsWithTunnels.push(this.roomsWithoutTunnels[0]);
+        this.roomsWithoutTunnels.splice(0, 1);
+        while (this.roomsWithoutTunnels.length > 0){
+            let range = {x1: maP.fieldHeight * maP.size + maP.fieldWidth * maP.size, y1: maP.fieldHeight * maP.size + maP.fieldWidth * maP.size, x2: 0, y2: 0};
+            for (let b = 0; b < this.roomsWithTunnels.length; b++){
+                for (let c = 0; c < this.roomsWithoutTunnels.length; c++){
+                    let distance = euclidianDistance(this.roomsWithTunnels[b].x, this.roomsWithTunnels[b].y, this.roomsWithoutTunnels[c].x, this.roomsWithoutTunnels[c].y);
+                    if (euclidianDistance(range.x1, range.y1, range.x2, range.y2) > distance){
+                        range = {x1: this.roomsWithTunnels[b].x, y1: this.roomsWithTunnels[b].y, x2: this.roomsWithoutTunnels[c].x, y2: this.roomsWithoutTunnels[c].y, outerId: c};
+                    }
+                }
+            }
+            this.tunnelBore(range);
+            this.roomsWithTunnels.push(this.roomsWithoutTunnels[range.outerId]);
+            this.roomsWithoutTunnels.splice(range.outerId, 1);
+        }
+        player.tp(this.rooms[0].x, this.rooms[0].y);
+        //let a = new Breaker(player.x, player.y, {x1: -80, x2: 80, y1: -80, y2: 80});
+        //a.bind(player);
     }
 
     roomOverlap(hitbox, x, y){
@@ -280,22 +325,58 @@ class caveGenerator{
         return true;
     }
 
-    roomCreator(scaling = 600){
-        while (true){
+    roomCreator(obj = this, scaling = 600){//
+        for (let s = 0; s < 100; s++){
             let rand1 = Math.random() * scaling ** 2 + 10000;
             let rand2 = Math.random() * scaling ** 2 + 10000;
             let xSize = Math.floor(Math.sqrt(Math.abs(rand1)));
             let ySize = Math.floor(Math.sqrt(Math.abs(rand2)));
-            let x = this.boundary.x1 + xSize / 2 + Math.floor(Math.random() * (this.boundary.x2 - this.boundary.x1 - xSize));
-            let y = this.boundary.y1 + ySize / 2 + Math.floor(Math.random() * (this.boundary.y2 - this.boundary.y1 - ySize));
+            let x = obj.boundary.x1 + xSize / 2 + Math.floor(Math.random() * (obj.boundary.x2 - obj.boundary.x1 - xSize));
+            let y = obj.boundary.y1 + ySize / 2 + Math.floor(Math.random() * (obj.boundary.y2 - obj.boundary.y1 - ySize));
             let hitbox = {x1: -xSize / 2, y1: -ySize / 2, x2: xSize / 2, y2: ySize / 2};
-            if (this.roomOverlap(hitbox, x, y)){
-                new Breaker(x, y, hitbox);
-                this.rooms.push({box: hitbox, x: x, y: y});
+            if (obj.roomOverlap(hitbox, x, y)){
+                let zonesToLoad = [
+                    {x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
+                ];
+                let a = new Breaker(x, y, hitbox, 10);
+                for (let b = 0; b < zonesToLoad.length; b++){
+                    a.loadingZone.x += zonesToLoad[b].x;
+                    a.loadingZone.y += zonesToLoad[b].y;
+                    a.tickMove();
+                    a.loadingZone.x -= zonesToLoad[b].x;
+                    a.loadingZone.y -= zonesToLoad[b].y;
+                }
+                a.tickMove();
+                obj.rooms.push({box: hitbox, x: x, y: y});
+                obj.roomsWithoutTunnels.push({box: hitbox, x: x, y: y});
+                for (let shift = 0; shift < 5; shift++){
+                    let size = Math.floor(Math.sqrt(Math.abs(Math.random() * (xSize / 3) ** 2)));
+                    let hitbox2 = {x1: -size / 2, x2: size / 2, y1: -size / 2, y2: size / 2};
+                    new Breaker(x + hitbox.x1 + shift * xSize / 5, y + hitbox.y1, hitbox2, 2);
+                    size = Math.floor(Math.sqrt(Math.abs(Math.random() * (xSize / 5) ** 2)));
+                    hitbox2 = {x1: -size / 2, x2: size / 2, y1: -size / 2, y2: size / 2};
+                    new Breaker(x + hitbox.x1 + shift * xSize / 5, y + hitbox.y2, hitbox2, 2);
+                    size = Math.floor(Math.sqrt(Math.abs(Math.random() * (xSize / 5) ** 2)));
+                    hitbox2 = {x1: -size / 2, x2: size / 2, y1: -size / 2, y2: size / 2};
+                    new Breaker(x + hitbox.x1, y + hitbox.y1 + shift * ySize / 5, hitbox2, 2);
+                    size = Math.floor(Math.sqrt(Math.abs(Math.random() * (xSize / 5) ** 2)));
+                    hitbox2 = {x1: -size / 2, x2: size / 2, y1: -size / 2, y2: size / 2};
+                    new Breaker(x + hitbox.x2, y + hitbox.y1 + shift * ySize / 5, hitbox2, 2);
+                }
                 break;
             } else {
                 continue;
             }
         }
+    }
+
+    tunnelBore(range, size = 60){
+        let d = new Breaker(range.x1, range.y1, {x1: -size/2, x2: size/2, y1: -size/2, y2: size/2}, 100000);
+        while (euclidianDistance(d.coordinates.x, d.coordinates.y, range.x2, range.y2) > 20){
+            d.moveToGoal(range.x2, range.y2, 15);
+            d.tickMove();
+        }
+        d.remove();
+        console.log("room achieved");
     }
 }

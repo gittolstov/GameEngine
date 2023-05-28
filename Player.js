@@ -11,6 +11,7 @@ class Player extends Entity{
 		this.turn = 1;
 		this.xshift = 0;
 		this.yshift = 0;
+		this.killCount = 0;
 		this.inventory = new Inventory(this);
 		this.maxShiftBox = {x1: 200, x2: 400, y1: 200, y2: 400};
 		this.mouseBox.tickPlaceholderMain = function(){
@@ -95,6 +96,18 @@ class Player extends Entity{
 			this.yshift = -this.y + this.maxShiftBox.y2;
 		} else if (screenY < this.maxShiftBox.y1){
 			this.yshift = -this.y + this.maxShiftBox.y1;
+		}
+	}
+
+	reloadEntityZone(){
+		if (Math.floor(this.x / this.map.size) != this.loadingZone.x || Math.floor(this.y / this.map.size) != this.loadingZone.y){
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
+			this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
+			this.zoneId = this.map.entityZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
+			for (let a = 0; a < this.bindedHitboxes.length; a++){
+				this.bindedHitboxes[a].reloadLoadingZone();
+			}
+			this.map.reloadEnemies();
 		}
 	}
 }

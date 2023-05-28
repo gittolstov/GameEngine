@@ -34,5 +34,10 @@ function spreadCounter(x, y, spread){
 
 
 function turn(x, y){
-    return {angle: Math.atan(y/x) * Math.sign(x), side: Math.sign(x), sidey: Math.sign(y)};
+    return {angle: Math.atan(y/x) * Math.sign(x), side: Math.sign(x + 0.0001), sidey: Math.sign(y + 0.0001)};
+}
+
+
+function euclidianDistance(x1, y1, x2, y2){
+    return (Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2));
 }

@@ -1,4 +1,5 @@
 let map = new Map(600, 10, 10);
+new ShadowRealm(map);
 let player = new Player;
 let draw = new Draw;
 let devKit = new DevKit;
@@ -36,6 +37,6 @@ player.inventoryIsActive = false;
 let swarmAllowed = false;
 setInterval(() => {if(swarmAllowed){devKit.swarm();}}, 25000);
 devKit.worldBorder();
-let b = new caveGenerator(0, 0, 300, 300, undefined, 20);
-let a = new Breaker(100, 100, {x1: -30, x2: 30, y1: -30, y2: 30}, 10000);
-a.bind(player);
+let u = new caveGenerator(0, 0, 300, 300, undefined, 20);
+//let a = new Breaker(100, 100, {x1: -30, x2: 30, y1: -30, y2: 30}, 10000);
+//a.bind(player);

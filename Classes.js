@@ -67,6 +67,13 @@ class Box{
 		this.reloadLoadingZone();
 	}
 
+	moveToGoal(a, b, step){
+		let stepProjections = projections(a - this.coordinates.x, b - this.coordinates.y, step);
+		this.coordinates.x += Math.round(stepProjections.x * 10) / 10;
+		this.coordinates.y += Math.round(stepProjections.y * 10) / 10;
+		this.reloadLoadingZone();
+	}
+
 	remove(){
 		this.map.boxList[this.id] = undefined;
 		this.map.reloadBoxActiveList();
@@ -253,6 +260,15 @@ class Box{
 	reloadLoadingZone(){
 		this.loadingZone = {x: Math.floor(this.coordinates.x / this.map.size), y: Math.floor(this.coordinates.y / this.map.size)};
 	}
+
+	mapTransfer(direction){
+		this.map.boxList[this.id] = undefined;
+		let mappa = this.map;
+		this.map = direction;
+		this.id = direction.boxList.push(this) - 1;
+		direction.reloadBoxActiveList();
+		mappa.reloadBoxActiveList();
+	}
 }
 
 
@@ -327,7 +343,7 @@ class Resource extends PlaceholderItem{
 		this.type = type;
 		this.amount = amount;
 		this.ammoType = ammoType;
-		this.isPlaceholder = true;
+		this.isPlaceholder = false;
 		this.icon = new Image;
 		this.icon.src = image;
 	}
@@ -340,11 +356,16 @@ class Resource extends PlaceholderItem{
 
 	decrease(amount){
 		this.amount -= amount;
+		let am2 = this.amount;
 		if (this.amount <= 0){
-			this.ammoType = "NotAmmo";
+			for (let a in this){
+				delete this[a];
+			}
+			let b = new PlaceholderItem;
+			Object.assign(this, b);
+			this.draw = function(){}
 		}
-		return this.amount;
-		this.amount = 0;
+		return am2;
 	}
 }
 
@@ -566,7 +587,6 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.movePlaceholder1();
 	}
 
-
 	moveToGoal(a, b, step){
 		let stepProjections = projections(a - this.x, b - this.y, step);
 		if (this.overlap(stepProjections.x, stepProjections.y)){
@@ -627,11 +647,17 @@ class Entity{//создаёт сущность с параметрами, хит
 			if (this.inventory.slots[d].isPlaceholder){
 				this.inventory.slots[d] = item;
 				return;
+			} else if (this.inventory.slots[d].type === item.type) {
+				this.inventory.slots[d].amount += item.amount;
+				return;
 			}
 		}
 		for (let d = 0; d < this.inventory.hotbar.length; d++){
-			if (this.inventory.slots[d].isPlaceholder){
+			if (this.inventory.hotbar[d].isPlaceholder){
 				this.inventory.hotbar[d] = item;
+				return;
+			} else if (this.inventory.hotbar[d].type === item.type) {
+				this.inventory.hotbar[d].amount += item.amount;
 				return;
 			}
 		}
@@ -808,6 +834,26 @@ class Entity{//создаёт сущность с параметрами, хит
 		}
 	}
 
+	mapTransfer(direction){
+		this.map.entityList[this.id] = undefined;
+		this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
+		for (let a = 0; a < this.bindedHitboxes.length; a++){
+			if(this.bindedHitboxes[a] === undefined){continue}
+			this.bindedHitboxes[a].mapTransfer(direction);
+		}
+		for (let a = 0; a < this.bindedParticles.length; a++){
+			if(this.bindedParticles[a] === undefined){continue}
+			this.bindedParticles[a].life = 0;
+		}
+		let mappa = this.map;
+		this.map = direction;
+		this.id = direction.entityList.push(this) - 1;
+		this.loadingZone = {x: -1, y: -1};
+		this.reloadEntityZone();
+		direction.reloadEntityActiveList();
+		mappa.reloadEntityActiveList();
+	}
+
 	removeProjection(){
 		this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
 		this.zoneId = 0;
@@ -910,6 +956,7 @@ class ObjectHitbox{
 
 class Map{//size - это размер 1 экрана, width и height - размеры поля в экранах
 	constructor(size, width, height){
+		this.pause = false;
 		this.framerate = 20;
 		this.size = size;
 		this.fieldWidth = width;
@@ -946,6 +993,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 				this.entityList[this.entityListActive[a]].inventory.mainhand[b].handSprite(this.entityList[this.entityListActive[a]]);
 			}
 		}
+		console.log("tick");
 		let zonesToLoad = [
 			{x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
 		];
@@ -969,6 +1017,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	}
 	
 	tick(){
+		if (this.pause){return}
 		this.drawEverything();
 		for (let a = 0; a < this.boxListActive.length; a++){
 			this.boxList[this.boxListActive[a]].tickMove();
@@ -987,7 +1036,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			if (this.entityList[a] === undefined){
 				continue;
 			}
-			map.entityListActive.push(a);
+			this.entityListActive.push(a);
 		}
 	}
 
@@ -997,7 +1046,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			if (this.boxList[a] === undefined){
 				continue;
 			}
-			map.boxListActive.push(a);
+			this.boxListActive.push(a);
 		}
 	}
 
@@ -1007,7 +1056,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			if (this.particles[a] === undefined){
 				continue;
 			}
-			map.particleListActive.push(a);
+			this.particleListActive.push(a);
 		}
 	}
 
@@ -1035,6 +1084,17 @@ class Map{//size - это размер 1 экрана, width и height - раз�
     	//return -this.loadedZone.y * this.size;
 		//return -player.y + this.size / 2;
 		return player.yshift;
+	}
+
+	reloadEnemies(){
+		for (let a = 0; a < this.entityListActive.length; a++){
+			if (this.entityList[this.entityListActive[a]] === undefined || this.entityList[this.entityListActive[a]].shadowRealmSibasAttempt === undefined){continue}
+			this.entityList[this.entityListActive[a]].shadowRealmSibasAttempt();
+		}
+		for (let a = 0; a < this.shadowRealm.entityListActive.length; a++){
+			if (this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]] === undefined){continue}
+			this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]].shadowRealmReturnAttempt();
+		}
 	}
 }
 
@@ -1118,6 +1178,7 @@ class DevKit{
 		for (let c = 0; c < 2; c++){
 			new Praetorian();
 		}
+		map.reloadEnemies();
 	}
 
 	worldBorder(){
