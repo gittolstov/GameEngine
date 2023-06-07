@@ -42,6 +42,12 @@ class Glyphid extends Entity{
         player.killCount++;
     }
 
+    damagePlaceholder(dmg){
+        for (let a = 0; a < dmg; a++){
+            new BloodParticle(this);
+        }
+    }
+
     shadowRealmSibasAttempt(){
         if (euclidianDistance(this.x, this.y, player.x, player.y) > player.map.size * 2){
             this.mapTransfer(this.map.shadowRealm);
@@ -115,9 +121,9 @@ class Praetorian extends Glyphid{
 
 
 class Bullet extends Entity{
-    constructor(gunner, damage, goal){
+    constructor(gunner, damage, goal, hitboxMultiplier = 1){
         super(gunner.x, gunner.y + magicConstant1, -1000, 1000000, {x1: -5, x2: 5, y1: -5, y2: 5}, gunner.map);
-        this.box = new Box(undefined, undefined, this.hitbox, damage);
+        this.box = new Box(undefined, undefined, this.scaledHitbox(hitboxMultiplier), damage);
         this.speed = 30;
         this.damage = damage;//doesn't affect real damage number
         this.goal = goal;
@@ -153,6 +159,7 @@ class Weapon extends Tool{
         }
     }, spread = 20){
         super(functionality);
+        this.isStackable = false;
         this.gunDamage = {type: "playerGeneric", amount: dmg, iFrame: 3000};
         this.spread = spread;
         this.maxCooldown = 60000/bpm;
@@ -378,5 +385,55 @@ class caveGenerator{
         }
         d.remove();
         console.log("room achieved");
+    }
+}
+
+
+class WeaponEditor extends ObjectHitbox{
+    constructor(x, y){
+        super(x - 10, x + 10, y - 10, y + 10);
+        this.boundInterface = this;
+        this.interactive = true;
+        this.active = false;
+        this.interact = function(owner){
+            if (!owner.activeInterfaces[0]){
+                owner.activeInterfaces[0] = true;
+                owner.inventoryId = owner.map.activeInterfaces.push(owner.inventory) - 1;
+            } else {
+                owner.activeInterfaces[0] = false;
+                owner.map.activeInterfaces[owner.inventoryId] = undefined;
+            }
+            if (!this.active && player.inventory.mainhand[0].modificationInterface != undefined){
+                this.active = true;
+                owner.inventory.shiftAll(0, 100);
+                owner.weaponEditId = owner.map.activeInterfaces.push(player.inventory.mainhand[0].modificationInterface) - 1;
+                player.speedMultipliers[0] = 0;
+            } else if (!this.active){
+            } else {
+                this.active = false;
+                owner.inventory.shiftAll(0, -100);
+                owner.map.activeInterfaces[owner.weaponEditId] = undefined;
+                player.speedMultipliers[0] = 1;
+            }
+        }
+    }
+}
+
+
+class BloodParticle extends Particle{
+    constructor(ent){
+        super(ent.x, ent.y, 50, {x1: -2, x2: 2, y1: -2, y2: 2}, ent.map);
+        this.speedVectoring = {x: Math.random() * ent.hitbox.x1 * 0.2 - ent.hitbox.x1 * 0.1, y: Math.random() * ent.hitbox.x1 * 0.2 - ent.hitbox.x1 * 0.1};
+        this.accVectoring = {x: this.speedVectoring.x / 50, y: this.speedVectoring.y / 50};
+    }
+
+    tickPlaceholderMain(){
+        this.move(this.speedVectoring.x, this.speedVectoring.y);
+        this.speedVectoring.x -= this.accVectoring.x;
+        this.speedVectoring.y -= this.accVectoring.y;
+    }
+
+    draw(){
+        draw.bloodParticle(this);
     }
 }

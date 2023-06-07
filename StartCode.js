@@ -35,7 +35,7 @@ setInterval(() => {
 player.inventoryIsActive = false;
 //devKit.swarm());
 let swarmAllowed = false;
-setInterval(() => {if(swarmAllowed){devKit.swarm();}}, 25000);
+setInterval(() => {if(swarmAllowed){devKit.swarm();}}, 50000);
 devKit.worldBorder();
 let u = new caveGenerator(0, 0, 300, 300, undefined, 20);
 //let a = new Breaker(100, 100, {x1: -30, x2: 30, y1: -30, y2: 30}, 10000);

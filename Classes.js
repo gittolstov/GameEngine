@@ -276,7 +276,9 @@ class Tool{
 	constructor(functionality = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 4, iFrame: 240}){
 		this.functionality = functionality;
 		this.meleeDamage = meleeDamage;
+		this.isStackable = false;
 		this.cooldown = true;
+		this.amount = 1;
 		this.hitbox = {x1: -40, x2: 40, y1: 5, y2: -15};
 		this.maxCooldown = 500;
 		this.active = false;
@@ -323,9 +325,12 @@ class Tool{
 class PlaceholderItem{
 	constructor(){
 		this.isPlaceholder = true;
+		this.statMultipliers = [1, 1, 1, 1, 1, 1, 1, 1];
 	}
 
 	draw(){}
+
+	handSprite(){}
 
 	functionality(){}
 
@@ -386,8 +391,22 @@ class Particle{
 		draw.particle(this);
 	}
 
+	move(x = 0, y = 0){
+		this.coordinates.x += x;
+		this.coordinates.y += y;
+	}
+
+	moveDirection(a, b, step){
+		let stepProjections = projections(a, b, step);
+		this.coordinates.x += Math.round(stepProjections.x * 10) / 10;
+		this.coordinates.y += Math.round(stepProjections.y * 10) / 10;
+	}
+
+	tickPlaceholderMain(){}
+
 	tickMove(){
 		this.age();
+		this.tickPlaceholderMain();
 	}
 
 	age(){
@@ -561,6 +580,15 @@ class Entity{//создаёт сущность с параметрами, хит
 		a.y2 *= scale;
 		return a;
 	}
+
+	scaledHitbox(scale){
+		let a = {x1: this.hitbox.x1, x2: this.hitbox.x2, y1: this.hitbox.y1, y2: this.hitbox.y2};
+		a.x1 *= scale;
+		a.x2 *= scale;
+		a.y1 *= scale;
+		a.y2 *= scale;
+		return a;
+	}
 	
 	effectTick(){
 		for (let a = 0; a < this.statusEffects.length; a++){
@@ -647,7 +675,7 @@ class Entity{//создаёт сущность с параметрами, хит
 			if (this.inventory.slots[d].isPlaceholder){
 				this.inventory.slots[d] = item;
 				return;
-			} else if (this.inventory.slots[d].type === item.type) {
+			} else if (this.inventory.slots[d].type === item.type && item.isStackable) {
 				this.inventory.slots[d].amount += item.amount;
 				return;
 			}
@@ -665,26 +693,31 @@ class Entity{//создаёт сущность с параметрами, хит
 	
 	damageGeneric(dmg){
 		this.hp -= defenceCount(dmg, this.defence);
+		this.damagePlaceholder(defenceCount(dmg, this.defence));
 		this.checkDeath();
 	}
 	
 	damagePiercing(dmg){
 		this.hp -= dmg;
+		this.damagePlaceholder(dmg);
 		this.checkDeath();
 	}
 
 	damageEnemy(dmg){
-		this.hp -= (defenceCount(dmg, this.defence) * this.enemyDamageMultiplier);
+		this.hp -= defenceCount(dmg, this.defence) * this.enemyDamageMultiplier;
+		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.enemyDamageMultiplier);
 		this.checkDeath();
 	}
 
 	damagePlayer(dmg){
-		this.hp -= (defenceCount(dmg, this.defence) * this.playerDamageMultiplier);
+		this.hp -= defenceCount(dmg, this.defence) * this.playerDamageMultiplier;
+		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.playerDamageMultiplier);
 		this.checkDeath();
 	}
 
 	damageFire(dmg){
 		this.hp -= dmg;
+		this.damagePlaceholder(dmg);
 		this.checkDeath();
 	}
 	
@@ -705,6 +738,8 @@ class Entity{//создаёт сущность с параметрами, хит
 		}
 	}
 
+	damagePlaceholder(){}
+
 	deathPlaceholder1(){}
 
 	age(){
@@ -716,14 +751,14 @@ class Entity{//создаёт сущность с параметрами, хит
 	}
 
 	useHand(){
-		for (let a = 0; a < this.inventory.mainhand.length; a++) {
+		for (let a in this.inventory.mainhand) {
 			this.inventory.mainhand[a].use(this);
 			this.inventory.mainhand[a].activate();
 		}
 	}
 
 	unUseHand(){
-		for (let a = 0; a < this.inventory.mainhand.length; a++) {
+		for (let a in this.inventory.mainhand) {
 			this.inventory.mainhand[a].deactivate();
 		}
 	}
@@ -920,8 +955,25 @@ class ObjectHitbox{
 		draw.object(this);
 	}
 
+	drawOnMinimap(x1, x2, y1, y2, scale = 4){
+		let centerX = (x1 + x2) / 2;
+		let centerY = (y1 + y2) / 2;
+		if (this.x > (x1 - centerX) * scale - this.map.xshift() + centerX && this.x < (x2 - centerX) * scale - this.map.xshift() + centerX && this.y > (y1 - centerY) * scale - this.map.yshift() + centerY && this.y < (y2 - centerY) * scale - this.map.yshift() + centerY){
+			draw.stone((this.x + this.map.xshift() - centerX) / scale + centerX, (this.y + this.map.yshift() - centerY) / scale + centerY, this.scaledHitbox(1 / scale), this.map);
+		}
+	}
+
 	increasedHitbox(scale){
 		let a = this.hitbox;
+		a.x1 *= scale;
+		a.x2 *= scale;
+		a.y1 *= scale;
+		a.y2 *= scale;
+		return a;
+	}
+
+	scaledHitbox(scale){
+		let a = {x1: this.hitbox.x1, x2: this.hitbox.x2, y1: this.hitbox.y1, y2: this.hitbox.y2};
 		a.x1 *= scale;
 		a.x2 *= scale;
 		a.y1 *= scale;
@@ -970,6 +1022,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		this.particleListActive = [];
 		this.activeInterfaces = [];
 		this.loadedZone = {x: 0, y: 0};
+		this.mapMarkers = [];
 		for (let column = -1; column < height + 2; column++) {
 			this.loadingZones[column] = [];
 			for (let row = -1; row < width + 2; row++) {
@@ -1109,19 +1162,35 @@ class Interface{
 	}
 	
 	draw(){
-		for (let a = 0; a < this.elements.length; a++){
+		for (let a in this.elements){
 			this.elements[a].draw();
+		}
+	}
+
+	shiftAll(x, y){
+		for (let a in this.elements){
+			this.elements[a].hitbox.x1 += x;
+			this.elements[a].hitbox.x2 += x;
+			this.elements[a].hitbox.y1 += y;
+			this.elements[a].hitbox.y2 += y;
 		}
 	}
 
 	moveCursor(x, y){
 		this.cursor.x = x;
 		this.cursor.y = y;
-		for (let a = 0; a < this.elements.length; a++){
+		let condition = true;
+		for (let a in this.elements){
 			let elem = this.elements[a].hitbox;
 			if (this.cursor.x > elem.x1 && this.cursor.x < elem.x2 && this.cursor.y > elem.y1 && this.cursor.y < elem.y2){
 				this.focus.active = false;
 				this.focus = this.elements[a];
+				this.focus.active = true;
+				condition = false;
+			}
+			if (condition){
+				this.focus.active = false;
+				this.focus = this.elements[0];
 				this.focus.active = true;
 			}
 		}
@@ -1165,8 +1234,58 @@ class InterfaceElement{
 }
 
 
+class interactivityHitbox extends Box{
+	constructor(owner = player){
+		super(0, 0, owner.scaledHitbox(2));
+		this.owner = owner;
+		this.bind(owner);
+	}
+
+	tickPlaceholder1(){
+		let cont = this.contact();
+		for (let a in cont){
+			if (cont[a].interactive){
+				cont[a].interact(this.owner);
+			}
+		}
+		this.remove();
+	}
+}
+
+
 class DevKit{
 	constructor(){}
+
+	spawn(){
+		let x = new Primary;
+		x.statMultipliers = [1.3, 1.6, 10, 0];
+		player.give(x);
+		x.advancedWeaponType = "scope";
+		player.give(new Primary);
+		player.give(new WeaponHandle);
+		let y = new WeaponEditor(player.x + 100, player.y);
+		player.give(new Resource(3000, "flame", "flame"));
+		player.give(new Resource(3000, "shell", "shell"));
+		player.give(new Resource(3000, "bullet", "rifleBullet"));
+		devKit.swarm();
+		devKit.targetDummy();
+	}
+
+	targetDummy(){
+		let dummy = new Entity(player.x, player.y, 1000000, 0, {x1: -10, x2: 10, y1: -10, y2: 10}, player.map, -1000);
+		dummy.isActive = false;
+		dummy.damagePlaceholder = function(){
+			if (!this.isActive){
+				this.isActive = true;
+				console.log("start");
+				setTimeout((ent) => {
+					console.log((ent.maxHp - ent.hp) / 20 + "");
+					ent.heal(1000000);
+					ent.isActive = false;
+				}, 20000, this);
+			}
+		}	
+	}
 
 	swarm(){
 		for (let d = 0; d < 50; d++){

@@ -20,14 +20,23 @@ function keyDownHandler(){
     } else if (event.keyCode === 51){
         player.unUseHand();
         player.inventory.mainhand[0] = player.inventory.hotbar[2];
+    } else if (event.keyCode === 69){
+        new interactivityHitbox;
     } else if (event.keyCode === 13){
-        if (!player.inventoryIsActive){
-            player.inventoryIsActive = true;
+        if (!player.activeInterfaces[0]){
+            player.activeInterfaces[0] = true;
             player.inventoryId = player.map.activeInterfaces.push(player.inventory) - 1;
         } else {
-            player.inventoryIsActive = false;
+            player.activeInterfaces[0] = false;
             player.map.activeInterfaces[player.inventoryId] = undefined;
         }
+    } else if (event.keyCode === 77){
+        if (!player.activeInterfaces[1]){
+            player.activeInterfaces[1] = true;
+            player.mapId = player.map.activeInterfaces.push(player.minimap) - 1;
+        }
+    } else if (event.keyCode === 82){
+        player.inventory.mainhand[0].reload();
     }
 }
 
@@ -43,6 +52,9 @@ function keyUpHandler(){
         player.upPress();
     } else if (event.keyCode === 32){
         player.unUseHand();
+    } else if (event.keyCode === 77){
+        player.map.activeInterfaces[player.mapId] = undefined;
+        player.activeInterfaces[1] = false;
     }
 }
 

@@ -13,6 +13,8 @@ class Draw{
 		this.glyphidPraetorian = new Image;
 		this.bulletImg = new Image;
 		this.caveBg = new Image;
+		this.blood = new Image;
+		this.blood.src = "Blood.png";
 		this.shade.src = "enemy.png";
 		this.murasama.src = "Murasama.jpeg";
 		this.hornet.src = "player.png";
@@ -66,6 +68,19 @@ class Draw{
 		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
 
+	mapBg(part){
+		this.can.fillStyle = "rgb(200, 200, 200)";
+		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+	}
+
+	stone(x, y, hitbox, maP){
+		this.can.drawImage(this.obstacle, x + hitbox.x1, y + hitbox.y1, hitbox.x2 - hitbox.x1, hitbox.y1 - hitbox.y2);
+	}
+
+	marker(x, y, hitbox, maP){
+		this.can.drawImage(this.fireImg[0], x + hitbox.x1, y + hitbox.y1, hitbox.x2 - hitbox.x1, hitbox.y1 - hitbox.y2);
+	}
+
 	placeholderSlot(part){
 		this.can.fillStyle = "rgba(128, 128, 128, 0.5)";
 		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
@@ -100,6 +115,10 @@ class Draw{
 
 	particle(ptl){
 		this.can.drawImage(this.particleImg[ptl.animation], ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1)
+	}
+
+	bloodParticle(ptl){
+		this.can.drawImage(this.blood, ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1)
 	}
 
 	fire(ptl){
