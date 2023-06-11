@@ -116,7 +116,7 @@ class WeaponHandle extends Tool{
 }
 
 class Primary extends Resource{
-    constructor(damage = {type: "playerGeneric", amount: 1, iFrame: 10}, pelletNum = 1, spread1 = 1, spread2 = 30, spreadSpeed = 0.08, cooldown = 10, magSize = 30, ammoType = "rifleBullet", reloadTime = 2000){
+    constructor(damage = {type: "playerGeneric", amount: 3, iFrame: 10}, pelletNum = 1, spread1 = 1, spread2 = 30, spreadSpeed = 0.08, cooldown = 10, magSize = 30, ammoNeeded = "rifleBullet", reloadTime = 2000){
         super();
         this.damage = damage;
         this.advancedWeaponType = "primary";
@@ -125,7 +125,7 @@ class Primary extends Resource{
         this.spread1 = spread1;
         this.spread2 = spread2;
         this.magSize = magSize;
-        this.ammoType = ammoType;
+        this.ammoNeeded = ammoNeeded;
         this.spreadSpeed = spreadSpeed;
 		this.isStackable = false;
         this.reloadTime = reloadTime;
@@ -134,12 +134,12 @@ class Primary extends Resource{
     }
 
     functionality(ent, damage, spreaD, hitboxScaling, ammoInMag){
-        if (ammoInMag > 0 && ent.ammunitionGetter(this.ammoType) > 0){    
+        if (ammoInMag > 0 && ent.ammunitionGetter(this.ammoNeeded) > 0){    
             for (let a = 0; a < this.pelletNum; a++){
                 let spread = spreadCounter(ent.mousePosition.x - ent.x - ent.map.xshift(), ent.mousePosition.y - ent.y - ent.map.yshift(), spreaD);
                 let b = projections(spread.x, spread.y, ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
                 new Bullet(ent, damage, {x: ent.x + b.x, y: ent.y + b.y}, hitboxScaling);
-                ent.ammunitionDecreaser(this.ammoType, 1);
+                ent.ammunitionDecreaser(this.ammoNeeded, 1);
                 return this.ammoConsumption;
             }
         }

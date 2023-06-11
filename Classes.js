@@ -46,6 +46,15 @@ class Box{
 		a.y2 *= scale;
 		return a;
 	}
+
+	scaledHitbox(scale){
+		let a = {x1: this.hitbox.x1, x2: this.hitbox.x2, y1: this.hitbox.y1, y2: this.hitbox.y2};
+		a.x1 *= scale;
+		a.x2 *= scale;
+		a.y1 *= scale;
+		a.y2 *= scale;
+		return a;
+	}
 	
 	bind(parentEntity){
 		this.coordinates = parentEntity;
@@ -255,6 +264,54 @@ class Box{
 			}
 		}
 		return overlapList;
+	}
+
+	touchSpecific(ent){
+		let x1 = this.coordinates.x + this.hitbox.x1;
+		let x2 = this.coordinates.x + this.hitbox.x2;
+		let y1 = this.coordinates.y + this.hitbox.y1;
+		let y2 = this.coordinates.y + this.hitbox.y2;
+		let mainAdd = true;//true if main didnt overlap
+		let objectX1 = ent.hitbox.x1 + ent.x;
+		let objectY1 = ent.hitbox.y1 + ent.y;
+		let objectX2 = ent.hitbox.x2 + ent.x;
+		let objectY2 = ent.hitbox.y2 + ent.y;
+		if (x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2) {//checks hitboxes main - main
+			return true;
+		} else {
+			for (let c = 0; c < ent.hitbox.additional.length; c++){//checks hitboxes main - add
+				objectX1 = ent.hitbox.additional[c].x1 + ent.x;
+				objectY1 = ent.hitbox.additional[c].y1 + ent.y;
+				objectX2 = ent.hitbox.additional[c].x2 + ent.x;
+				objectY2 = ent.hitbox.additional[c].y2 + ent.y;
+				if (x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2) {
+					return true;
+				}
+			}
+		}
+		if (mainAdd) {
+			for (let b = 0; b < this.hitbox.additional.length; b++){//add1 parameters cycle
+				x1 = this.coordinates.x + this.hitbox.additional[b].x1;
+				x2 = this.coordinates.x + this.hitbox.additional[b].x2;
+				y1 = this.coordinates.y + this.hitbox.additional[b].y1;
+				y2 = this.coordinates.y + this.hitbox.additional[b].y2;
+				if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {//checks add - main
+					return true;
+				} else {
+					for (let c = 0; c < ent.hitbox.additional.length; a++){//checks add - add
+						objectX1 = ent.hitbox.additional[c].x1 + ent.x;
+						objectY1 = ent.hitbox.additional[c].y1 + ent.y;
+						objectX2 = ent.hitbox.additional[c].x2 + ent.x;
+						objectY2 = ent.hitbox.additional[c].y2 + ent.y;
+						if (x2 >= objectX1 && x1 <= objectX2 && y2 >= objectY1 && y1 <= objectY2) {
+							return true;
+						}
+					}
+				break;
+				}
+			}
+		}
+		return false;
 	}
 
 	reloadLoadingZone(){
@@ -1258,17 +1315,34 @@ class DevKit{
 
 	spawn(){
 		let x = new Primary;
-		x.statMultipliers = [1.3, 1.6, 10, 0];
+		x.statMultipliers = [0.5, 2, 10, 0];
 		player.give(x);
 		x.advancedWeaponType = "scope";
 		player.give(new Primary);
 		player.give(new WeaponHandle);
-		let y = new WeaponEditor(player.x + 100, player.y);
+		new WeaponEditor(player.x + 100, player.y);
 		player.give(new Resource(3000, "flame", "flame"));
 		player.give(new Resource(3000, "shell", "shell"));
 		player.give(new Resource(3000, "bullet", "rifleBullet"));
 		devKit.swarm();
-		devKit.targetDummy();
+	}
+
+	cheat(){
+		player.inventory.hotbar[2] = new Weapon(1, 300, function(ent){
+			if (ent.ammunitionGetter("shell") > 0){
+				for (let b = 0; b < 5; b++){
+					let spread = spreadCounter(ent.mousePosition.x - ent.x - map.xshift(), ent.mousePosition.y - ent.y - map.yshift(), this.spread);
+					let a = projections(spread.x, spread.y, ent.map.size * (ent.map.fieldWidth + ent.map.fieldHeight));
+					new Bullet(ent, this.gunDamage, {x: ent.x + a.x, y: ent.y + a.y});
+					ent.ammunitionDecreaser("shell", 1);
+				}
+			}
+		}, 15);
+		player.inventory.hotbar[0] = new Weapon(0.1, 400, function(ent){
+			new Missile(ent, this.gunDamage, player.target);
+		});
+		player.inventory.mainhand[0] = player.inventory.hotbar[0];
+		player.inventory.hotbar[1] = new Flamethrower(0.25, 600, undefined, 0);
 	}
 
 	targetDummy(){

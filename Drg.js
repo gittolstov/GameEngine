@@ -5,37 +5,20 @@ class Glyphid extends Entity{
             this.x = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
             this.y = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
             this.reloadEntityZone();
-            if (this.overlapAnyway()){
+            if (this.overlapAnyway() && euclidianDistance(this.x, this.y, player.x, player.y) > player.map.size * 2 && euclidianDistance(this.x, this.y, player.x, player.y) < player.map.size * 4){
                 break;
-            } else {
-                this.x = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
-                this.y = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
             }
         }
-        this.box = new Box( undefined, undefined, this.hitbox, {type: "enemy", amount: damage, iFrame: 3000});
-        this.box.bind(this);
+        this.box = new meleeAttackHitbox(this, this.scaledHitbox(2), {type: "enemy", amount: damage, iFrame: 3000}, 400, 600);
         this.speed = 1;
-        this.box.tickMove = function(){
-            let list = this.touch();
-            this.enableDamage(list);
-            this.age();
-		    for(let a = 0; a < list.length; a++){
-			    let unTouched = true;
-				if (list[a] === this.coordinates){
-    			    unTouched = false;
-                }
-			    if (unTouched){
-                    this.coordinates.moveToGoal(list[a].x, list[a].y, -1);
-			    }
-		    }
-        }
+        this.aggro = player;
         this.enemyDamageMultiplier = 0;
         this.isPraetorian = false;
     }
 
     tickPlaceholder1(){
-        this.moveToGoal(player.x, player.y, this.speed);
-        this.side = (player.x - this.x) / Math.abs(player.x - this.x);
+        this.moveToGoal(this.aggro.x, this.aggro.y, this.speed);
+        this.side = (this.aggro.x - this.x) / Math.abs(this.aggro.x - this.x);
     }
 
     deathPlaceholder1(){
@@ -57,6 +40,46 @@ class Glyphid extends Entity{
         if (euclidianDistance(this.x, this.y, player.x, player.y) <= player.map.size * 2){
             this.mapTransfer(this.map.backLink);
         }
+    }
+}
+		   
+
+class meleeAttackHitbox extends Box{
+    constructor(entity, hitbox, damage, speed, reloadSpeed){
+        super(0, 0, hitbox, damage, -1000, entity.map);
+        this.bind(entity);
+        this.speed = speed;
+        this.reloadSpeed = reloadSpeed;
+        this.isAttacking = false;
+    }
+
+    tickPlaceholderMain(){
+        if (this.touchSpecific(player) && !this.isAttacking){
+            this.isAttacking = true;
+            setTimeout(this.attack, this.speed, this);
+            setTimeout(this.reload, this.speed + this.reloadSpeed, this);
+        }
+        let list = this.touch();
+        for (let a = 0; a < list.length; a++){
+		    let unTouched = true;
+			if (list[a] === this.coordinates){
+    		    unTouched = false;
+            }
+		    if (unTouched){
+                this.coordinates.moveToGoal(list[a].x, list[a].y, -1);
+		    }
+		}
+    }
+
+    attack(obj){
+        new Box(obj.coordinates.x, obj.coordinates.y, obj.hitbox, obj.damage, 2, obj.map);
+        for (let a = 0; a < 4; a++){
+            new BloodParticle(obj.coordinates);
+        }
+    }
+
+    reload(obj){
+        obj.isAttacking = false;
     }
 }
 
@@ -99,9 +122,11 @@ class Praetorian extends Glyphid{
         super(20, 30, 3, 100);
         this.isPraetorian = true;
         this.box.tickPlaceholderMain = function(){
+            if (this.touchSpecific(player) && !this.isAttacking){
+                this.isAttacking = true;
+                setTimeout(this.attack, this.speed, this);
+            }
             let list = this.touch();
-            this.enableDamage(list);
-            this.age();
             for(let a = 0; a < list.length; a++){
                 let unTouched = true;
                 if (list[a] === this.coordinates){
