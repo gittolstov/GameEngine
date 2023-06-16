@@ -382,7 +382,7 @@ class Tool{
 class PlaceholderItem{
 	constructor(){
 		this.isPlaceholder = true;
-		this.statMultipliers = [1, 1, 1, 1, 1, 1, 1, 1];
+		this.statMultipliers = [1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0];
 	}
 
 	draw(){}
@@ -1315,7 +1315,7 @@ class DevKit{
 
 	spawn(){
 		let x = new Primary;
-		x.statMultipliers = [0.5, 2, 10, 0];
+		x.statMultipliers = [0.5, 0, 2, 0, 10, 0, 0, 1, 0];
 		player.give(x);
 		x.advancedWeaponType = "scope";
 		player.give(new Primary);

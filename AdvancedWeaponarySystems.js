@@ -10,7 +10,7 @@ class WeaponHandle extends Tool{
         }
         this.functionality = function(ent){
             for (let a in this.slots.primaries){
-                let b = this.slots.primaries[a].functionality(ent, {type: this.slots.primaries[a].damage.type, amount: this.damageGetter(ent, a), iFrame: this.slots.primaries[a].damage.iFrame}, this.spreadGetter(a), 1, this.magazine);
+                let b = this.slots.primaries[a].functionality(ent, {type: this.slots.primaries[a].damage.type, amount: this.damageGetter(ent, a), iFrame: this.slots.primaries[a].damage.iFrame}, this.spreadGetter(a), this.sizeGetter(a), this.magazine);
                 this.magazine -= b;
                 if (!b){
                     this.reload();
@@ -72,46 +72,76 @@ class WeaponHandle extends Tool{
         }
     }
 
-    cooldownGetter(user, primary){
-        let speed = this.slots.primaries[primary].cooldown;
-        for (let a in this.slots.primaries){
-            speed *= this.slots.primaries[a].statMultipliers[1];
-        }
-        for (let a in this.slots.upgrades){
-            speed *= this.slots.upgrades[a].statMultipliers[1];
-        }
-        for (let a in user.weaponSpeedMultipliers){
-            speed *= user.weaponSpeedMultipliers[a];
-        }
-        return 1000 / speed;
-    }
-    
     damageGetter(user, primary){
         let damage = this.slots.primaries[primary].damage.amount;
+        let dmgAdd = 0;
         for (let a in this.slots.primaries){
             damage *= this.slots.primaries[a].statMultipliers[0];
+            dmgAdd += this.slots.primaries[a].statMultipliers[1];
         }
         for (let a in this.slots.upgrades){
             damage *= this.slots.upgrades[a].statMultipliers[0];
+            dmgAdd += this.slots.upgrades[a].statMultipliers[1];
         }
         for (let a in user.damageMultipliers){
             damage *= user.damageMultipliers[a];
         }
+        damage *= dmgAdd;
         return damage;
+    }
+
+    cooldownGetter(user, primary){
+        let speed = this.slots.primaries[primary].cooldown;
+        let speedAdd = 0;
+        for (let a in this.slots.primaries){
+            speed *= this.slots.primaries[a].statMultipliers[2];
+            speedAdd += this.slots.primaries[a].statMultipliers[3];
+        }
+        for (let a in this.slots.upgrades){
+            speed *= this.slots.upgrades[a].statMultipliers[2];
+            speedAdd += this.slots.upgrades[a].statMultipliers[3];
+        }
+        for (let a in user.weaponSpeedMultipliers){
+            speed *= user.weaponSpeedMultipliers[a];
+        }
+        speed *= speedAdd;
+        return 1000 / speed;
     }
 
     spreadGetter(primary){
         let spread = this.slots.primaries[primary].spread1;
+        let spreadAdd = 0;
         let spread2 = this.spread * this.slots.primaries[primary].spread2;
+        let spreadAdd2 = 0;
         for (let a in this.slots.primaries){
-            spread *= this.slots.primaries[a].statMultipliers[2];
-            spread2 *= this.slots.primaries[a].statMultipliers[3];
+            spread *= this.slots.primaries[a].statMultipliers[4];
+            spreadAdd += this.slots.primaries[a].statMultipliers[5];
+            spread2 *= this.slots.primaries[a].statMultipliers[6];
+            spreadAdd2 += this.slots.primaries[a].statMultipliers[7];
         }
         for (let a in this.slots.upgrades){
-            spread *= this.slots.upgrades[a].statMultipliers[2];
-            spread2 *= this.slots.upgrades[a].statMultipliers[3];
+            spread *= this.slots.upgrades[a].statMultipliers[4];
+            spreadAdd += this.slots.upgrades[a].statMultipliers[5];
+            spread2 *= this.slots.upgrades[a].statMultipliers[6];
+            spreadAdd2 += this.slots.upgrades[a].statMultipliers[7];
         }
+        spread *= spreadAdd;
+        spread2 *= spreadAdd2;
         return spread + spread2;
+    }
+
+    sizeGetter(primary){
+        let size = 1;
+        let sizeAdd = 0;
+        for (let a in this.slots.primaries){
+            size *= this.slots.primaries[a].statMultipliers[8];
+            sizeAdd += this.slots.primaries[a].statMultipliers[9];
+        }
+        for (let a in this.slots.upgrades){
+            size *= this.slots.upgrades[a].statMultipliers[8];
+            sizeAdd += this.slots.upgrades[a].statMultipliers[9];
+        }
+        return size;
     }
 }
 
@@ -130,7 +160,7 @@ class Primary extends Resource{
 		this.isStackable = false;
         this.reloadTime = reloadTime;
         this.ammoConsumption = 1;
-        this.statMultipliers = [1, 1, 1, 1];
+        this.statMultipliers = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];//x damage, + damage, x cooldown, + cooldown, x spread 1, + spread 1, x spread 2, + spread 2, x hitboxScale, + hitboxScale. 
     }
 
     functionality(ent, damage, spreaD, hitboxScaling, ammoInMag){
