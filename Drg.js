@@ -12,14 +12,48 @@ class Glyphid extends Entity{
         this.box = new meleeAttackHitbox(this, this.scaledHitbox(2), {type: "enemy", amount: damage, iFrame: 3000}, 400, 600);
         this.speed = 1;
         this.aggro = player;
+		this.posCheck = {x: this.x, y: this.y, time: 100};
         this.enemyDamageMultiplier = 0;
         this.isPraetorian = false;
     }
 
     tickPlaceholder1(){
         this.moveToGoal(this.aggro.x, this.aggro.y, this.speed);
-        this.side = (this.aggro.x - this.x) / Math.abs(this.aggro.x - this.x);
+        this.side = (this.aggro.x - this.x) / Math.abs(this.aggro.x - this.x) + 0.00001;
     }
+
+	tickPlaceholder2(){
+		this.posCheck.time--;
+		if (this.posCheck.time === 0){
+			this.planRoute();
+			this.posCheck.time = 50;
+			this.posCheck.x = this.x;
+			this.posCheck.y = this.y;
+		}
+		if (euclidianDistance(this.x, this.y, this.aggro.x, this.aggro.y) < 10){
+			if (this.aggro.distance === 0){
+				this.aggro = player;
+				this.onRoute = 0;
+				return;
+			}
+			if (this.onRoute > 0){
+				this.onRoute--;
+				return;
+			} else {
+				this.onRoute = 5;
+				this.posCheck.y = 0;
+				this.posCheck.x = 0;
+			}
+			if (this.aggro.connections != undefined){
+				for (let a in this.aggro.connections){
+					if (this.aggro.connections[a].distance < this.aggro.distance){
+						this.aggro = this.aggro.connections[a];
+						break;
+					}
+				}
+			}
+		}
+	}
 
     deathPlaceholder1(){
         player.killCount++;
@@ -30,6 +64,12 @@ class Glyphid extends Entity{
             new BloodParticle(this);
         }
     }
+
+	planRoute(){
+		if (euclidianDistance(this.x, this.y, this.posCheck.x, this.posCheck.y) < this.speed * 20 && euclidianDistance(this.x, this.y, this.aggro.x, this.aggro.y) >= 40){
+			this.aggro = baseBackend.locateClosest(this);
+		}
+	}
 
     shadowRealmSibasAttempt(){
         if (euclidianDistance(this.x, this.y, player.x, player.y) > player.map.size * 2){
@@ -62,19 +102,21 @@ class meleeAttackHitbox extends Box{
         let list = this.touch();
         for (let a = 0; a < list.length; a++){
 		    let unTouched = true;
-			if (list[a] === this.coordinates){
+			if (list[a] === this.coordinates || list[a].isTechnical){
     		    unTouched = false;
             }
 		    if (unTouched){
-                this.coordinates.moveToGoal(list[a].x, list[a].y, -1);
+                this.coordinates.moveToGoal(list[a].x, list[a].y, -0.4);
 		    }
 		}
     }
 
     attack(obj){
-        new Box(obj.coordinates.x, obj.coordinates.y, obj.hitbox, obj.damage, 2, obj.map);
-        for (let a = 0; a < 4; a++){
-            new BloodParticle(obj.coordinates);
+        if (obj.coordinates.hp > 0){
+            new Box(obj.coordinates.x, obj.coordinates.y, obj.hitbox, obj.damage, 2, obj.map);
+            for (let a = 0; a < 4; a++){
+                new BloodParticle(obj.coordinates);
+            }
         }
     }
 
@@ -302,7 +344,7 @@ class Flamethrower extends Weapon{
 }
 
 
-class caveGenerator{
+class CaveGenerator{
     constructor(x1, y1, x2, y2, size = 20, roomAmount = 4, maP = map){
         this.rooms = [];
         this.roomsWithoutTunnels = [];

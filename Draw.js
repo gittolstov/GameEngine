@@ -14,6 +14,14 @@ class Draw{
 		this.bulletImg = new Image;
 		this.caveBg = new Image;
 		this.blood = new Image;
+		this.floorImg = new Image;
+		this.cornerImg = new Image;
+		this.ladderImg = new Image;
+		this.vent1img = new Image;
+		this.vent2img = new Image;
+		this.el1 = new Image;
+		this.el2 = new Image;
+		this.wallImg = [new Image, new Image, new Image, new Image];
 		this.blood.src = "Blood.png";
 		this.shade.src = "enemy.png";
 		this.murasama.src = "Murasama.jpeg";
@@ -23,10 +31,21 @@ class Draw{
 		this.glyphidGrunt.src = "Glyphid_grunt.png";
 		this.glyphidSwarmer.src = "Glyphid_swarmer.png";
 		this.glyphidPraetorian.src = "Glyphid_praetorian.png";
-		this.caveBg.src = "caveBackground1.png"
+		this.caveBg.src = "caveBackground1.png";
+		this.floorImg.src = "floor.png";
+		this.cornerImg.src = "corner.png";
+		this.ladderImg.src = "ladder.png";
+		this.vent1img.src = "vent.png";
+		this.vent2img.src = "ventFloor.png";
+		this.el1.src = "Elevator.png";
+		this.el2.src = "NoElevator.png";
 		this.fireImg[0].src = "Fire.png";
 		this.fireImg[1].src = "Fire2.png";
 		this.bulletImg.src = "Bullet.png";
+		this.wallImg[0].src = "Wall3.png";
+		this.wallImg[1].src = "Wall4.png";
+		this.wallImg[2].src = "Wall2.png";
+		this.wallImg[3].src = "Wall1.png";
 		this.particleImg = [new Image, new Image, new Image, new Image, new Image, new Image];
 		this.particleImg[0].src = "Particle1.png";
 		this.particleImg[1].src = "Particle2.png";
@@ -54,6 +73,52 @@ class Draw{
 		this.can.drawImage(this.obstacle, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 	}
 
+	dark(obj){
+		this.can.fillStyle = "black";
+		this.can.fillRect(obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	floor(obj){
+		this.can.drawImage(this.floorImg, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.drawImage(this.floorImg, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	corner(obj){
+		this.can.drawImage(this.cornerImg, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.drawImage(this.cornerImg, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	ladder(obj){
+		this.modifyContextMatrix(0, obj.x + obj.map.xshift(), obj.y + obj.map.yshift(), obj.side);
+		this.can.drawImage(this.ladderImg, obj.hitbox.x1, obj.hitbox.y1, obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.drawImage(this.ladderImg, obj.hitbox.x1, obj.hitbox.y1, obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.restore();
+	}
+
+	elevator(obj){
+		if (obj.isActive){
+			this.can.drawImage(this.el1, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+			this.can.drawImage(this.el1, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		} else {
+			this.can.drawImage(this.el2, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+			this.can.drawImage(this.el2, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		}
+	}
+
+	vent1(obj){
+		this.modifyContextMatrix(0, obj.x + obj.map.xshift(), obj.y + obj.map.yshift(), obj.side);
+		this.can.drawImage(this.vent1img, obj.hitbox.x1, obj.hitbox.y1, obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.drawImage(this.vent1img, obj.hitbox.x1, obj.hitbox.y1, obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.restore();
+	}
+
+	vent2(obj){
+		this.modifyContextMatrix(0, obj.x + obj.map.xshift(), obj.y + obj.map.yshift(), obj.side);
+		this.can.drawImage(this.vent2img, obj.hitbox.x1, obj.hitbox.y1, obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.drawImage(this.vent2img, obj.hitbox.x1, obj.hitbox.y1, obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.restore();
+	}
+
 	interface(part){
 		this.can.fillStyle = "red";
 		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
@@ -73,7 +138,7 @@ class Draw{
 		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
 
-	stone(x, y, hitbox, maP){
+	stone(x, y, hitbox){
 		this.can.drawImage(this.obstacle, x + hitbox.x1, y + hitbox.y1, hitbox.x2 - hitbox.x1, hitbox.y1 - hitbox.y2);
 	}
 
@@ -93,7 +158,9 @@ class Draw{
 	}
 
 	backgroundDrg(field){
-		this.can.drawImage(this.caveBg, -field.xshift() % field.size + field.size, -field.yshift() % field.size + field.size, field.size, field.size, 0, 0, field.size, field.size);
+		this.can.fillStyle = "black";
+		this.can.fillRect(0, 0, field.size, field.size);
+		//this.can.drawImage(this.caveBg, -field.xshift() % field.size + field.size, -field.yshift() % field.size + field.size, field.size, field.size, 0, 0, field.size, field.size);
 	}
 
 	item(icon, x1, x2, y1, y2){
@@ -119,6 +186,36 @@ class Draw{
 
 	bloodParticle(ptl){
 		this.can.drawImage(this.blood, ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1)
+	}
+
+	grid1(x1, y1, y2, maP){
+		this.can.fillStyle = "rgba(0, 200, 0, 0.2)";
+		this.can.fillRect(x1 + maP.xshift(), y1 - 2 + maP.yshift(), 2, y2 - y1);
+	}
+
+	grid2(y1, x1, x2, maP){
+		this.can.fillStyle = "rgba(0, 200, 0, 0.2)";
+		this.can.fillRect(x1 + maP.xshift(), y1 - 2 + maP.yshift(), x2 - x1, 2);
+	}
+
+	wall1(obj, side){
+		if (side){
+			this.can.drawImage(this.wallImg[0], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+			this.can.drawImage(this.wallImg[0], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		} else {
+			this.can.drawImage(this.wallImg[1], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+			this.can.drawImage(this.wallImg[1], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		}
+	}
+
+	wall2(obj, side){
+		if (side){
+			this.can.drawImage(this.wallImg[2], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+			this.can.drawImage(this.wallImg[2], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		} else {
+			this.can.drawImage(this.wallImg[3], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+			this.can.drawImage(this.wallImg[3], obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		}
 	}
 
 	fire(ptl){

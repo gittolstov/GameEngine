@@ -36,6 +36,14 @@ class Player extends Entity{
 
 	movePlaceholder1(){
 		this.shiftRefresh();
+		map.manageCursor(this.mousePosition.x, this.mousePosition.y);
+		player.mouseBox.tp(player.mousePosition.x - player.map.xshift(), player.mousePosition.y - player.map.yshift());
+		player.mouseShift.x = player.mousePosition.x - player.map.xshift() - player.x;
+		player.mouseShift.y = player.mousePosition.y - player.map.yshift() - player.y;
+		for (let a = 0; a < player.activeRockets.length; a++){
+			player.rockets[player.activeRockets[a]].goal = {x: player.mousePosition.x - player.map.xshift(), y: player.mousePosition.y - player.map.yshift()};
+		}
+		map.manageCursor(this.mousePosition.x, this.mousePosition.y);
 	}
 
 	tickPlaceholder1(){

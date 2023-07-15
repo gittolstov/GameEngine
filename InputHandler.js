@@ -21,8 +21,8 @@ function keyDownHandler(){
         player.unUseHand();
         player.inventory.mainhand[0] = player.inventory.hotbar[2];
     } else if (event.keyCode === 69){
-        new interactivityHitbox;
-    } else if (event.keyCode === 13){
+        new InteractivityHitbox;
+    } else if (event.keyCode === 13){//enter
         if (!player.activeInterfaces[0]){
             player.activeInterfaces[0] = true;
             player.inventoryId = player.map.activeInterfaces.push(player.inventory) - 1;
@@ -30,13 +30,26 @@ function keyDownHandler(){
             player.activeInterfaces[0] = false;
             player.map.activeInterfaces[player.inventoryId] = undefined;
         }
-    } else if (event.keyCode === 77){
+    } else if (event.keyCode === 77){//M
         if (!player.activeInterfaces[1]){
             player.activeInterfaces[1] = true;
             player.mapId = player.map.activeInterfaces.push(player.minimap) - 1;
         }
-    } else if (event.keyCode === 82){
+    } else if (event.keyCode === 82){//R
+        player.activeLevelEditor.circleSelector();
         player.inventory.mainhand[0].reload();
+    } else if (event.keyCode === 81){//Q
+        new GridParticle(player, 20);
+    } else if (event.keyCode === 84){//T
+        player.activeLevelEditor.logInput(player.mouseBox.coordinates);
+    } else if (event.keyCode === 67){//C
+        player.activeLevelEditor.clearInputs();
+    } else if (event.keyCode === 76){//L
+        player.activeLevelEditor.logSchematic();
+    } else if (event.keyCode === 70){//F
+        player.activeLevelEditor.doSelected();
+    } else if (event.keyCode === 90){//Z
+        player.activeLevelEditor.ctrlz();
     }
 }
 
@@ -71,6 +84,6 @@ function mouseMoveHandler(){
 }
 
 
-function clickHandler(){
+function clickHandler(event){
     map.manageClick();
 }

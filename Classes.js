@@ -169,6 +169,43 @@ class Box{
 		return collisionList;
 	}
 	
+	contactBackground(){
+		let collisionZone = this.map.bgObjectZones[this.loadingZone.x][this.loadingZone.y];
+		let collisionList = [];
+		for (let a = 0; a < collisionZone.length; a++){
+			let x1 = this.coordinates.x + this.hitbox.x1;
+			let x2 = this.coordinates.x + this.hitbox.x2;
+			let y1 = this.coordinates.y + this.hitbox.y1;
+			let y2 = this.coordinates.y + this.hitbox.y2;
+			if (collisionZone[a] === undefined || collisionZone[a].fake){
+				continue;
+			}
+			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
+			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
+			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
+			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
+			if (x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2) {
+				collisionList.push(collisionZone[a]);
+			} else {
+				for (let b = 0; b < this.hitbox.additional.length; b++){
+					x1 = this.coordinates.x + this.hitbox.additional[b].x1;
+					x2 = this.coordinates.x + this.hitbox.additional[b].x2;
+					y1 = this.coordinates.y + this.hitbox.additional[b].y1;
+					y2 = this.coordinates.y + this.hitbox.additional[b].y2;
+					objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
+					objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
+					objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
+					objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
+					if (x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2) {
+						collisionList.push(collisionZone[a]);
+						break;
+					}
+				}
+			}
+		}
+		return collisionList;
+	}
+	
 	contactAnyway(){
 		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
 		let collisionList = [];
@@ -700,16 +737,21 @@ class Entity{//создаёт сущность с параметрами, хит
 		if (this.overlap(a, b)){
 			this.x += a;
 			this.y += b;
+			return false;
+		} else {
+			return true;
 		}
 	}
 	
 	contact(direction){
-		this.moveWithoutRounding(Math.round(direction.x * 10) / 10, 0);
-		this.moveWithoutRounding(0, Math.round(direction.y * 10) / 10);
-		let a = 0;
-		while (this.overlap(direction.x / 10, direction.y / 10) && a < 10){
+		if (this.moveWithoutRounding(direction.x, 0)){
+			this.moveWithoutRounding(0, Math.sign(direction.y) * (Math.sqrt(direction.x ** 2 + direction.y ** 2) - Math.abs(direction.y)));
+		}
+		if (this.moveWithoutRounding(0, direction.y)){
+			this.moveWithoutRounding(Math.sign(direction.x) * (Math.sqrt(direction.x ** 2 + direction.y ** 2) - Math.abs(direction.x)), 0);
+		}
+		for (let a = 0; this.overlap(direction.x / 10, direction.y / 10) && a < 10; a++){
 			this.moveWithoutRounding(direction.x / 10, direction.y / 10);
-			a++;
 		}
 		this.x = Math.round(this.x * 10) / 10;
 		this.y = Math.round(this.y * 10) / 10;
@@ -1063,6 +1105,29 @@ class ObjectHitbox{
 }
 
 
+class BackgroundImage{
+	constructor(x1 = 20, x2 = 50, y1 = 0, y2 = 10, objectScreen = map){
+		this.x = (x1 + x2) / 2;
+		this.y = (y1 + y2) / 2;
+		this.map = objectScreen;
+		this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
+		this.id = objectScreen.bgObjectZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1;
+		this.hitbox = {x1: x1 - this.x, x2: x2 - this.x, y1: y1 - this.y, y2: y2 - this.y, additional: []};
+	}
+
+	draw(){
+		draw.dark(this);
+	}
+
+	remove(){
+		this.map.bgObjectZones[this.loadingZone.x][this.loadingZone.y][this.id] = undefined;
+		this.deathPlaceholder1();
+	}
+
+	deathPlaceholder1(){}
+}
+
+
 class Map{//size - это размер 1 экрана, width и height - размеры поля в экранах
 	constructor(size, width, height){
 		this.pause = false;
@@ -1093,20 +1158,34 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 				this.entityZones[column][row] = [];
 			}
 		}
+		this.bgObjectZones = [];
+		for (let column = -1; column < height + 2; column++) {
+			this.bgObjectZones[column] = [];
+			for (let row = -1; row < width + 2; row++) {
+				this.bgObjectZones[column][row] = [];
+			}
+		}
 	}
 	
 	drawEverything(){
 		draw.backgroundDrg(this);
+		console.log("tick");
+		let zonesToLoad = [
+			{x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
+		];
+		for (let b = 0; b < zonesToLoad.length; b++){
+			for (let a = 0; a < this.bgObjectZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y].length; a++){
+				let loadZone = this.bgObjectZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y][a];
+				if (loadZone === undefined){continue}
+				loadZone.draw();
+			}
+		}
 		for (let a = 0; a < this.entityListActive.length; a++){
 			this.entityList[this.entityListActive[a]].draw();
 			for (let b = 0; b < this.entityList[this.entityListActive[a]].inventory.mainhand.length; b++){
 				this.entityList[this.entityListActive[a]].inventory.mainhand[b].handSprite(this.entityList[this.entityListActive[a]]);
 			}
 		}
-		console.log("tick");
-		let zonesToLoad = [
-			{x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
-		];
 		for (let b = 0; b < zonesToLoad.length; b++){
 			for (let a = 0; a < this.loadingZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y].length; a++){
 				let loadZone = this.loadingZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y][a];
@@ -1291,7 +1370,7 @@ class InterfaceElement{
 }
 
 
-class interactivityHitbox extends Box{
+class InteractivityHitbox extends Box{
 	constructor(owner = player){
 		super(0, 0, owner.scaledHitbox(2));
 		this.owner = owner;
@@ -1343,6 +1422,12 @@ class DevKit{
 		});
 		player.inventory.mainhand[0] = player.inventory.hotbar[0];
 		player.inventory.hotbar[1] = new Flamethrower(0.25, 600, undefined, 0);
+	}
+
+	god(){
+		player.speed = 10;
+		player.increasedHitbox(-3);
+		player.removeProjection();
 	}
 
 	targetDummy(){
