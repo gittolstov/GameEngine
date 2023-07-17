@@ -106,7 +106,7 @@ class PathfindingPoint extends Entity{
 		this.signalStrength = strength;
 		if (this.signalStrength < this.distance){
 			this.distance = this.signalStrength;
-			for (let a = 0; a < this.connections.length && this.signalStrength < 10; a++){
+			for (let a = 0; a < this.connections.length && this.signalStrength < 15; a++){
 				this.connections[a].signal(strength + 1);
 			}
 		}
