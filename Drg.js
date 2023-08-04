@@ -1,19 +1,21 @@
 class Glyphid extends Entity{
-    constructor(size, hp, damage, defence){
-        super(0, 0, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, player.map);
-        while (true){
+    constructor(size, hp, damage, defence, x = 0, y = 0){
+        super(x, y, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, player.map);
+        /*while (true){
             this.x = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
             this.y = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
             this.reloadEntityZone();
             if (this.overlapAnyway() && euclidianDistance(this.x, this.y, player.x, player.y) > player.map.size * 2 && euclidianDistance(this.x, this.y, player.x, player.y) < player.map.size * 4){
                 break;
             }
-        }
+        }*/
         this.box = new meleeAttackHitbox(this, this.scaledHitbox(2), {type: "enemy", amount: damage, iFrame: 3000}, 400, 600);
         this.speed = 1;
         this.aggro = player;
+		this.mainAggro = player;
 		this.posCheck = {x: this.x, y: this.y, time: 100};
         this.enemyDamageMultiplier = 0;
+		this.glyphid = true;
         this.isPraetorian = false;
     }
 
@@ -32,7 +34,7 @@ class Glyphid extends Entity{
 		}
 		if (euclidianDistance(this.x, this.y, this.aggro.x, this.aggro.y) < 10){
 			if (this.aggro.distance === 0){
-				this.aggro = player;
+				this.aggro = this.mainAggro;
 				this.onRoute = 0;
 				return;
 			}
@@ -44,7 +46,7 @@ class Glyphid extends Entity{
 				this.posCheck.y = 0;
 				this.posCheck.x = 0;
 			}
-			if (this.aggro.connections != undefined){
+			if (this.aggro.connections !== undefined){
 				for (let a in this.aggro.connections){
 					if (this.aggro.connections[a].distance < this.aggro.distance){
 						this.aggro = this.aggro.connections[a];
@@ -138,8 +140,8 @@ class ShadowRealm extends Map{
 
 
 class Grunt extends Glyphid{
-    constructor(){
-        super(10, 10, 2, 20);
+    constructor(x = 0, y = 0){
+        super(10, 10, 2, 20, x, y);
     }
 
     draw(){

@@ -141,7 +141,7 @@ class WeaponHandle extends Tool{
             size *= this.slots.upgrades[a].statMultipliers[8];
             sizeAdd += this.slots.upgrades[a].statMultipliers[9];
         }
-        return size;
+        return size * sizeAdd;
     }
 }
 

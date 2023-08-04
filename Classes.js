@@ -136,13 +136,13 @@ class Box{
 		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
 		let collisionList = [];
 		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined || collisionZone[a].fake){
+				continue;
+			}
 			let x1 = this.coordinates.x + this.hitbox.x1;
 			let x2 = this.coordinates.x + this.hitbox.x2;
 			let y1 = this.coordinates.y + this.hitbox.y1;
 			let y2 = this.coordinates.y + this.hitbox.y2;
-			if (collisionZone[a] === undefined || collisionZone[a].fake){
-				continue;
-			}
 			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
@@ -173,13 +173,13 @@ class Box{
 		let collisionZone = this.map.bgObjectZones[this.loadingZone.x][this.loadingZone.y];
 		let collisionList = [];
 		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined || collisionZone[a].fake){
+				continue;
+			}
 			let x1 = this.coordinates.x + this.hitbox.x1;
 			let x2 = this.coordinates.x + this.hitbox.x2;
 			let y1 = this.coordinates.y + this.hitbox.y1;
 			let y2 = this.coordinates.y + this.hitbox.y2;
-			if (collisionZone[a] === undefined || collisionZone[a].fake){
-				continue;
-			}
 			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
@@ -210,13 +210,13 @@ class Box{
 		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
 		let collisionList = [];
 		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined){
+				continue;
+			}
 			let x1 = this.coordinates.x + this.hitbox.x1;
 			let x2 = this.coordinates.x + this.hitbox.x2;
 			let y1 = this.coordinates.y + this.hitbox.y1;
 			let y2 = this.coordinates.y + this.hitbox.y2;
-			if (collisionZone[a] === undefined){
-				continue;
-			}
 			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
 			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
@@ -247,13 +247,13 @@ class Box{
 		let collisionZone = this.map.entityZones[this.loadingZone.x][this.loadingZone.y];
 		let overlapList = [];
 		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined){
+				continue;
+			}
 			let x1 = this.coordinates.x + this.hitbox.x1;
 			let x2 = this.coordinates.x + this.hitbox.x2;
 			let y1 = this.coordinates.y + this.hitbox.y1;
 			let y2 = this.coordinates.y + this.hitbox.y2;
-			if (collisionZone[a] === undefined){
-				continue;
-			}
 			let mainAdd = true;//true if main didnt overlap
 			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
 			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
@@ -1015,13 +1015,25 @@ class ObjectHitbox{
 		this.hitbox = {x1: x1 - this.x, x2: x2 - this.x, y1: y1 - this.y, y2: y2 - this.y, additional: []};
 		this.map = objectScreen;
 		this.fake = isFake;
+		this.appearances = [];
+		this.additionalHitboxes();
+	}
+
+	draw(){
+		draw.object(this);
+	}
+
+	additionalHitboxes(){
+		for (let a in this.appearances){
+			this.map.loadingZones[this.appearances[a].x][this.appearances[a].y][this.appearances[a].id] = undefined;
+		}
 		this.loadingZone = {x: Math.floor(this.x / this.map.size), y: Math.floor(this.y / this.map.size)};
 		let minRange = this.map.size / 10;
 		let maxRange = this.map.size / 10 * 9;
-		let xRangeMin = x1 - this.loadingZone.x * this.map.size;
-		let xRangeMax = x2 - this.loadingZone.x * this.map.size;
-		let yRangeMin = y1 - this.loadingZone.y * this.map.size;
-		let yRangeMax = y2 - this.loadingZone.y * this.map.size;
+		let xRangeMin = this.x + this.hitbox.x1 - this.loadingZone.x * this.map.size;
+		let xRangeMax = this.x + this.hitbox.x2 - this.loadingZone.x * this.map.size;
+		let yRangeMin = this.y + this.hitbox.y1 - this.loadingZone.y * this.map.size;
+		let yRangeMax = this.y + this.hitbox.y2 - this.loadingZone.y * this.map.size;
 		this.appearances = [];
 		this.listAppearance(this.loadingZone.x, this.loadingZone.y, this.map.loadingZones[this.loadingZone.x][this.loadingZone.y].push(this) - 1);//создаёт дополнительные хитбоксы в соседних ячейках, если необходимо
 		if (xRangeMin < minRange){
@@ -1048,10 +1060,6 @@ class ObjectHitbox{
 				this.listAppearance(this.loadingZone.x + 1, this.loadingZone.y - 1, this.map.loadingZones[this.loadingZone.x + 1][this.loadingZone.y - 1].push(this) - 1);
 			}
 		}
-	}
-
-	draw(){
-		draw.object(this);
 	}
 
 	drawOnMinimap(x1, x2, y1, y2, scale = 4){
@@ -1264,13 +1272,13 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	}
 
 	xshift(){
-    	//return -this.loadedZone.x * this.size; //camera switches between screens
+		//return -this.loadedZone.x * this.size; //camera switches between screens
 		//return -player.x + this.size / 2; //camera attached to the player
 		return player.xshift;
 	}
 
 	yshift(){
-    	//return -this.loadedZone.y * this.size;
+		//return -this.loadedZone.y * this.size;
 		//return -player.y + this.size / 2;
 		return player.yshift;
 	}
@@ -1334,6 +1342,8 @@ class Interface{
 
 	click(){
 		this.focus.functionality();
+		this.focus.functionality2();
+		this.focus.functionality3();
 	}
 
 	createBackground(x1, x2, y1, y2){
@@ -1367,6 +1377,8 @@ class InterfaceElement{
 	functionality(){
 		//console.log("click");
 	}
+	functionality2(){}
+	functionality3(){}
 }
 
 
@@ -1375,10 +1387,11 @@ class InteractivityHitbox extends Box{
 		super(0, 0, owner.scaledHitbox(2));
 		this.owner = owner;
 		this.bind(owner);
+		this.tickMove();
 	}
 
 	tickPlaceholder1(){
-		let cont = this.contact();
+		let cont = this.contactAnyway();
 		for (let a in cont){
 			if (cont[a].interactive){
 				cont[a].interact(this.owner);
@@ -1452,7 +1465,7 @@ class DevKit{
 		}
 		for (let b = 0; b < 20; b++){
 			new Swarmer();
-		}
+		}9
 		for (let c = 0; c < 2; c++){
 			new Praetorian();
 		}

@@ -1,5 +1,5 @@
 class Player extends Entity{
-	constructor(x = 100, y = 100, hp = 100, defence = 0, hitbox = {x1: -7.5, x2: 7.5, y1: -15, y2: 15}, entityScreen = map, speed = 3){
+	constructor(x = 2100, y = 1000, hp = 100, defence = 0, hitbox = {x1: -7.5, x2: 7.5, y1: -15, y2: 15}, entityScreen = map, speed = 3){
 		super(x, y, hp, defence, hitbox, entityScreen);
 		this.moveVectoring = {x: 0, y: 0};
 		this.speed = speed;
@@ -18,7 +18,7 @@ class Player extends Entity{
 		this.target = this;
 		this.rockets = [];
 		this.activeRockets = [];
-		this.speedMultipliers = [1, 1];
+		this.speedMultipliers = [1, 1, 1];//terminals, ---, cart
 		this.weaponSpeedMultipliers = [1, 1];
 		this.damageMultipliers = [1, 1];
 		this.maxShiftBox = {x1: 200, x2: 400, y1: 200, y2: 400};
@@ -197,7 +197,7 @@ class ItemSlot extends InterfaceElement{
 		this.slotSetter(buffer2);
 	}
 
-	functionality2(user){
+	functionalityX(user){
 		let buffer2 = user.inventory.buffer;
 		user.inventory.buffer = this.slotGetter();
 		this.slotSetter(buffer2);

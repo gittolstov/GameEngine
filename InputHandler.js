@@ -21,17 +21,28 @@ function keyDownHandler(){
         player.unUseHand();
         player.inventory.mainhand[0] = player.inventory.hotbar[2];
     } else if (event.keyCode === 69){
-        new InteractivityHitbox;
-    } else if (event.keyCode === 13){//enter
-        if (!player.activeInterfaces[0]){
-            player.activeInterfaces[0] = true;
-            player.inventoryId = player.map.activeInterfaces.push(player.inventory) - 1;
-        } else {
-            player.activeInterfaces[0] = false;
-            player.map.activeInterfaces[player.inventoryId] = undefined;
-        }
-    } else if (event.keyCode === 77){//M
-        if (!player.activeInterfaces[1]){
+		d = false;
+		if (baseBackend.cart.linked){
+			baseBackend.cart.linked = false;
+			baseBackend.cart.block.hitbox = {x1: 15, x2: -15, y1: 15, y2: -15};
+			player.speedMultipliers[2] = 1;
+			d = true;
+		}
+		new InteractivityHitbox;
+		if (d) {
+			baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
+		}
+		d = false;
+	} else if (event.keyCode === 13){//enter
+		if (!player.activeInterfaces[0]){
+			player.activeInterfaces[0] = true;
+			player.inventoryId = player.map.activeInterfaces.push(player.inventory) - 1;
+		} else {
+			player.activeInterfaces[0] = false;
+			player.map.activeInterfaces[player.inventoryId] = undefined;
+		}
+	} else if (event.keyCode === 77){//M
+		if (!player.activeInterfaces[1]){
             player.activeInterfaces[1] = true;
             player.mapId = player.map.activeInterfaces.push(player.minimap) - 1;
         }
@@ -40,6 +51,7 @@ function keyDownHandler(){
         player.inventory.mainhand[0].reload();
     } else if (event.keyCode === 81){//Q
         new GridParticle(player, 20);
+        new GridParticle(player, 600, true);
     } else if (event.keyCode === 84){//T
         player.activeLevelEditor.logInput(player.mouseBox.coordinates);
     } else if (event.keyCode === 67){//C
