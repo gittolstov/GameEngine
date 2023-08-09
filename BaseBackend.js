@@ -120,7 +120,7 @@ class BaseBackend{
 		if (t > 0){
 			this.reactorTemperature += t;
 			new MeltdownParticle();
-			console.log("!!!meltdown!!!");
+			//console.log("!!!meltdown!!!");
 		} else if (this.reactorTemperature > 0){
 			this.reactorTemperature--;
 		}
@@ -136,7 +136,6 @@ class BaseBackend{
 		for (let a in this.doorEntities){
 			this.doorEntities[a].hitbox = {x1: 10, x2: -10, y1: 10, y2: -10, additional: []}
 		}
-
 	}
 
 	bindDoors(){
@@ -680,9 +679,9 @@ class Cell{
 	rollWireBreak(){
 		let a = Math.random() * 100;
 		if (this.wiringBreakpoints.length > 0 && this.wholeWires() > 0 && a < this.status * 0.4 + 0.01){
-			console.log(a);
+			//console.log(a);
 			this.wiringBreakpoints[Math.floor(Math.random() * this.wiringBreakpoints.length)].break();
-			console.log("the wires are cut!!!   " + this.id);
+			//console.log("the wires are cut!!!   " + this.id);
 		}
 	}
 
@@ -878,7 +877,9 @@ class WiringConnector{
 	constructor(x1, y1, x2, y2, maP = map){
 		let a = new Entity(x2, y2, -1000, 10000, {x1: 0, y1: 0, x2: 0, y2: 0}, maP, 50);
 		a.isTechnical = true;
+		a.tickMove = function(){this.age()};
 		let b = new Entity(x1, y1, -1000, 10000, {x1: 0, y1: 0, x2: 0, y2: 0}, maP, 50);
+		b.tickMove = function(){this.age()};
 		b.isTechnical = true;
 		a.other = b;
 		b.other = a;
@@ -893,7 +894,8 @@ class WiringConnector{
 class WireBreakpoint extends ObjectHitbox{
 	constructor(x, y, x2, y2, maP = map){
 		super(x + 5, x + 15, y + 5, y + 15, true, undefined, undefined, maP);
-		let a = new Entity(x2, y2, -1000, 10000, {x1: 2, y1: 2, x2: 2, y2: 2}, maP, 5000);
+		let a = new Entity(x2, y2, -1000, 10000, {x1: 2, y1: 2, x2: 2, y2: 2}, maP, 20);
+		a.tickMove = function(){this.age()};
 		a.isTechnical = true;
 		a.backlink = this;
 		this.whole = true;
@@ -1075,7 +1077,7 @@ class BaseDoor extends ObjectHitbox{
 
 	breach(){
 		this.isBlocked = true;
-		console.log("!!!door breached!!!");
+		//console.log("!!!door breached!!!");
 		this.open();
 	}
 }
@@ -1416,7 +1418,7 @@ class CartFiller extends Box{
 	}
 
 	tick4(){
-		if (this.ready === 10 && this.touchSpecific(this.backend.cart) && this.backend.vault[this.reductionType] < 100 && (this.backend.cart[this.reductionType] < 20 && this.reductionType === "fuel" || this.backend.cart[this.reductionType] < 10 && this.reductionType !== "fuel")){
+		if (this.ready === 10 && this.touchSpecific(this.backend.cart) && this.backend.vault[this.reductionType] > 0 && (this.backend.cart[this.reductionType] < 20 && this.reductionType === "fuel" || this.backend.cart[this.reductionType] < 10 && this.reductionType !== "fuel")){
 			this.backend.cart[this.reductionType]++;
 			this.backend.vault[this.reductionType]--;
 		}

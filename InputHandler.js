@@ -20,6 +20,27 @@ function keyDownHandler(){
     } else if (event.keyCode === 51){
         player.unUseHand();
         player.inventory.mainhand[0] = player.inventory.hotbar[2];
+    } else if (event.keyCode === 52){
+        player.unUseHand();
+        player.inventory.mainhand[0] = player.inventory.hotbar[3];
+    } else if (event.keyCode === 53){
+        player.unUseHand();
+        player.inventory.mainhand[0] = player.inventory.hotbar[4];
+    } else if (event.keyCode === 54){
+        player.unUseHand();
+        player.inventory.mainhand[0] = player.inventory.hotbar[5];
+    } else if (event.keyCode === 55){
+        player.unUseHand();
+        player.inventory.mainhand[0] = player.inventory.hotbar[6];
+    } else if (event.keyCode === 56){
+        player.unUseHand();
+        player.inventory.mainhand[0] = player.inventory.hotbar[7];
+    } else if (event.keyCode === 57){
+        player.unUseHand();
+        player.inventory.mainhand[0] = player.inventory.hotbar[8];
+    } else if (event.keyCode === 48){
+        player.unUseHand();
+        player.inventory.mainhand[0] = player.inventory.hotbar[9];
     } else if (event.keyCode === 69){
 		d = false;
 		if (baseBackend.cart.linked){
@@ -42,26 +63,26 @@ function keyDownHandler(){
 			player.map.activeInterfaces[player.inventoryId] = undefined;
 		}
 	} else if (event.keyCode === 77){//M
-		if (!player.activeInterfaces[1]){
-            player.activeInterfaces[1] = true;
-            player.mapId = player.map.activeInterfaces.push(player.minimap) - 1;
-        }
+		//if (!player.activeInterfaces[1]){
+        //    player.activeInterfaces[1] = true;
+        //    player.mapId = player.map.activeInterfaces.push(player.minimap) - 1;
+        //}
     } else if (event.keyCode === 82){//R
-        player.activeLevelEditor.circleSelector();
+        //player.activeLevelEditor.circleSelector();
         player.inventory.mainhand[0].reload();
     } else if (event.keyCode === 81){//Q
-        new GridParticle(player, 20);
-        new GridParticle(player, 600, true);
+        //new GridParticle(player, 20);
+        //new GridParticle(player, 600, true);
     } else if (event.keyCode === 84){//T
-        player.activeLevelEditor.logInput(player.mouseBox.coordinates);
+        //player.activeLevelEditor.logInput(player.mouseBox.coordinates);
     } else if (event.keyCode === 67){//C
-        player.activeLevelEditor.clearInputs();
+        //player.activeLevelEditor.clearInputs();
     } else if (event.keyCode === 76){//L
-        player.activeLevelEditor.logSchematic();
+        //player.activeLevelEditor.logSchematic();
     } else if (event.keyCode === 70){//F
-        player.activeLevelEditor.doSelected();
+        //player.activeLevelEditor.doSelected();
     } else if (event.keyCode === 90){//Z
-        player.activeLevelEditor.ctrlz();
+        //player.activeLevelEditor.ctrlz();
     }
 }
 

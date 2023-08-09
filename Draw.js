@@ -74,8 +74,8 @@ class Draw{
 		this.o2.src = "o2.png";
 		this.ventTerminalImg.src = "ventTerminal.png";
 		this.tank.src = "tank.png";
-		this.waterPort.src = "Obstacle.png";//
-		this.reactorImg.src = "Obstacle.png";//
+		this.waterPort.src = "waterPort.png";
+		this.reactorImg.src = "reactor.png";
 		this.wireframe.src = "wireFrame.png";
 		this.mainTerminal.src = "mainTerminal.png";
 		this.elevatorButton.src = "elevButton.png";
