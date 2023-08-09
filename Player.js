@@ -14,7 +14,7 @@ class Player extends Entity{
 		this.killCount = 0;
 		this.inventory = new Inventory(this);
 		this.minimap = new Minimap;
-		this.activeInterfaces = [];
+		this.activeInterfaces = [];//0 - , 1 - , 2 - , 3 - main, 4 - wiring, 5 - vent
 		this.target = this;
 		this.rockets = [];
 		this.activeRockets = [];
@@ -28,10 +28,15 @@ class Player extends Entity{
 				this.player.target = list[0];
 			}
 		}
+		new HUD(this.inventory, this);
 	}
 
 	draw(){
 		draw.player(this);
+	}
+
+	outOfSight(x, y){
+		return x + this.map.xshift() < 0 || x + this.map.xshift() > 600 || y + this.map.yshift() < 0 || y + this.map.yshift() > 600;
 	}
 
 	movePlaceholder1(){
@@ -171,6 +176,33 @@ class Inventory extends Interface{
 				(entity.map.size - sizeY) / 2 + iconSize + lineShift,
 				a
 			);
+		}
+	}
+}
+
+
+class HUD extends Interface{
+	constructor(inventory = player.inventory, owner = player){
+		super(0, 0, 0, 0);
+		owner.map.activeInterfaces.push(this);
+		this.elements[0].draw = function(){
+			draw.can.fillStyle = "grey";
+			draw.can.fillRect(28, 28, 204, 19);
+			draw.can.fillStyle = "black";
+			draw.can.fillRect(30, 30, 200, 15);
+			draw.can.fillStyle = "red";
+			draw.can.fillRect(30, 30, player.hp / player.maxHp * 200, 15);
+		}
+		this.inventory = inventory;
+		for (let a = 0; a < inventory.hotbar.length; a++){
+			this.elements.push({...inventory.elements[a + inventory.slots.length + 1]});
+			this.elements[a + 1].draw = function(){
+				draw.placeholderSlot(this);
+				this.parentInterface.hotbar[this.inventorySlotId].draw(this.hitbox.x1, this.hitbox.x2, this.hitbox.y1, this.hitbox.y2);
+			}
+			this.elements[a + 1].hitbox = {...inventory.elements[a + inventory.slots.length + 1].hitbox};
+			this.elements[a + 1].hitbox.y1 += 350;
+			this.elements[a + 1].hitbox.y2 += 350;
 		}
 	}
 }

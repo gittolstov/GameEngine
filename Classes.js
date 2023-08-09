@@ -131,6 +131,41 @@ class Box{
 			this.damageEntity = function(ent){ent.damageFire(this.damage.amount, this);};
 		}
 	}
+
+	overlap(){
+		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
+		for (let a = 0; a < collisionZone.length; a++){
+			if (collisionZone[a] === undefined || collisionZone[a].fake){
+				continue;
+			}
+			let x1 = this.coordinates.x + this.hitbox.x1;
+			let x2 = this.coordinates.x + this.hitbox.x2;
+			let y1 = this.coordinates.y + this.hitbox.y1;
+			let y2 = this.coordinates.y + this.hitbox.y2;
+			let objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
+			let objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
+			let objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
+			let objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
+			if (x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2) {
+				return false;
+			} else {
+				for (let b = 0; b < this.hitbox.additional.length; b++){
+					x1 = this.coordinates.x + this.hitbox.additional[b].x1;
+					x2 = this.coordinates.x + this.hitbox.additional[b].x2;
+					y1 = this.coordinates.y + this.hitbox.additional[b].y1;
+					y2 = this.coordinates.y + this.hitbox.additional[b].y2;
+					objectX1 = collisionZone[a].hitbox.x1 + collisionZone[a].x;
+					objectY1 = collisionZone[a].hitbox.y1 + collisionZone[a].y;
+					objectX2 = collisionZone[a].hitbox.x2 + collisionZone[a].x;
+					objectY2 = collisionZone[a].hitbox.y2 + collisionZone[a].y;
+					if (x2 > objectX1 && x1 < objectX2 && y2 > objectY1 && y1 < objectY2) {
+						return false;
+					}
+				}
+			}
+		}
+		return true;
+	}
 	
 	contact(){
 		let collisionZone = this.map.loadingZones[this.loadingZone.x][this.loadingZone.y];
@@ -367,19 +402,20 @@ class Box{
 
 
 class Tool{
-	constructor(functionality = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 4, iFrame: 240}){
+	constructor(functionality = function(ent){this.meleeStrike(ent)}, meleeDamage = {type: "generic", amount: 4, iFrame: 240}, type = "stick", sprite = "toolPlaceholder.png", icon = "toolPlaceholder.png"){
 		this.functionality = functionality;
 		this.meleeDamage = meleeDamage;
 		this.isStackable = false;
 		this.cooldown = true;
 		this.amount = 1;
+		this.type = type;
 		this.hitbox = {x1: -40, x2: 40, y1: 5, y2: -15};
 		this.maxCooldown = 500;
 		this.active = false;
 		this.toolIcon = new Image;
-		this.toolIcon.src = "toolPlaceholder.png";
+		this.toolIcon.src = icon;
 		this.sprite = new Image;
-		this.sprite.src = "toolPlaceholder.png";
+		this.sprite.src = sprite;
 	}
 
 	draw(x1, x2, y1, y2){
@@ -391,8 +427,8 @@ class Tool{
 	}
 	
 	meleeStrike(user){
-		this.hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2};
-		let meleeHitbox = new Box(user.map, user.x, user.y, this.hitbox, this.meleeDamage, this.meleeDamage.iFrame / (2 * user.map.framerate));
+		let hitbox = {x1: user.hitbox.x1 * 2, x2: user.hitbox.x2 * 2, y1: user.hitbox.y1 * 2, y2: user.hitbox.y2 * 2};
+		let meleeHitbox = new Box(user.x, user.y, hitbox, this.meleeDamage, this.meleeDamage.iFrame / (2 * user.map.framerate), user.map);
 		meleeHitbox.bind(user);
 	}
 
@@ -1225,6 +1261,36 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		for (let a = 0; a < this.particleListActive.length; a++){
 			this.particles[this.particleListActive[a]].tickMove();
 		}
+	}
+
+	reloadBoxList(){
+		let boxList = [];
+		for (let a in this.boxList){
+			if (this.boxList[a] === undefined){continue};
+			this.boxList[a].id = boxList.push(this.boxList[a]) - 1;
+		}
+		this.boxList = boxList;
+		this.reloadBoxActiveList();
+	}
+
+	reloadEntityList(){
+		let entityList = [];
+		for (let a in this.entityList){
+			if (this.entityList[a] === undefined){continue};
+			this.entityList[a].id = entityList.push(this.entityList[a]) - 1;
+		}
+		this.entityList = entityList;
+		this.reloadEntityActiveList();
+	}
+
+	reloadParticleList(){
+		let particleList = [];
+		for (let a in this.particleList){
+			if (this.particleList[a] === undefined){continue};
+			this.particleList[a].id = particleList.push(this.particleList[a]) - 1;
+		}
+		this.particleList = particleList;
+		this.reloadParticleActiveList();
 	}
 
 	reloadEntityActiveList(){

@@ -59,7 +59,10 @@ class Glyphid extends Entity{
 
     deathPlaceholder1(){
         player.killCount++;
+		this.deathPlaceholder2();
     }
+
+    deathPlaceholder2(){}
 
     damagePlaceholder(dmg){
         for (let a = 0; a < dmg; a++){
@@ -141,7 +144,7 @@ class ShadowRealm extends Map{
 
 class Grunt extends Glyphid{
     constructor(x = 0, y = 0){
-        super(10, 10, 2, 20, x, y);
+        super(10, 10, 5, 20, x, y);
     }
 
     draw(){
@@ -504,5 +507,24 @@ class BloodParticle extends Particle{
 
     draw(){
         draw.bloodParticle(this);
+    }
+}
+
+
+class EletroParticle extends Particle{
+    constructor(block){
+        super(block.x, block.y, 20, {x1: -1, x2: 1, y1: -1, y2: 1}, block.map);
+        this.speedVectoring = {x: Math.random() * block.hitbox.x1 * 0.4 - block.hitbox.x1 * 0.2, y: Math.random() * block.hitbox.x1 * 0.4 - block.hitbox.x1 * 0.2};
+        this.accVectoring = {x: this.speedVectoring.x / 50, y: this.speedVectoring.y / 50};
+    }
+
+    tickPlaceholderMain(){
+        this.move(this.speedVectoring.x, this.speedVectoring.y);
+        this.speedVectoring.x -= this.accVectoring.x;
+        this.speedVectoring.y -= this.accVectoring.y;
+    }
+
+    draw(){
+        draw.electroParticle(this);
     }
 }

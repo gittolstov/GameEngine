@@ -17,15 +17,30 @@ class Draw{
 		this.glyphidPraetorian = new Image;
 		this.bulletImg = new Image;
 		this.wiringBackground = new Image;
+		this.ventInterface = new Image;
+		this.tube = new Image;
+		this.vault = new Image;
+		this.mainTerminal = new Image;
+		this.dispencer = new Image;
+		this.waterPort = new Image;
+		this.tank = new Image;
+		this.o2 = new Image;
+		this.reactorImg = new Image;
+		this.ventTerminalImg = new Image;
+		this.elevatorButton = new Image;
 		this.caveBg = new Image;
 		this.blood = new Image;
 		this.floorImg = new Image;
+		this.wireframe = new Image;
+		this.bgStone = new Image;
 		this.cornerImg = new Image;
 		this.ladderImg = new Image;
 		this.vent1img = new Image;
 		this.vent2img = new Image;
 		this.el1 = new Image;
 		this.el2 = new Image;
+		this.wire1 = new Image;
+		this.wire2 = new Image;
 		this.lpad1 = new Image;
 		this.lpad2 = new Image;
 		this.rocket1 = new Image;
@@ -52,6 +67,19 @@ class Draw{
 		this.doorTerm.src = "doorTerminal.png";
 		this.doomguy.src = "slayer.png";
 		this.wiringBackground.src = "wiringBackground.png";
+		this.ventInterface.src = "ventInterface.png";
+		this.tube.src = "pipe.png";
+		this.vault.src = "vault.png";
+		this.dispencer.src = "dispencer.png";
+		this.o2.src = "o2.png";
+		this.ventTerminalImg.src = "ventTerminal.png";
+		this.tank.src = "tank.png";
+		this.waterPort.src = "Obstacle.png";//
+		this.reactorImg.src = "Obstacle.png";//
+		this.wireframe.src = "wireFrame.png";
+		this.mainTerminal.src = "mainTerminal.png";
+		this.elevatorButton.src = "elevButton.png";
+		this.bgStone.src = "BackgroundStone.png";
 		this.obstacle.src = "Obstacle.png";
 		this.glyphidGrunt.src = "Glyphid_grunt.png";
 		this.glyphidSwarmer.src = "Glyphid_swarmer.png";
@@ -60,6 +88,8 @@ class Draw{
 		this.floorImg.src = "floor.png";
 		this.cornerImg.src = "corner.png";
 		this.ladderImg.src = "ladder.png";
+		this.wire1.src = "wire1.png";
+		this.wire2.src = "wire2.png";
 		this.vent1img.src = "vent.png";
 		this.vent2img.src = "ventFloor.png";
 		this.lpad1.src = "landingPad1.png";
@@ -107,6 +137,12 @@ class Draw{
 
 	object(obj){
 		this.can.drawImage(this.obstacle, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.drawImage(this.obstacle, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	bgObject(obj){
+		this.can.drawImage(this.bgStone, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+		this.can.drawImage(this.bgStone, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 	}
 
 	door(obj){
@@ -133,9 +169,86 @@ class Draw{
 		this.can.drawImage(this.cornerImg, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 	}
 
-	placeholderHitbox(box){
-		this.can.fillStyle = "rgba(255, 0, 0, 0.1)";
+	placeholderHitbox(box, brightness = 255){
+		this.can.fillStyle = "rgba(255, 0, 0, " + brightness + ")";
 		this.can.fillRect(box.coordinates.x + box.hitbox.x1 + box.map.xshift(), box.coordinates.y + box.hitbox.y1 + box.map.yshift(), box.hitbox.x2 - box.hitbox.x1, box.hitbox.y2 - box.hitbox.y1);
+	}
+
+	wire(obj){
+		this.can.fillStyle = "red";
+		this.can.fillRect(obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	text(part){
+		this.can.fillStyle = "black";
+		this.can.fillRect(part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+		this.can.textAlign = "center";
+		this.can.fillStyle = "green";
+		this.can.font = "15px arial";
+		this.can.fillText(part.text, (part.hitbox.x2 + part.hitbox.x1) / 2, (part.hitbox.y2 + part.hitbox.y1) / 2 + 8, part.hitbox.x2 - part.hitbox.x1);
+	}
+
+	wireFrame(part){
+		this.can.drawImage(this.wireframe, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+	}
+
+	brokenWire(part){
+		if (part.status === 0){
+			this.can.drawImage(this.wire1, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+		} else if (part.status === 2){
+			this.can.drawImage(this.wire2, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+		}
+	}
+
+	vaultTube(obj){
+		this.can.drawImage(this.tube, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+	
+	vaultModule(obj){
+		this.can.fillStyle = "black";
+		this.can.fillRect(obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1), (obj.hitbox.y2 - obj.hitbox.y1) / 2);
+		this.can.fillStyle = "rgb(100, 255, 0)";
+		this.can.fillRect(obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5 * obj.vault.fuel / 100);
+		this.can.fillStyle = "rgb(200, 200, 200)";
+		this.can.fillRect(obj.x + obj.hitbox.x1 + obj.map.xshift() + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5 * obj.vault.oxygen / 100);
+		this.can.fillStyle = "rgb(0, 183, 255)";
+		this.can.fillRect(obj.x + obj.hitbox.x1 + obj.map.xshift() + (obj.hitbox.x2 - obj.hitbox.x1) / 3 * 2, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5 * obj.vault.water / 100);
+		this.can.drawImage(this.vault, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	foodDispencer(obj){
+		this.can.drawImage(this.dispencer, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	terminal1(obj){
+		this.can.drawImage(this.mainTerminal, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	oxygenTank(obj, oxygen){
+		this.can.fillStyle = "black";
+		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5);
+		this.can.fillStyle = "rgb(200, 200, 200)";
+		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5 * oxygen / 20);
+		this.can.drawImage(this.o2, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+	waterTank(obj, water){
+		this.can.fillStyle = "black";
+		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5);
+		this.can.fillStyle = "rgb(200, 200, 200)";
+		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5 * water / 20);
+		this.can.drawImage(this.tank, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	O2H2Oport(obj){
+		this.can.drawImage(this.waterPort, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	reactor(obj){
+		this.can.drawImage(this.reactorImg, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
+	}
+
+	ventTerminal(obj){
+		this.can.drawImage(this.ventTerminalImg, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 	}
 
 	ladder(obj){
@@ -153,6 +266,10 @@ class Draw{
 			this.can.drawImage(this.el2, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 			this.can.drawImage(this.el2, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 		}
+	}
+
+	elevButton(obj){
+		this.can.drawImage(this.elevatorButton, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 	}
 
 	vent1(obj){
@@ -213,6 +330,10 @@ class Draw{
 
 	wiringBg(part){
 		this.can.drawImage(this.wiringBackground, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
+	}
+
+	ventBg(part){
+		this.can.drawImage(this.ventInterface, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
 
 	terminal(part){
@@ -291,7 +412,12 @@ class Draw{
 	}
 
 	bloodParticle(ptl){
-		this.can.drawImage(this.blood, ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1)
+		this.can.drawImage(this.blood, ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1);
+	}
+
+	electroParticle(ptl){
+		this.can.fillStyle = "lightblue";
+		this.can.fillRect(ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1);
 	}
 
 	grid1(x1, y1, y2, maP){
