@@ -73,7 +73,7 @@ class LevelEditor {
 		new MainTerminal(2220, 2240, 980, 1020);
 		new Cart(900, 3700);
 		new VentTerminal(1180, 1260, 840, 920, 3);
-		new VentTerminal(2880, 2960, 1420, 1500, 3);
+		new VentTerminal(2920, 3000, 1420, 1500, 3);
 		let a = new ObjectHitbox(2660, 2760, 1400, 1500);
 		a.draw = function(){
 			draw.oxygenTank(this, baseBackend.supplies.oxygen);

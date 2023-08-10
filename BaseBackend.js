@@ -678,7 +678,7 @@ class Cell{
 
 	rollWireBreak(){
 		let a = Math.random() * 100;
-		if (this.wiringBreakpoints.length > 0 && this.wholeWires() > 0 && a < this.status * 0.4 + 0.01){
+		if (this.wiringBreakpoints.length > 0 && this.wholeWires() > 0 && a < this.status * 0.4 + 0.0125){
 			//console.log(a);
 			this.wiringBreakpoints[Math.floor(Math.random() * this.wiringBreakpoints.length)].break();
 			//console.log("the wires are cut!!!   " + this.id);
@@ -1069,7 +1069,16 @@ class BaseDoor extends ObjectHitbox{
 
 	breachRoll(){
 		let a = Math.random() * 100;
-		let chance = !this.isHeavy * 2 + 0.03 * (0.3 * this.isBlocked || this.isLocked + 1 * !this.isBlocked && !this.isLocked) * (((this.isPowered && this.isHeavy) * 1 + !(this.isPowered && this.isHeavy) * 2));
+		let chance = 0.06;
+		if (this.isHeavy){
+			chance *= 4 * !this.powered + 1;
+			chance *= -0.5 * (this.isLocked && this.powered) + 1;
+		} else {
+			chance = 2;
+		}
+		if (this.isBlocked){
+			chance = 0.03;
+		}
 		if (a < chance){
 			this.breach();
 		}
