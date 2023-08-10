@@ -363,6 +363,7 @@ class MainTerminalInterface extends Interface{
 		this.rocketBayAccess = false;
 		this.elevatorOpen = false;
 		this.access = false;
+		this.blockLifterGiven = false;
 		this.elements[0].draw = function(){
 			draw.wiringBg(this);
 			draw.terminal(this);
@@ -372,6 +373,7 @@ class MainTerminalInterface extends Interface{
 		new Code(this, "openBay", "2,3,2,0,1");
 		new Code(this, "closeBay", "1,0,2,3,2");
 		new Code(this, "diagnostic", "1,1,1");
+		new Code(this, "blockLifter", "2,5,2,3,4");
 		this.display = new InterfaceElement(this, 0, 0, 0, 0);
 		this.display.code = [];
 		this.display.draw = function(){
@@ -554,6 +556,18 @@ class MainTerminalInterface extends Interface{
 		}
 		this.backend.heavyDoors[num].isLocked = false;
 		this.access = false;
+	}
+
+	blockLifter(){
+		let a = false;
+		for (let b in this.backend.heavyDoors){
+			if (this.backend.heavyDoors[b].isBlocked){
+				a = true;
+			}
+		}
+		if (a && !this.blockLifterGiven){
+			player.give(new Resource(1, "blockLifter", undefined, "blockLifter.png"));
+		}
 	}
 }
 
@@ -985,6 +999,7 @@ class BaseDoor extends ObjectHitbox{
 		super(x1, x2, y1, y2, undefined, undefined, undefined, maP);
 		let direction = Math.abs(x2 - x1) > Math.abs(y2 - y1);
 		this.direction = direction;
+		this.backend = base;
 		this.isHeavy = isHeavy;
 		this.powered = true;
 		this.isOpen = false;
@@ -1140,8 +1155,9 @@ class DoorInterface extends Interface{
 		this.lockdown.functionality = function(){
 			this.parentInterface.terminal.block();
 			if (this.parentInterface.terminal.bound.isBlocked && player.inventory.mainhand[0].type === "blockLifter"){
-				this.parentInterface.terminal.unblock();
+				this.parentInterface.terminal.bound.unblock();
 				player.inventory.mainhand[0].decrease(1);
+				this.parentInterface.terminal.bound.backend.mainTerminal.blockLifterGiven = false;
 			}
 		}
 	}
