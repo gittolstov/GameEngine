@@ -6,7 +6,7 @@ class WeaponHandle extends Tool{
             draw.interface(this);
         }
         this.modificationInterface.click = function(){
-            this.focus.functionality(player);
+            this.focus.functionality(immediateApi.getPlayer());
         }
         this.functionality = function(ent){
             for (let a in this.slots.primaries){
@@ -56,7 +56,7 @@ class WeaponHandle extends Tool{
 
     tickMove(){
         if (this.spread > 0){
-            this.spread -= this.slots.primaries[0].spreadSpeed * this.slots.primaries[0].cooldown * player.map.framerate * 0.002;
+            this.spread -= this.slots.primaries[0].spreadSpeed * this.slots.primaries[0].cooldown * immediateApi.getPlayer().map.framerate * 0.002;
         }
     }
 
@@ -146,7 +146,7 @@ class WeaponHandle extends Tool{
 }
 
 class Primary extends Resource{
-    constructor(damage = {type: "playerGeneric", amount: 3, iFrame: 10}, pelletNum = 1, spread1 = 1, spread2 = 30, spreadSpeed = 0.08, cooldown = 10, magSize = 30, ammoNeeded = "rifleBullet", reloadTime = 2000){
+    constructor(damage = {type: "generic", amount: 3, iFrame: 10}, pelletNum = 1, spread1 = 1, spread2 = 30, spreadSpeed = 0.08, cooldown = 10, magSize = 30, ammoNeeded = "rifleBullet", reloadTime = 2000){
         super();
         this.damage = damage;
         this.advancedWeaponType = "primary";

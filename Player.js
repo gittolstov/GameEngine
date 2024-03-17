@@ -8,20 +8,21 @@ class Player extends Entity{
 		this.mouseShift = {x: 0, y: 0}
 		this.mouseBox = new Box(this.mousePosition.x, this.mousePosition.y, {x1: -8, x2: 8, y1: -8, y2: 8});
 		this.mouseBox.player = this;
-		this.turn = 1;
 		this.xshift = 0;
 		this.yshift = 0;
 		this.killCount = 0;
 		this.inventory = new Inventory(this);
 		this.minimap = new Minimap;
 		this.activeInterfaces = [];//0 - , 1 - , 2 - , 3 - main, 4 - wiring, 5 - vent
+		this.personalInterfaces = [];//реальные объекты интерфейсов у игрока
 		this.target = this;
 		this.rockets = [];
 		this.activeRockets = [];
 		this.speedMultipliers = [1, 1, 1];//terminals, ---, cart
 		this.weaponSpeedMultipliers = [1, 1];
 		this.damageMultipliers = [1, 1];
-		this.maxShiftBox = {x1: 200, x2: 400, y1: 200, y2: 400};
+		this.maxShiftBox = {x1: 200, x2: 400, y1: 200, y2: 400, cameraSpeedMultiplier: 0.05, minimalCameraSpeed: 0.5};
+		this.walkAnimationTechnicalities = {stepAnimation: 0, turn: 1, ticksPerStep: 3}
 		this.mouseBox.tickPlaceholderMain = function(){
 			let list = this.touch();
 			if (list.length > 0){
@@ -32,7 +33,7 @@ class Player extends Entity{
 	}
 
 	draw(){
-		draw.player(this);
+		draw.amogus(this, Math.floor(this.walkAnimationTechnicalities.stepAnimation/this.walkAnimationTechnicalities.ticksPerStep));
 	}
 
 	outOfSight(x, y){
@@ -41,20 +42,32 @@ class Player extends Entity{
 
 	movePlaceholder1(){
 		this.shiftRefresh();
-		map.manageCursor(this.mousePosition.x, this.mousePosition.y);
-		player.mouseBox.tp(player.mousePosition.x - player.map.xshift(), player.mousePosition.y - player.map.yshift());
-		player.mouseShift.x = player.mousePosition.x - player.map.xshift() - player.x;
-		player.mouseShift.y = player.mousePosition.y - player.map.yshift() - player.y;
-		for (let a = 0; a < player.activeRockets.length; a++){
-			player.rockets[player.activeRockets[a]].goal = {x: player.mousePosition.x - player.map.xshift(), y: player.mousePosition.y - player.map.yshift()};
+		if ((this.moveVectoring.x || this.moveVectoring.y) && this.walkAnimationTechnicalities.stepAnimation < 3 * this.walkAnimationTechnicalities.ticksPerStep){
+			this.walkAnimationTechnicalities.stepAnimation++;
+		} else {
+			this.walkAnimationTechnicalities.stepAnimation = 0;
 		}
-		map.manageCursor(this.mousePosition.x, this.mousePosition.y);
+		if (this.moveVectoring.x){
+			this.walkAnimationTechnicalities.turn = -this.moveVectoring.x;
+		}
+		if (this === immediateApi.getPlayer()){
+			this.map.manageCursor(this.mousePosition.x, this.mousePosition.y);
+		}
+		this.mouseBox.tp(this.mousePosition.x - this.map.xshift(), this.mousePosition.y - this.map.yshift());
+		this.mouseShift.x = this.mousePosition.x - this.map.xshift() - this.x;
+		this.mouseShift.y = this.mousePosition.y - this.map.yshift() - this.y;
+		for (let a = 0; a < this.activeRockets.length; a++){
+			this.rockets[this.activeRockets[a]].goal = {x: this.mousePosition.x - this.map.xshift(), y: this.mousePosition.y - this.map.yshift()};
+		}
+		if (this === immediateApi.getPlayer()){
+			this.map.manageCursor(this.mousePosition.x, this.mousePosition.y);
+		}
 	}
 
 	tickPlaceholder1(){
 		this.movePlayer(this.moveVectoring.x, this.moveVectoring.y);
-		for (let a = 0; a < player.inventory.mainhand.length; a++){
-			player.inventory.mainhand[a].tickMove();
+		for (let a = 0; a < this.inventory.mainhand.length; a++){
+			this.inventory.mainhand[a].tickMove();
 		}
 		this.map.loadedZone = this.loadingZone;
 	}
@@ -110,18 +123,31 @@ class Player extends Entity{
 		}
 	}
 
+	moveCamera(x, y){
+		this.xshift -= x;
+		this.yshift -= y;
+	}
+
 	shiftRefresh(){
 		let screenX = this.x + this.xshift;
 		let screenY = this.y + this.yshift;
+		if (screenX > this.map.size || screenX < 0 || screenY > this.map.size || screenY < 0){
+			this.xshift = -this.x + this.map.size / 2;
+			this.yshift = -this.y + this.map.size / 2;
+		}
 		if (screenX > this.maxShiftBox.x2){
-			this.xshift = -this.x + this.maxShiftBox.x2;
+			this.moveCamera(this.maxShiftBox.minimalCameraSpeed + (screenX - this.maxShiftBox.x2) * this.maxShiftBox.cameraSpeedMultiplier, 0)
+			//this.xshift = -this.x + this.maxShiftBox.x2;
 		} else if (screenX < this.maxShiftBox.x1){
-			this.xshift = -this.x + this.maxShiftBox.x1;
+			this.moveCamera(-this.maxShiftBox.minimalCameraSpeed + (screenX - this.maxShiftBox.x1) * this.maxShiftBox.cameraSpeedMultiplier, 0)
+			//this.xshift = -this.x + this.maxShiftBox.x1;
 		}
 		if (screenY > this.maxShiftBox.y2){
-			this.yshift = -this.y + this.maxShiftBox.y2;
+			this.moveCamera(0, this.maxShiftBox.minimalCameraSpeed + (screenY - this.maxShiftBox.y2) * this.maxShiftBox.cameraSpeedMultiplier)
+			//this.yshift = -this.y + this.maxShiftBox.y2;
 		} else if (screenY < this.maxShiftBox.y1){
-			this.yshift = -this.y + this.maxShiftBox.y1;
+			this.moveCamera(0, -this.maxShiftBox.minimalCameraSpeed + (screenY - this.maxShiftBox.y1) * this.maxShiftBox.cameraSpeedMultiplier)
+			//this.yshift = -this.y + this.maxShiftBox.y1;
 		}
 	}
 
@@ -182,16 +208,16 @@ class Inventory extends Interface{
 
 
 class HUD extends Interface{
-	constructor(inventory = player.inventory, owner = player){
+	constructor(inventory = immediateApi.getPlayer().inventory, owner){
 		super(0, 0, 0, 0);
-		owner.map.activeInterfaces.push(this);
+		owner.personalInterfaces.push(this);
 		this.elements[0].draw = function(){
 			draw.can.fillStyle = "grey";
 			draw.can.fillRect(28, 28, 204, 19);
 			draw.can.fillStyle = "black";
 			draw.can.fillRect(30, 30, 200, 15);
 			draw.can.fillStyle = "red";
-			draw.can.fillRect(30, 30, player.hp / player.maxHp * 200, 15);
+			draw.can.fillRect(30, 30, owner.hp / owner.maxHp * 200, 15);
 		}
 		this.inventory = inventory;
 		for (let a = 0; a < inventory.hotbar.length; a++){
@@ -294,14 +320,14 @@ class Minimap extends Interface{
 			}
 		}
 		this.elements[0].functionality = function(){	
-			new MapMarker(player.x, player.y);
+			new MapMarker(immediateApi.getPlayer().x, immediateApi.getPlayer().y);
 		}
 	}
 }
 
 
 class MapMarker{
-	constructor(x, y, maP = player.map){
+	constructor(x, y, maP = immediateApi.getPlayer().map){
 		this.map = maP;
 		this.id = maP.mapMarkers.push(this) - 1;
 		this.x = x;

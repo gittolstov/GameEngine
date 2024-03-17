@@ -1,18 +1,18 @@
 class Glyphid extends Entity{
     constructor(size, hp, damage, defence, x = 0, y = 0){
-        super(x, y, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, player.map);
+        super(x, y, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, map);
         /*while (true){
-            this.x = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
-            this.y = Math.floor(Math.random() * player.map.size * player.map.fieldHeight);
+            this.x = Math.floor(Math.random() * map.size * map.fieldHeight);
+            this.y = Math.floor(Math.random() * map.size * map.fieldHeight);
             this.reloadEntityZone();
-            if (this.overlapAnyway() && euclidianDistance(this.x, this.y, player.x, player.y) > player.map.size * 2 && euclidianDistance(this.x, this.y, player.x, player.y) < player.map.size * 4){
+            if (this.overlapAnyway() && euclidianDistance(this.x, this.y, immediateApi.getPlayer().x, immediateApi.getPlayer().y) > immediateApi.getPlayer().map.size * 2 && euclidianDistance(this.x, this.y, immediateApi.getPlayer().x, immediateApi.getPlayer().y) < immediateApi.getPlayer().map.size * 4){
                 break;
             }
         }*/
         this.box = new meleeAttackHitbox(this, this.scaledHitbox(2), {type: "enemy", amount: damage, iFrame: 3000}, 400, 600);
         this.speed = 1;
-        this.aggro = player;
-		this.mainAggro = player;
+		this.mainAggro = this.pickAggro();
+        this.aggro = this.mainAggro;
 		this.posCheck = {x: this.x, y: this.y, time: 100};
         this.enemyDamageMultiplier = 0;
 		this.glyphid = true;
@@ -24,9 +24,42 @@ class Glyphid extends Entity{
         this.side = (this.aggro.x - this.x) / Math.abs(this.aggro.x - this.x) + 0.00001;
     }
 
+	pickAggro(){
+		let minimumDist = 1000000;
+		let minimum = 0
+		for (let a = 0; a < this.map.api.players.length; a++){
+			if (minimumDist > euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y)){
+				minimumDist = euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y);
+				minimum = a;
+			}
+		}
+		return this.map.api.players[minimum];
+	}
+
+	minimalDistanceToPlayer(){
+		let minimumDist = 1000000;
+		for (let a = 0; a < this.map.api.players.length; a++){
+			if (minimumDist > euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y)){
+				minimumDist = euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y);
+			}
+		}
+		return minimumDist;
+	}
+
+	repickAggro(){
+		let dist = euclidianDistance(this.x, this.y, this.mainAggro, this.mainAggro);
+		for (let a = 0; a < this.map.api.players.length; a++){
+			if (dist > euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y) * 5){
+				this.mainAggro = this.pickAggro();
+				return
+			}
+		}
+	}
+
 	tickPlaceholder2(){
 		this.posCheck.time--;
 		if (this.posCheck.time === 0){
+			this.repickAggro();
 			this.planRoute();
 			this.posCheck.time = 50;
 			this.posCheck.x = this.x;
@@ -58,7 +91,7 @@ class Glyphid extends Entity{
 	}
 
     deathPlaceholder1(){
-        player.killCount++;
+        this.map.api.getPlayer().killCount++;
 		this.deathPlaceholder2();
     }
 
@@ -76,13 +109,13 @@ class Glyphid extends Entity{
 		}
 	}
 
-    shadowRealmSibasAttempt(){
-        if (euclidianDistance(this.x, this.y, player.x, player.y) > player.map.size * 2){
+    shadowRealmSibasAttempt(){//TODO исправить референс на карту
+        if (this.minimalDistanceToPlayer() > immediateApi.getPlayer().map.size * 2){
             this.mapTransfer(this.map.shadowRealm);
         }
     }
     shadowRealmReturnAttempt(){
-        if (euclidianDistance(this.x, this.y, player.x, player.y) <= player.map.size * 2){
+        if (this.minimalDistanceToPlayer() <= immediateApi.getPlayer().map.size * 2){
             this.mapTransfer(this.map.backLink);
         }
     }
@@ -99,7 +132,14 @@ class meleeAttackHitbox extends Box{
     }
 
     tickPlaceholderMain(){
-        if (this.touchSpecific(player) && !this.isAttacking){
+		let t = false;
+		for (let a = 0; a < this.map.api.players; a++){
+			if (this.touchSpecific(this.map.api.players[a])){
+				t = true;
+				break;
+			}
+		}
+        if (t && !this.isAttacking){
             this.isAttacking = true;
             setTimeout(this.attack, this.speed, this);
             setTimeout(this.reload, this.speed + this.reloadSpeed, this);
@@ -131,17 +171,6 @@ class meleeAttackHitbox extends Box{
 }
 
 
-class ShadowRealm extends Map{
-    constructor(upper){
-        super(upper.size, upper.fieldWidth, upper.fieldHeight);
-        this.backLink = upper;
-        upper.shadowRealm = this;
-    }
-
-    tick(){}
-}
-
-
 class Grunt extends Glyphid{
     constructor(x = 0, y = 0){
         super(10, 10, 5, 20, x, y);
@@ -169,7 +198,14 @@ class Praetorian extends Glyphid{
         super(20, 30, 3, 100);
         this.isPraetorian = true;
         this.box.tickPlaceholderMain = function(){
-            if (this.touchSpecific(player) && !this.isAttacking){
+			let t = false;
+			for (let a = 0; a < this.map.api.players; a++){
+				if (this.touchSpecific(this.map.api.players[a])){
+					t = true;
+					break;
+				}
+			}
+            if (t && !this.isAttacking){
                 this.isAttacking = true;
                 setTimeout(this.attack, this.speed, this);
             }
@@ -200,7 +236,14 @@ class Bullet extends Entity{
         this.damage = damage;//doesn't affect real damage number
         this.goal = goal;
         this.box.bind(this);
-        this.box.damagePlaceholderFunction = function(damaged){if (damaged != player){this.coordinates.kill();}};
+        this.box.damagePlaceholderFunction = function(damaged){
+			for (let a = 0; a < this.map.api.players; a++){
+				if (damaged == this.map.api.players[a]){
+					return;
+				}
+			}
+			this.coordinates.kill();
+		};
         this.box.touchedEntities.push(gunner);
         this.removeProjection();
     }
@@ -247,7 +290,7 @@ class Flame extends Bullet{
         this.hitbox = {x1: -5, x2: 5, y1: -5, y2: 5, additional: []};
         this.fireStage = 0;
         this.box.damagePlaceholderFunction = function(damaged){
-            //if (damaged != player){
+            //if (damaged != this.map.api.getPlayer()){
             //    this.coordinates.kill();
             //}
             if (!damaged.activeEffects[0]){
@@ -343,8 +386,8 @@ class Flamethrower extends Weapon{
                 ent.ammunitionDecreaser("flame", 1);
             }
         });
-        this.sprite.src = "Flamethrower.png";
-        this.toolIcon.src = "Fire.png";
+        this.sprite.src = "textures/Flamethrower.png";
+        this.toolIcon.src = "textures/Fire.png";
     }    
 }
 
@@ -379,9 +422,9 @@ class CaveGenerator{
             this.roomsWithTunnels.push(this.roomsWithoutTunnels[range.outerId]);
             this.roomsWithoutTunnels.splice(range.outerId, 1);
         }
-        player.tp(this.rooms[0].x, this.rooms[0].y);
-        //let a = new Breaker(player.x, player.y, {x1: -80, x2: 80, y1: -80, y2: 80});
-        //a.bind(player);
+        this.map.api.getPlayer().tp(this.rooms[0].x, this.rooms[0].y);
+        //let a = new Breaker(this.map.api.getPlayer().x, this.map.api.getPlayer().y, {x1: -80, x2: 80, y1: -80, y2: 80});
+        //a.bind(this.map.api.getPlayer());
     }
 
     roomOverlap(hitbox, x, y){
@@ -475,17 +518,17 @@ class WeaponEditor extends ObjectHitbox{
                 owner.activeInterfaces[0] = false;
                 owner.map.activeInterfaces[owner.inventoryId] = undefined;
             }
-            if (!this.active && player.inventory.mainhand[0].modificationInterface != undefined){
+            if (!this.active && this.map.api.getPlayer().inventory.mainhand[0].modificationInterface != undefined){
                 this.active = true;
                 owner.inventory.shiftAll(0, 100);
-                owner.weaponEditId = owner.map.activeInterfaces.push(player.inventory.mainhand[0].modificationInterface) - 1;
-                player.speedMultipliers[0] = 0;
+                owner.weaponEditId = owner.map.activeInterfaces.push(this.map.api.getPlayer().inventory.mainhand[0].modificationInterface) - 1;
+                this.map.api.getPlayer().speedMultipliers[0] = 0;
             } else if (!this.active){
             } else {
                 this.active = false;
                 owner.inventory.shiftAll(0, -100);
                 owner.map.activeInterfaces[owner.weaponEditId] = undefined;
-                player.speedMultipliers[0] = 1;
+                this.map.api.getPlayer().speedMultipliers[0] = 1;
             }
         }
     }

@@ -1,119 +1,122 @@
 function keyDownHandler(){
+	let p = immediateApi.getPlayer();
     if (event.keyCode === 65){
-        player.leftPress();
-		player.turn = -1;
+        p.leftPress();
+		p.turn = -1;
     } else if (event.keyCode === 87){
-        player.upPress();
+        p.upPress();
     } else if (event.keyCode === 68){
-        player.rightPress();
-		player.turn = 1;
+        p.rightPress();
+		p.turn = 1;
     } else if (event.keyCode === 83){
-        player.downPress();
+        p.downPress();
     } else if (event.keyCode === 32){
-        player.useHand();
+        p.useHand();
     } else if (event.keyCode === 49){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[0];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[0];
     } else if (event.keyCode === 50){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[1];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[1];
     } else if (event.keyCode === 51){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[2];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[2];
     } else if (event.keyCode === 52){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[3];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[3];
     } else if (event.keyCode === 53){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[4];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[4];
     } else if (event.keyCode === 54){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[5];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[5];
     } else if (event.keyCode === 55){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[6];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[6];
     } else if (event.keyCode === 56){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[7];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[7];
     } else if (event.keyCode === 57){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[8];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[8];
     } else if (event.keyCode === 48){
-        player.unUseHand();
-        player.inventory.mainhand[0] = player.inventory.hotbar[9];
+        p.unUseHand();
+        p.inventory.mainhand[0] = p.inventory.hotbar[9];
     } else if (event.keyCode === 69){
 		d = false;
 		if (baseBackend.cart.linked){
 			baseBackend.cart.linked = false;
 			baseBackend.cart.block.hitbox = {x1: 15, x2: -15, y1: 15, y2: -15};
-			player.speedMultipliers[2] = 1;
+			p.speedMultipliers[2] = 1;
 			d = true;
 		}
-		new InteractivityHitbox;
+		new InteractivityHitbox(p);
 		if (d) {
 			baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 		}
 		d = false;
 	} else if (event.keyCode === 13){//enter
-		if (!player.activeInterfaces[0]){
-			player.activeInterfaces[0] = true;
-			player.inventoryId = player.map.activeInterfaces.push(player.inventory) - 1;
+		if (!p.activeInterfaces[0]){
+			p.activeInterfaces[0] = true;
+			p.inventoryId = p.personalInterfaces.push(p.inventory) - 1;
 		} else {
-			player.activeInterfaces[0] = false;
-			player.map.activeInterfaces[player.inventoryId] = undefined;
+			p.activeInterfaces[0] = false;
+			p.personalInterfaces[p.inventoryId] = undefined;
 		}
 	} else if (event.keyCode === 77){//M
-		//if (!player.activeInterfaces[1]){
-        //    player.activeInterfaces[1] = true;
-        //    player.mapId = player.map.activeInterfaces.push(player.minimap) - 1;
+		//if (!p.activeInterfaces[1]){
+        //    p.activeInterfaces[1] = true;
+        //    p.mapId = p.personalInterfaces.push(p.minimap) - 1;
         //}
     } else if (event.keyCode === 82){//R
-        //player.activeLevelEditor.circleSelector();
-        player.inventory.mainhand[0].reload();
+        //p.activeLevelEditor.circleSelector();
+        p.inventory.mainhand[0].reload();
     } else if (event.keyCode === 81){//Q
-        //new GridParticle(player, 20);
-        //new GridParticle(player, 600, true);
+        //new GridParticle(p, 20);
+        //new GridParticle(p, 600, true);
     } else if (event.keyCode === 84){//T
-        //player.activeLevelEditor.logInput(player.mouseBox.coordinates);
+        //p.activeLevelEditor.logInput(p.mouseBox.coordinates);
     } else if (event.keyCode === 67){//C
-        //player.activeLevelEditor.clearInputs();
+        //p.activeLevelEditor.clearInputs();
     } else if (event.keyCode === 76){//L
-        //player.activeLevelEditor.logSchematic();
+        //p.activeLevelEditor.logSchematic();
     } else if (event.keyCode === 70){//F
-        //player.activeLevelEditor.doSelected();
+        //p.activeLevelEditor.doSelected();
     } else if (event.keyCode === 90){//Z
-        //player.activeLevelEditor.ctrlz();
+        //p.activeLevelEditor.ctrlz();
     }
 }
 
 
 function keyUpHandler(){
+	let p = immediateApi.getPlayer();
     if (event.keyCode === 65){
-        player.rightPress();
+        p.rightPress();
     } else if (event.keyCode === 87){
-        player.downPress();
+        p.downPress();
     } else if (event.keyCode === 68){
-        player.leftPress();
+        p.leftPress();
     } else if (event.keyCode === 83){
-        player.upPress();
+        p.upPress();
     } else if (event.keyCode === 32){
-        player.unUseHand();
+        p.unUseHand();
     } else if (event.keyCode === 77){
-        player.map.activeInterfaces[player.mapId] = undefined;
-        player.activeInterfaces[1] = false;
+        p.personalInterfaces[p.mapId] = undefined;
+        p.activeInterfaces[1] = false;
     }
 }
 
 
 function mouseMoveHandler(){
-    player.mousePosition = {x: Math.floor(event.layerX * 10) / 10, y: Math.floor(event.layerY * 10) / 10};
-    player.mouseBox.tp(player.mousePosition.x - player.map.xshift(), player.mousePosition.y - player.map.yshift());
-    player.mouseShift.x = player.mousePosition.x - player.map.xshift() - player.x;
-    player.mouseShift.y = player.mousePosition.y - player.map.yshift() - player.y;
-    for (let a = 0; a < player.activeRockets.length; a++){
-        player.rockets[player.activeRockets[a]].goal = {x: player.mousePosition.x - player.map.xshift(), y: player.mousePosition.y - player.map.yshift()};
+	let p = immediateApi.getPlayer();
+    p.mousePosition = {x: Math.floor(event.offsetX * screenSizeMultiplier * 10) / 10, y: Math.floor(event.offsetY * screenSizeMultiplier * 10) / 10};
+    p.mouseBox.tp(p.mousePosition.x - p.map.xshift(), p.mousePosition.y - p.map.yshift());
+    p.mouseShift.x = p.mousePosition.x - p.map.xshift() - p.x;
+    p.mouseShift.y = p.mousePosition.y - p.map.yshift() - p.y;
+    for (let a = 0; a < p.activeRockets.length; a++){
+        p.rockets[p.activeRockets[a]].goal = {x: p.mousePosition.x - p.map.xshift(), y: p.mousePosition.y - p.map.yshift()};
     }
-    map.manageCursor(event.layerX, event.layerY);
+    map.manageCursor(event.offsetX * screenSizeMultiplier, event.offsetY * screenSizeMultiplier);
 }
 
 

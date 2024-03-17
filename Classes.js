@@ -473,7 +473,7 @@ class PlaceholderItem{
 	deactivate(){}
 }
 class Resource extends PlaceholderItem{
-	constructor(amount = 1, type = "stick", ammoType = "NotAmmo", image = "bulletPlaceholder.png"){
+	constructor(amount = 1, type = "stick", ammoType = "NotAmmo", image = "textures/bulletPlaceholder.png"){
 		super();
 		this.type = type;
 		this.amount = amount;
@@ -1173,12 +1173,14 @@ class BackgroundImage{
 
 
 class Map{//size - это размер 1 экрана, width и height - размеры поля в экранах
-	constructor(size, width, height){
+	constructor(size, width, height, api){
+		this.api = api;
 		this.pause = false;
 		this.framerate = 20;
 		this.size = size;
 		this.fieldWidth = width;
 		this.fieldHeight = height;
+		this.renderCenterpoint = {xshift: 0, yshift: 0};
 		this.entityList = [];
 		this.entityListActive = [];
 		this.boxList = [];
@@ -1186,7 +1188,6 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		this.loadingZones = [];
 		this.particles = [];
 		this.particleListActive = [];
-		this.activeInterfaces = [];
 		this.loadedZone = {x: 0, y: 0};
 		this.mapMarkers = [];
 		for (let column = -1; column < height + 2; column++) {
@@ -1211,15 +1212,16 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		}
 	}
 	
-	drawEverything(){
+	drawEverything(ent){
 		draw.backgroundDrg(this);
+		this.renderCenterpoint = ent;
 		console.log("tick");
 		let zonesToLoad = [
 			{x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
 		];
 		for (let b = 0; b < zonesToLoad.length; b++){
-			for (let a = 0; a < this.bgObjectZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y].length; a++){
-				let loadZone = this.bgObjectZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y][a];
+			for (let a = 0; a < this.bgObjectZones[ent.loadingZone.x + zonesToLoad[b].x][ent.loadingZone.y + zonesToLoad[b].y].length; a++){
+				let loadZone = this.bgObjectZones[ent.loadingZone.x + zonesToLoad[b].x][ent.loadingZone.y + zonesToLoad[b].y][a];
 				if (loadZone === undefined){continue}
 				loadZone.draw();
 			}
@@ -1231,8 +1233,8 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			}
 		}
 		for (let b = 0; b < zonesToLoad.length; b++){
-			for (let a = 0; a < this.loadingZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y].length; a++){
-				let loadZone = this.loadingZones[this.loadedZone.x + zonesToLoad[b].x][this.loadedZone.y + zonesToLoad[b].y][a];
+			for (let a = 0; a < this.loadingZones[ent.loadingZone.x + zonesToLoad[b].x][ent.loadingZone.y + zonesToLoad[b].y].length; a++){
+				let loadZone = this.loadingZones[ent.loadingZone.x + zonesToLoad[b].x][ent.loadingZone.y + zonesToLoad[b].y][a];
 				if (loadZone === undefined){continue}
 				loadZone.draw();
 			}
@@ -1243,15 +1245,15 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		for (let a = 0; a < this.boxListActive.length; a++){
 			this.boxList[this.boxListActive[a]].draw();
 		}
-		for (let a = 0; a < this.activeInterfaces.length; a++){
-			if (this.activeInterfaces[a] === undefined){continue}
-			this.activeInterfaces[a].draw();
+		for (let a = 0; a < ent.personalInterfaces.length; a++){
+			if (ent.personalInterfaces[a] === undefined){continue}
+			ent.personalInterfaces[a].draw();
 		}
 	}
 	
-	tick(){
+	tick(ent){
 		if (this.pause){return}
-		this.drawEverything();
+		this.drawEverything(ent);
 		for (let a = 0; a < this.boxListActive.length; a++){
 			this.boxList[this.boxListActive[a]].tickMove();
 		}
@@ -1324,29 +1326,29 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	}
 
 	manageCursor(x, y){
-		for (let a = 0; a < this.activeInterfaces.length; a++){
-			if (this.activeInterfaces[a] === undefined){continue}
-			this.activeInterfaces[a].moveCursor(x, y);
+		for (let a = 0; a < immediateApi.getPlayer().personalInterfaces.length; a++){
+			if (immediateApi.getPlayer().personalInterfaces[a] === undefined){continue}
+			immediateApi.getPlayer().personalInterfaces[a].moveCursor(x, y);
 		}
 	}
 
 	manageClick(){
-		for (let a = 0; a < this.activeInterfaces.length; a++){
-			if (this.activeInterfaces[a] === undefined){continue}
-			this.activeInterfaces[a].click();
+		for (let a = 0; a < immediateApi.getPlayer().personalInterfaces.length; a++){
+			if (immediateApi.getPlayer().personalInterfaces[a] === undefined){continue}
+			immediateApi.getPlayer().personalInterfaces[a].click();
 		}
 	}
 
 	xshift(){
 		//return -this.loadedZone.x * this.size; //camera switches between screens
-		//return -player.x + this.size / 2; //camera attached to the player
-		return player.xshift;
+		//return -immediateApi.getPlayer().x + this.size / 2; //camera attached to the immediateApi.getPlayer()
+		return this.renderCenterpoint.xshift;
 	}
 
 	yshift(){
 		//return -this.loadedZone.y * this.size;
-		//return -player.y + this.size / 2;
-		return player.yshift;
+		//return -immediateApi.getPlayer().y + this.size / 2;
+		return this.renderCenterpoint.yshift;
 	}
 
 	reloadEnemies(){
@@ -1359,6 +1361,17 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]].shadowRealmReturnAttempt();
 		}
 	}
+}
+
+
+class ShadowRealm extends Map{
+    constructor(upper){
+        super(upper.size, upper.fieldWidth, upper.fieldHeight);
+        this.backLink = upper;
+        upper.shadowRealm = this;
+    }
+
+    tick(){}
 }
 
 
@@ -1449,7 +1462,7 @@ class InterfaceElement{
 
 
 class InteractivityHitbox extends Box{
-	constructor(owner = player){
+	constructor(owner = immediateApi.getPlayer()){
 		super(0, 0, owner.scaledHitbox(2));
 		this.owner = owner;
 		this.bind(owner);
@@ -1474,19 +1487,19 @@ class DevKit{
 	spawn(){
 		let x = new Primary;
 		x.statMultipliers = [0.5, 0, 2, 0, 10, 0, 0, 1, 0];
-		player.give(x);
+		immediateApi.getPlayer().give(x);
 		x.advancedWeaponType = "scope";
-		player.give(new Primary);
-		player.give(new WeaponHandle);
-		new WeaponEditor(player.x + 100, player.y);
-		player.give(new Resource(3000, "flame", "flame"));
-		player.give(new Resource(3000, "shell", "shell"));
-		player.give(new Resource(3000, "bullet", "rifleBullet"));
+		immediateApi.getPlayer().give(new Primary);
+		immediateApi.getPlayer().give(new WeaponHandle);
+		new WeaponEditor(immediateApi.getPlayer().x + 100, immediateApi.getPlayer().y);
+		immediateApi.getPlayer().give(new Resource(3000, "flame", "flame"));
+		immediateApi.getPlayer().give(new Resource(3000, "shell", "shell"));
+		immediateApi.getPlayer().give(new Resource(3000, "bullet", "rifleBullet"));
 		devKit.swarm();
 	}
 
 	cheat(){
-		player.inventory.hotbar[2] = new Weapon(1, 300, function(ent){
+		immediateApi.getPlayer().inventory.hotbar[2] = new Weapon(1, 300, function(ent){
 			if (ent.ammunitionGetter("shell") > 0){
 				for (let b = 0; b < 5; b++){
 					let spread = spreadCounter(ent.mousePosition.x - ent.x - map.xshift(), ent.mousePosition.y - ent.y - map.yshift(), this.spread);
@@ -1496,21 +1509,21 @@ class DevKit{
 				}
 			}
 		}, 15);
-		player.inventory.hotbar[0] = new Weapon(0.1, 400, function(ent){
-			new Missile(ent, this.gunDamage, player.target);
+		immediateApi.getPlayer().inventory.hotbar[0] = new Weapon(0.1, 400, function(ent){
+			new Missile(ent, this.gunDamage, immediateApi.getPlayer().target);
 		});
-		player.inventory.mainhand[0] = player.inventory.hotbar[0];
-		player.inventory.hotbar[1] = new Flamethrower(0.25, 600, undefined, 0);
+		immediateApi.getPlayer().inventory.mainhand[0] = immediateApi.getPlayer().inventory.hotbar[0];
+		immediateApi.getPlayer().inventory.hotbar[1] = new Flamethrower(0.25, 600, undefined, 0);
 	}
 
 	god(){
-		player.speed = 10;
-		player.increasedHitbox(-3);
-		player.removeProjection();
+		immediateApi.getPlayer().speed = 10;
+		immediateApi.getPlayer().increasedHitbox(-3);
+		immediateApi.getPlayer().removeProjection();
 	}
 
 	targetDummy(){
-		let dummy = new Entity(player.x, player.y, 1000000, 0, {x1: -10, x2: 10, y1: -10, y2: 10}, player.map, -1000);
+		let dummy = new Entity(immediateApi.getPlayer().x, immediateApi.getPlayer().y, 1000000, 0, {x1: -10, x2: 10, y1: -10, y2: 10}, immediateApi.getPlayer().map, -1000);
 		dummy.isActive = false;
 		dummy.damagePlaceholder = function(){
 			if (!this.isActive){

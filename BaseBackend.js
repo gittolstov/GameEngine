@@ -3,7 +3,7 @@ class BaseBackend{
 		this.map = maP;
 		this.cells = [];
 		this.ventCells = [];
-		this.activeCell = undefined;
+		this.activeCells = [];
 		this.heavyDoors = [];
 		this.coolingSystems = [];
 		this.wayPoints = [];
@@ -21,9 +21,18 @@ class BaseBackend{
 		this.reactorTemperature = 0;
 		this.airCondition = 0;
 		this.oxygenTick = true;
+		this.stopped = false;
+		for (let a = 0; a < 20; a++){
+			new Cell(this);
+		}
+		this.cells[19].distance = 100;
+		this.cells[19].rarity = 150;
+	}
+
+	startBackendTicks(){
 		setTimeout(() => {
-			player.tickCounter = 0
-			player.tickPlaceholder3 = function(){
+			immediateApi.getPlayer().tickCounter = 0;
+			immediateApi.getPlayer().tickPlaceholder3 = function(){
 				if (this.tickCounter % 50 === 0){
 					baseBackend.baseTick1();
 					if (this.tickCounter % 300 === 0){
@@ -33,21 +42,25 @@ class BaseBackend{
 				this.tickCounter++;
 			}
 		}, 10);
-		for (let a = 0; a < 20; a++){
-			new Cell(this);
-		}
-		this.cells[19].distance = 100;
-		this.cells[19].rarity = 150;
+	}
+
+	operatorBaseFreeze(){
+		this.stopped = true
 	}
 
 	baseTick1(){
+		if (this.stopped){
+			return;
+		}
 		this.findPlayer();
 		this.findPlayer2();
-		if (player.x > 4260 && player.x < 5920 && player.y > 3280 && player.y < 4760 && this.ventDefence){
-			player.damageGeneric(this.ventDamage);
-		}
-		if (this.airCondition > 12){
-			player.damageGeneric(this.ventDamage / 3);
+		for (let a = 0; a < this.map.api.players.length; a++){
+			if (this.map.api.players[a].x > 4260 && this.map.api.players[a].x < 5920 && this.map.api.players[a].y > 3280 && this.map.api.players[a].y < 4760 && this.ventDefence){
+				this.map.api.players[a].damageGeneric(this.ventDamage);
+			}
+			if (this.airCondition > 12){
+				this.map.api.players[a].damageGeneric(this.ventDamage / 3);
+			}
 		}
 		for (let a = 0; a < this.cells.length; a++){
 			this.cells[a].distance = 100;
@@ -59,10 +72,15 @@ class BaseBackend{
 		}
 		if (this.generalPower){this.cells[2].electricSignal(0)};
 		this.cells[19].signal(0);
-		this.activeCell.increaseStatus(-2);
+		for (let a in this.activeCells){
+			this.activeCells[a].increaseStatus(-2);
+		}
 	}
 
 	baseTick2(){
+		if (this.stopped){
+			return;
+		}
 		this.rocketCounter++;
 		if (this.rocketCounter % 150 === 0){
 			this.rocketInbound();
@@ -71,7 +89,7 @@ class BaseBackend{
 		if (this.rocketExplosionTimer >= 0){
 			this.rocketExplosionTimer++;
 			if (this.rocketExplosionTimer >= 50){
-				player.kill();
+				immediateApi.endgame();
 			}
 		}
 		if (this.mainTerminal.rocketBayAccess){
@@ -112,7 +130,7 @@ class BaseBackend{
 		}
 		this.heatReactor((2 - 1 * this.coolingSystems[0].powered - 1 * this.coolingSystems[1].powered) * this.generalPower);
 		if (this.reactorTemperature > 15){
-			player.kill();
+			immediateApi.endgame();
 		}
 	}
 
@@ -218,37 +236,40 @@ class BaseBackend{
 	}
 
 	findPlayer(){
-		let closest = undefined;
-		let dis = 10000;
-		for (let b = 0; b < this.wayPoints.length; b++){
-			this.wayPoints[b].distance = 100;
-		}
-		for (let b = 0; b < this.wayPoints.length; b++){
-			if (this.wayPoints[b] === undefined){continue}
-			if (euclidianDistance(player.x, player.y, this.wayPoints[b].x, this.wayPoints[b].y) <= dis){
-				closest = this.wayPoints[b];
-				dis = euclidianDistance(player.x, player.y, this.wayPoints[b].x, this.wayPoints[b].y);
+		for (let playeR = 0; playeR < immediateApi.players.length; playeR++){
+			let closest = undefined;
+			let dis = 10000;
+			for (let b = 0; b < this.wayPoints.length; b++){
+				this.wayPoints[b].distance[playeR] = 100;
 			}
-		}
-		closest.signal(0);
-		let inSight = [];
-		for (let b = 0; b < this.wayPoints.length; b++){
-			if (this.wayPoints[b].distance < 3){
-				inSight.push(this.wayPoints[b]);
+			for (let b = 0; b < this.wayPoints.length; b++){
+				if (this.wayPoints[b] === undefined){continue}
+				if (euclidianDistance(immediateApi.players[playeR].x, immediateApi.players[playeR].y, this.wayPoints[b].x, this.wayPoints[b].y) <= dis){
+					closest = this.wayPoints[b];
+					dis = euclidianDistance(immediateApi.players[playeR].x, immediateApi.players[playeR].y, this.wayPoints[b].x, this.wayPoints[b].y);
+				}
 			}
-		}
-		for (let b = 0; b < this.wayPoints.length; b++){
-			this.wayPoints[b].distance = 100;
-		}
-		for (let b = 0; b < inSight.length; b++){
-			if (raycast(inSight[b], 8, player)){
-				inSight[b].signal(0);
+			closest.signal(0, [playeR]);
+			let inSight = [];
+			for (let b = 0; b < this.wayPoints.length; b++){
+				if (this.wayPoints[b].distance[playeR] < 3){
+					inSight.push(this.wayPoints[b]);
+				}
+			}
+			for (let b = 0; b < this.wayPoints.length; b++){
+				this.wayPoints[b].distance[playeR] = 100;
+			}
+			for (let b = 0; b < inSight.length; b++){
+				if (raycast(inSight[b], 8, immediateApi.players[playeR])){
+					inSight[b].signal(0, [playeR]);
+				}
 			}
 		}
 	}
 	
 	findPlayer2(){
 		for (let a in this.cells){
+			this.cells[a].playerIn = false;
 			for (let b in this.cells[a].hitboxes){
 				this.cells[a].hitboxes[b].checkPlayer();
 			}
@@ -257,22 +278,27 @@ class BaseBackend{
 
 	checkPlayer(id){
 		for (let a in this.cells){
-			this.cells[a].playerIn = false;
 			if (a == id){
 				this.cells[a].playerIn = true;
-				this.activeCell = this.cells[a];
+				this.activeCells.push(this.cells[a]);
 			}
 		}
 	}
 
 	locateClosest(ent){
-		let closest = player;
+		let closest = immediateApi.getPlayer();
 		let dis = 10000;
 		for (let b = 0; b < this.wayPoints.length; b++){
 			if (this.wayPoints[b] === undefined){continue}
 			if (euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y) <= dis && raycast(ent, 8, this.wayPoints[b])){
 				closest = this.wayPoints[b];
 				dis = euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y);
+			}
+		}
+		for (let b = 0; b < immediateApi.players.length; b++){
+			if (euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y) <= dis && raycast(ent, 8, immediateApi.players[b])){
+				closest = immediateApi.players[b];
+				dis = euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y);
 			}
 		}
 		return closest;
@@ -344,12 +370,12 @@ class MainTerminal extends ObjectHitbox{
 	interact(ent){
 		if (!ent.activeInterfaces[this.num]){
 			ent.activeInterfaces[this.num] = true;
-            this.intId = ent.map.activeInterfaces.push(this.interface) - 1;
-            player.speedMultipliers[0] = 0;
+            this.intId = ent.personalInterfaces.push(this.interface) - 1;
+            ent.speedMultipliers[0] = 0;
 		} else {
 			ent.activeInterfaces[this.num] = false;
-			ent.map.activeInterfaces[this.intId] = undefined;
-			player.speedMultipliers[0] = 1;
+			ent.personalInterfaces[this.intId] = undefined;
+			ent.speedMultipliers[0] = 1;
 		}
 	}
 }
@@ -566,7 +592,7 @@ class MainTerminalInterface extends Interface{
 			}
 		}
 		if (a && !this.blockLifterGiven){
-			player.give(new Resource(1, "blockLifter", undefined, "blockLifter.png"));
+			immediateApi.getPlayer().give(new Resource(1, "blockLifter", undefined, "blockLifter.png"));
 		}
 	}
 }
@@ -722,7 +748,14 @@ class Cell{
 		let b = new Grunt(this.boundary.x1, this.boundary.y1);
 		b.cell = 19;
 		b.allowSpawn = false;
-		for (let d = 0; d < this.rarity && !(b.overlap(0, 0) && b.allowSpawn && player.outOfSight(b.x, b.y)); d++){
+		let t = false;
+		for (let a = 0; a < immediateApi.players; a++){
+			if (immediateApi.players[a].outOfSight(b.x, b.y)){
+				t = true;
+				break;
+			}
+		}
+		for (let d = 0; d < this.rarity && !(b.overlap(0, 0) && b.allowSpawn && t); d++){
 			b.tp(this.boundary.x1 + Math.floor(Math.random() * (this.boundary.x2 - this.boundary.x1) * 10) / 10, this.boundary.y1 + Math.floor(Math.random() * (this.boundary.y2 - this.boundary.y1) * 10) / 10);
 			b.reloadEntityZone();
 			b.allowSpawn = false;
@@ -730,7 +763,7 @@ class Cell{
 				this.hitboxes[c].allowSpawn();
 			}
 		}
-		if ((!(b.overlap(0, 0) && b.allowSpawn && player.outOfSight(b.x, b.y)))){
+		if ((!(b.overlap(0, 0) && b.allowSpawn && t))){
 			b.kill();
 			return;
 		}
@@ -785,9 +818,11 @@ class CellBox extends Box{
 	}
 
 	checkPlayer(){
-		if (this.touchSpecific(player)){
-			this.cell.backend.checkPlayer(this.cell.id);
-			return true;
+		for (let a = 0; a < this.map.api.players; a++){
+			if (this.touchSpecific(this.map.api.players[a])){
+				this.cell.backend.checkPlayer(this.cell.id);
+				return true;
+			}
 		}
 		return false;
 	}
@@ -818,7 +853,7 @@ class PathfindingPoint extends Entity{
 		super(x, y, -1000, 10000, {x1: 50, x2: -50, y1: 50, y2: -50}, maP);
 		this.baseBackend = baseBackend;
 		this.isTechnical = true;
-		this.distance = 100;
+		this.distance = [100, 100, 100, 100, 100, 100, 100];
 		this.pointsId = this.baseBackend.wayPoints.push(this) - 1;
 		this.connections = [];
 		this.connum = connections;
@@ -855,12 +890,12 @@ class PathfindingPoint extends Entity{
 		}
 	}
 
-	signal(strength){
+	signal(strength, player){
 		this.signalStrength = strength;
-		if (this.signalStrength < this.distance){
-			this.distance = this.signalStrength;
+		if (this.signalStrength < this.distance[player]){
+			this.distance[player] = this.signalStrength;
 			for (let a = 0; a < this.connections.length && this.signalStrength < 15; a++){
-				this.connections[a].signal(strength + 1);
+				this.connections[a].signal(strength + 1, player);
 			}
 		}
 	}
@@ -929,12 +964,12 @@ class WireBreakpoint extends ObjectHitbox{
 		if (!ent.activeInterfaces[4]){
 			ent.activeInterfaces[4] = true;
 			this.touched = true;
-            this.intId = ent.map.activeInterfaces.push(this.interface) - 1;
+            this.intId = ent.personalInterfaces.push(this.interface) - 1;
             ent.speedMultipliers[0] = 0;
 		} else {
 			ent.activeInterfaces[4] = false;
 			this.touched = false;
-			ent.map.activeInterfaces[this.intId] = undefined;
+			ent.personalInterfaces[this.intId] = undefined;
 			ent.speedMultipliers[0] = 1;
 			delete ent.touchingWires;
 		}
@@ -978,10 +1013,10 @@ class WiringInterface extends Interface{
 			draw.brokenWire(this);
 		}
 		this.brokenWire.functionality = function(){
-			if (player.inventory.mainhand[0].type === "wirecutters" && this.status === 0){
+			if (immediateApi.getPlayer().inventory.mainhand[0].type === "wirecutters" && this.status === 0){
 				this.status = 1;
 			}
-			if (player.inventory.mainhand[0].type === "replacementWire" && this.status === 1){
+			if (immediateApi.getPlayer().inventory.mainhand[0].type === "replacementWire" && this.status === 1){
 				this.parentInterface.fix();
 			}
 		}
@@ -1120,7 +1155,7 @@ class DoorTerminal extends MainTerminal{
 	}
 
 	leverSwitch(){
-		if ((!this.bound.isLocked && !this.bound.isBlocked && this.bound.powered) || (!this.bound.powered && !this.bound.isLocked && !this.bound.isBlocked && player.inventory.mainhand[0].type === "crowbar")){
+		if ((!this.bound.isLocked && !this.bound.isBlocked && this.bound.powered) || (!this.bound.powered && !this.bound.isLocked && !this.bound.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
 			this.bound.interact();
 		}
 	}
@@ -1154,9 +1189,9 @@ class DoorInterface extends Interface{
 		}
 		this.lockdown.functionality = function(){
 			this.parentInterface.terminal.block();
-			if (this.parentInterface.terminal.bound.isBlocked && player.inventory.mainhand[0].type === "blockLifter"){
+			if (this.parentInterface.terminal.bound.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "blockLifter"){
 				this.parentInterface.terminal.bound.unblock();
-				player.inventory.mainhand[0].decrease(1);
+				immediateApi.getPlayer().inventory.mainhand[0].decrease(1);
 				this.parentInterface.terminal.bound.backend.mainTerminal.blockLifterGiven = false;
 			}
 		}
@@ -1301,10 +1336,10 @@ class Cart extends Entity{
 				this.backlink.spacing.x = this.x - ent.x;
 				this.backlink.spacing.y = this.y - ent.y;
 				this.hitbox = {x1: -11.5, x2: 11.5, y1: -11.5, y2: 11.5};
-				player.speedMultipliers[2] = 0.8;
+				immediateApi.getPlayer().speedMultipliers[2] = 0.8;
 			} else {
 				this.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
-				player.speedMultipliers[2] = 1;
+				immediateApi.getPlayer().speedMultipliers[2] = 1;
 			}
 		}
 	}
@@ -1315,7 +1350,7 @@ class Cart extends Entity{
 
 	tickPlaceholderMain(){
 		if (this.linked){
-			this.tp(player.x + this.spacing.x, player.y + this.spacing.y);
+			this.tp(immediateApi.getPlayer().x + this.spacing.x, immediateApi.getPlayer().y + this.spacing.y);
 		}
 		if (this.x - this.backend.heavyDoors[7].x > 0 && this.x - this.backend.heavyDoors[7].x < 60 && Math.abs(this.y - this.backend.heavyDoors[7].y) < 20 && !this.backend.heavyDoors[7].isOpen){
 			this.backend.heavyDoors[7].interact();
@@ -1328,11 +1363,11 @@ class Cart extends Entity{
 			this.x = x;
 			this.y = y;
 		} else {
-			player.movePlayer(-player.moveVectoring.x, -player.moveVectoring.y);
+			immediateApi.getPlayer().movePlayer(-immediateApi.getPlayer().moveVectoring.x, -immediateApi.getPlayer().moveVectoring.y);
 		}
 		if (!this.overlap(0, 0)){
 			this.hitbox = {x1: 15, x2: -15, y1: 15, y2: -15, additional: []};
-			this.tp(player.x + this.spacing.x, player.y + this.spacing.y);
+			this.tp(immediateApi.getPlayer().x + this.spacing.x, immediateApi.getPlayer().y + this.spacing.y);
 			this.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15, additional: []};
 		}
 		this.block.fake = false;
@@ -1483,8 +1518,8 @@ class WaterTank extends ObjectHitbox{
 	}
 
 	interact(){
-		if (player.inventory.mainhand[0].type === "unHydratedBurger" && baseBackend.supplies.water >= 20){
-			player.inventory.mainhand[0].hydrate();
+		if (immediateApi.getPlayer().inventory.mainhand[0].type === "unHydratedBurger" && baseBackend.supplies.water >= 20){
+			immediateApi.getPlayer().inventory.mainhand[0].hydrate();
 			baseBackend.supplies.water -= 20;
 		}
 	}
@@ -1537,7 +1572,7 @@ class FoodDispencer extends ObjectHitbox{
 
 	interact(){
 		if (this.hasFood){
-			player.give(new Burger);
+			immediateApi.getPlayer().give(new Burger);
 			this.hasFood = false;
 		}
 	}
@@ -1546,18 +1581,18 @@ class FoodDispencer extends ObjectHitbox{
 
 class Burger extends Resource{
 	constructor(){
-		super(1, "unHydratedBurger", undefined, "burger1.png");
+		super(1, "unHydratedBurger", undefined, "textures/burger1.png");
 	}
 
 	hydrate(){
 		this.type = "burger";
-		this.icon.src = "burger2.png";
+		this.icon.src = "textures/burger2.png";
 	}
 
 	use(){
 		if (this.type === "burger"){
 			this.decrease(1);
-			player.heal(100);
+			immediateApi.getPlayer().heal(100);
 		}
 	}
 }
