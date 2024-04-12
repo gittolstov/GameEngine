@@ -1,3 +1,28 @@
+/*let Formulasjs = require("./Formulas.js");
+let Classesjs = require("./Classes.js");
+let projections = Formulasjs.projections;
+let defenceCount = Formulasjs.defenceCount;
+let spreadCounter = Formulasjs.spreadCounter;
+let turn = Formulasjs.turn;
+let euclidianDistance = Formulasjs.euclidianDistance;
+let Box = Classesjs.Box;
+let Tool = Classesjs.Tool;
+let PlaceholderItem = Classesjs.PlaceholderItem;
+let Resource = Classesjs.Resource;
+let Particle = Classesjs.Particle;
+let StatusEffect = Classesjs.StatusEffect;
+let Entity = Classesjs.Entity;
+let ObjectHitbox = Classesjs.ObjectHitbox;
+let BackgroundImage = Classesjs.BackgroundImage;
+let Map = Classesjs.Map;
+let ShadowRealm = Classesjs.ShadowRealm;
+let Interface = Classesjs.Interface;
+let InterfaceElement = Classesjs.InterfaceElement;
+let InteractivityHitbox = Classesjs.InteractivityHitbox;
+let DevKit = Classesjs.DevKit;
+*/
+
+
 class Player extends Entity{
 	constructor(x = 2100, y = 1000, hp = 100, defence = 0, hitbox = {x1: -7.5, x2: 7.5, y1: -15, y2: 15}, entityScreen = map, speed = 3){
 		super(x, y, hp, defence, hitbox, entityScreen);
@@ -29,6 +54,7 @@ class Player extends Entity{
 				this.player.target = list[0];
 			}
 		}
+		this.previousReceivedState = this.hp;
 		new HUD(this.inventory, this);
 	}
 
@@ -85,7 +111,7 @@ class Player extends Entity{
 	}
 
 	deathPlaceholder1(){
-		alert("Game over!");
+		console.log("game over")
 	}
 	
 	upPress(){
@@ -162,6 +188,38 @@ class Player extends Entity{
 			this.map.reloadEnemies();
 		}
 	}
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name, this.moveVectoring.x, this.moveVectoring.y];
+		return(parameters.join(" "));
+	}
+
+	setSaveData(parameters){
+		if ((this.map.individualObjects[parseFloat(parameters[0])] !== immediateApi.getPlayer()) || immediateApi.constructor.name === "Server"){
+			//console.log("player data edited" + parameters[1]);
+			let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
+			let numberParams = parameters.map(Number);
+			for (let a = 1; a < parameterNames.length - 1; a++){
+				if (typeof numberParams[a] !== 'number'){continue}
+				this[parameterNames[a]] = numberParams[a];
+				if (this[parameterNames[a]] !== numberParams[a]){
+					console.error("server asyncronization: " + parameterNames[a]);
+				}
+			}
+			this.moveVectoring.x = numberParams[8];
+			this.moveVectoring.y = numberParams[9];
+			return
+		} else {
+			let a = this.previousReceivedState - parseFloat(parameters[4])
+			if (a > 0){
+				this.damageGeneric(a);
+			}
+			this.previousReceivedState = parseFloat(parameters[4]);//only hp can be modified by the server
+
+		}
+		//console.log("wrong player: this is player № " + this.individualId + " and the player in the data is № " + parameters[0]);
+	}
 }
 
 
@@ -212,12 +270,7 @@ class HUD extends Interface{
 		super(0, 0, 0, 0);
 		owner.personalInterfaces.push(this);
 		this.elements[0].draw = function(){
-			draw.can.fillStyle = "grey";
-			draw.can.fillRect(28, 28, 204, 19);
-			draw.can.fillStyle = "black";
-			draw.can.fillRect(30, 30, 200, 15);
-			draw.can.fillStyle = "red";
-			draw.can.fillRect(30, 30, owner.hp / owner.maxHp * 200, 15);
+			draw.HUDBasic(owner);
 		}
 		this.inventory = inventory;
 		for (let a = 0; a < inventory.hotbar.length; a++){
@@ -342,3 +395,13 @@ class MapMarker{
 		}
 	}
 }
+
+
+/*module.exports.Player = Player;
+module.exports.Inventory = Inventory;
+module.exports.HUD = HUD;
+module.exports.ItemSlot = ItemSlot;
+module.exports.ItemSlotHotbar = ItemSlotHotbar;
+module.exports.Minimap = Minimap;
+module.exports.MapMarker = MapMarker;*/
+//export {Player, Inventory, HUD, ItemSlot, ItemSlotHotbar, Minimap, MapMarker};

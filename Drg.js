@@ -1,3 +1,28 @@
+/*let Formulasjs = require("./Formulas.js");
+let Classesjs = require("./Classes.js");
+let projections = Formulasjs.projections;
+let defenceCount = Formulasjs.defenceCount;
+let spreadCounter = Formulasjs.spreadCounter;
+let turn = Formulasjs.turn;
+let euclidianDistance = Formulasjs.euclidianDistance;
+let Box = Classesjs.Box;
+let Tool = Classesjs.Tool;
+let PlaceholderItem = Classesjs.PlaceholderItem;
+let Resource = Classesjs.Resource;
+let Particle = Classesjs.Particle;
+let StatusEffect = Classesjs.StatusEffect;
+let Entity = Classesjs.Entity;
+let ObjectHitbox = Classesjs.ObjectHitbox;
+let BackgroundImage = Classesjs.BackgroundImage;
+let Map = Classesjs.Map;
+let ShadowRealm = Classesjs.ShadowRealm;
+let Interface = Classesjs.Interface;
+let InterfaceElement = Classesjs.InterfaceElement;
+let InteractivityHitbox = Classesjs.InteractivityHitbox;
+let DevKit = Classesjs.DevKit;
+*/
+
+
 class Glyphid extends Entity{
     constructor(size, hp, damage, defence, x = 0, y = 0){
         super(x, y, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, map);
@@ -9,7 +34,7 @@ class Glyphid extends Entity{
                 break;
             }
         }*/
-        this.box = new meleeAttackHitbox(this, this.scaledHitbox(2), {type: "enemy", amount: damage, iFrame: 3000}, 400, 600);
+        this.box = new MeleeAttackHitbox(this, this.scaledHitbox(2), {type: "enemy", amount: damage, iFrame: 3000}, 400, 600);
         this.speed = 1;
 		this.mainAggro = this.pickAggro();
         this.aggro = this.mainAggro;
@@ -26,10 +51,10 @@ class Glyphid extends Entity{
 
 	pickAggro(){
 		let minimumDist = 1000000;
-		let minimum = 0
-		for (let a = 0; a < this.map.api.players.length; a++){
-			if (minimumDist > euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y)){
-				minimumDist = euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y);
+		let minimum = 0;
+		for (let a = 0; a < map.api.players.length; a++){
+			if (minimumDist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y)){
+				minimumDist = euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y);
 				minimum = a;
 			}
 		}
@@ -38,9 +63,9 @@ class Glyphid extends Entity{
 
 	minimalDistanceToPlayer(){
 		let minimumDist = 1000000;
-		for (let a = 0; a < this.map.api.players.length; a++){
-			if (minimumDist > euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y)){
-				minimumDist = euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y);
+		for (let a = 0; a < map.api.players.length; a++){
+			if (minimumDist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y)){
+				minimumDist = euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y);
 			}
 		}
 		return minimumDist;
@@ -48,8 +73,8 @@ class Glyphid extends Entity{
 
 	repickAggro(){
 		let dist = euclidianDistance(this.x, this.y, this.mainAggro, this.mainAggro);
-		for (let a = 0; a < this.map.api.players.length; a++){
-			if (dist > euclidianDistance(this.x, this.y, this.map.api.players[a].x, this.map.api.players[a].y) * 5){
+		for (let a = 0; a < map.api.players.length; a++){
+			if (dist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y) * 5){
 				this.mainAggro = this.pickAggro();
 				return
 			}
@@ -91,7 +116,7 @@ class Glyphid extends Entity{
 	}
 
     deathPlaceholder1(){
-        this.map.api.getPlayer().killCount++;
+        map.api.getPlayer().killCount++;
 		this.deathPlaceholder2();
     }
 
@@ -122,7 +147,7 @@ class Glyphid extends Entity{
 }
 		   
 
-class meleeAttackHitbox extends Box{
+class MeleeAttackHitbox extends Box{
     constructor(entity, hitbox, damage, speed, reloadSpeed){
         super(0, 0, hitbox, damage, -1000, entity.map);
         this.bind(entity);
@@ -571,3 +596,21 @@ class EletroParticle extends Particle{
         draw.electroParticle(this);
     }
 }
+
+
+/*module.exports.Glyphid = Glyphid;
+module.exports.MeleeAttackHitbox = MeleeAttackHitbox;
+module.exports.Grunt = Grunt;
+module.exports.Swarmer = Swarmer;
+module.exports.Praetorian = Praetorian;
+module.exports.Bullet = Bullet;
+module.exports.Weapon = Weapon;
+module.exports.Flame = Flame;
+module.exports.Breaker = Breaker;
+module.exports.Missile = Missile;
+module.exports.Flamethrower = Flamethrower;
+module.exports.CaveGenerator = CaveGenerator;
+module.exports.WeaponEditor = WeaponEditor;
+module.exports.BloodParticle = BloodParticle;
+module.exports.EletroParticle = EletroParticle;*/
+//export {Glyphid, MeleeAttackHitbox, Grunt, Swarmer, Praetorian, Bullet, Weapon, Flame, Breaker, Missile, Flamethrower, CaveGenerator, WeaponEditor, BloodParticle, EletroParticle};

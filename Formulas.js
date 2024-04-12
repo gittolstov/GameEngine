@@ -41,3 +41,12 @@ function turn(x, y){
 function euclidianDistance(x1, y1, x2, y2){
     return (Math.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2));
 }
+
+
+let drawingAllowed = false;
+/*module.exports.projections = projections;
+module.exports.defenceCount = defenceCount;
+module.exports.spreadCounter = spreadCounter;
+module.exports.turn = turn;
+module.exports.euclidianDistance = euclidianDistance;*/
+//export {projections, defenceCount, spreadCounter, turn, euclidianDistance};

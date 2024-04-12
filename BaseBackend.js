@@ -1,3 +1,28 @@
+/*let Formulasjs = require("./Formulas.js");
+let Classesjs = require("./Classes.js");
+let projections = Formulasjs.projections;
+let defenceCount = Formulasjs.defenceCount;
+let spreadCounter = Formulasjs.spreadCounter;
+let turn = Formulasjs.turn;
+let euclidianDistance = Formulasjs.euclidianDistance;
+let Box = Classesjs.Box;
+let Tool = Classesjs.Tool;
+let PlaceholderItem = Classesjs.PlaceholderItem;
+let Resource = Classesjs.Resource;
+let Particle = Classesjs.Particle;
+let StatusEffect = Classesjs.StatusEffect;
+let Entity = Classesjs.Entity;
+let ObjectHitbox = Classesjs.ObjectHitbox;
+let BackgroundImage = Classesjs.BackgroundImage;
+let Map = Classesjs.Map;
+let ShadowRealm = Classesjs.ShadowRealm;
+let Interface = Classesjs.Interface;
+let InterfaceElement = Classesjs.InterfaceElement;
+let InteractivityHitbox = Classesjs.InteractivityHitbox;
+let DevKit = Classesjs.DevKit;
+*/
+
+
 class BaseBackend{
 	constructor(maP = map){
 		this.map = maP;
@@ -5,6 +30,7 @@ class BaseBackend{
 		this.ventCells = [];
 		this.activeCells = [];
 		this.heavyDoors = [];
+		this.doors = [];//purely server purposes
 		this.coolingSystems = [];
 		this.wayPoints = [];
 		this.glyphids = [];
@@ -54,27 +80,7 @@ class BaseBackend{
 		}
 		this.findPlayer();
 		this.findPlayer2();
-		for (let a = 0; a < this.map.api.players.length; a++){
-			if (this.map.api.players[a].x > 4260 && this.map.api.players[a].x < 5920 && this.map.api.players[a].y > 3280 && this.map.api.players[a].y < 4760 && this.ventDefence){
-				this.map.api.players[a].damageGeneric(this.ventDamage);
-			}
-			if (this.airCondition > 12){
-				this.map.api.players[a].damageGeneric(this.ventDamage / 3);
-			}
-		}
-		for (let a = 0; a < this.cells.length; a++){
-			this.cells[a].distance = 100;
-			this.cells[a].voltage = 100;
-			this.cells[a].alreadyCounted = false;
-			this.cells[a].increaseStatus(-1);
-			this.cells[a].unpower();
-			this.cells[a].rollWireBreak();
-		}
-		if (this.generalPower){this.cells[2].electricSignal(0)};
-		this.cells[19].signal(0);
-		for (let a in this.activeCells){
-			this.activeCells[a].increaseStatus(-2);
-		}
+		this.baseTick3();
 	}
 
 	baseTick2(){
@@ -113,6 +119,30 @@ class BaseBackend{
 		}
 		this.cells[19].status = 100;
 		this.systemsTick();
+	}
+
+	baseTick3(){
+		for (let a = 0; a < this.map.api.players.length; a++){
+			if (this.map.api.players[a].x > 4260 && this.map.api.players[a].x < 5920 && this.map.api.players[a].y > 3280 && this.map.api.players[a].y < 4760 && this.ventDefence){
+				this.map.api.players[a].damageGeneric(this.ventDamage);
+			}
+			if (this.airCondition > 12){
+				this.map.api.players[a].damageGeneric(this.ventDamage / 3);
+			}
+		}
+		for (let a = 0; a < this.cells.length; a++){
+			this.cells[a].distance = 100;
+			this.cells[a].voltage = 100;
+			this.cells[a].alreadyCounted = false;
+			this.cells[a].increaseStatus(-1);
+			this.cells[a].unpower();
+			this.cells[a].rollWireBreak();
+		}
+		if (this.generalPower){this.cells[2].electricSignal(0)};
+		this.cells[19].signal(0);
+		for (let a in this.activeCells){
+			this.activeCells[a].increaseStatus(-2);
+		}
 	}
 
 	systemsTick(){
@@ -311,7 +341,7 @@ class BaseBackend{
 	}
 
 	rocketInbound(){
-		alert("rocket inbound!");
+		console.log("rocket inbound!");
 		this.rocketIsInbound = true;
 		this.rocketExplosionTimer = 0;
 	}
@@ -748,10 +778,10 @@ class Cell{
 		let b = new Grunt(this.boundary.x1, this.boundary.y1);
 		b.cell = 19;
 		b.allowSpawn = false;
-		let t = false;
+		let t = true;
 		for (let a = 0; a < immediateApi.players; a++){
-			if (immediateApi.players[a].outOfSight(b.x, b.y)){
-				t = true;
+			if (!immediateApi.players[a].outOfSight(b.x, b.y)){
+				t = false;
 				break;
 			}
 		}
@@ -1033,6 +1063,7 @@ class BaseDoor extends ObjectHitbox{
 	constructor(x1, x2, y1, y2, maP, base = baseBackend, isHeavy = false, terminalX, terminalY){
 		super(x1, x2, y1, y2, undefined, undefined, undefined, maP);
 		let direction = Math.abs(x2 - x1) > Math.abs(y2 - y1);
+		this.dir = 0;
 		this.direction = direction;
 		this.backend = base;
 		this.isHeavy = isHeavy;
@@ -1054,6 +1085,9 @@ class BaseDoor extends ObjectHitbox{
 			this.cooldown = 200;
 			this.interactive = true;
 		}
+		base.doors.push(this);
+		this.map.assignIndividualId(this);
+		this.clientEvents = this.individualId + " ";
 	}
 
 	draw(){
@@ -1063,6 +1097,7 @@ class BaseDoor extends ObjectHitbox{
 
 	interact(){
 		if (!this.moving){
+			this.logEvent("interact");
 			if (this.fake){
 				this.close();
 			} else {
@@ -1078,13 +1113,20 @@ class BaseDoor extends ObjectHitbox{
 
 	moveTick(obj, dir = undefined){
 		if (dir !== undefined){
-			obj.dir = dir
+			obj.dir = dir;
 		}
 		if (obj.stage === obj.dir){
 			return;
 		}
 		obj.stage += Math.sign(obj.dir - obj.stage);
 		setTimeout(obj.moveTick, obj.map.framerate, obj);
+	}
+
+	leverSwitch(){
+		this.logEvent("leverSwitch");
+		if ((!this.isLocked && !this.isBlocked && this.powered) || (!this.powered && !this.isLocked && !this.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
+			this.interact();
+		}
 	}
 
 	open(){
@@ -1105,6 +1147,7 @@ class BaseDoor extends ObjectHitbox{
 	}
 
 	block(){
+		this.logEvent("block");
 		this.isBlocked = true;
 		this.close();
 	}
@@ -1138,6 +1181,47 @@ class BaseDoor extends ObjectHitbox{
 		this.isBlocked = true;
 		//console.log("!!!door breached!!!");
 		this.open();
+	}	
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.powered, this.isOpen, this.isLocked, this.isBlocked, this.stage, this.integrity, this.constructor.name, this.moving, this.fake, this.dir];
+		return(parameters.join(" "));
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "powered", "isOpen", "isLocked", "isBlocked", "stage", "integrity"];
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length; a++){
+			if (isNaN(numberParams[a])){
+				this[parameterNames[a]] = parameters[a] === "true";
+				continue;
+			}
+			this[parameterNames[a]] = numberParams[a];
+			if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}
+		}
+		this.moving = parameters[8] == "true";
+		this.fake = parameters[9] == "true";
+		this.dir = parseFloat(parameters[10]);
+	}
+
+	clearLog(){
+		this.clientEvents = this.individualId + " ";
+	}
+
+	logEvent(ev){
+		this.clientEvents += " " + ev;
+	}
+
+	forceEvents(data){
+		let parameters = data.split(" ");
+		for (let a = 1; a < parameters.length; a++){
+		if (parameters[a] === ""){continue}
+			console.log(parameters[a]);
+			this[parameters[a]]();
+		}
 	}
 }
 
@@ -1155,9 +1239,7 @@ class DoorTerminal extends MainTerminal{
 	}
 
 	leverSwitch(){
-		if ((!this.bound.isLocked && !this.bound.isBlocked && this.bound.powered) || (!this.bound.powered && !this.bound.isLocked && !this.bound.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
-			this.bound.interact();
-		}
+		this.bound.leverSwitch();
 	}
 
 	block(){
@@ -1623,8 +1705,7 @@ class MeltdownParticle extends Particle{
 	}
 
 	draw(){
-		draw.can.fillStyle = "rgba(255, 0, 0, 0.15)";
-		draw.can.fillRect(0, 0, this.map.size, this.map.size);
+		draw.meltdownParticle();
 	}
 }
 
@@ -1646,3 +1727,63 @@ function raycast(source, speed, destination){
 	a.kill();
 	return true;
 }
+
+
+/*module.exports.BaseBackend = BaseBackend;
+module.exports.MainTerminal = MainTerminal;
+module.exports.MainTerminalInterface = MainTerminalInterface;
+module.exports.Cell = Cell;
+module.exports.CellBox = CellBox;
+module.exports.PathfindingPoint = PathfindingPoint;
+module.exports.Wire = Wire;
+module.exports.WiringConnector = WiringConnector;
+module.exports.WireBreakpoint = WireBreakpoint;
+module.exports.WiringInterface = WiringInterface;
+module.exports.BaseDoor = BaseDoor;
+module.exports.DoorTerminal = DoorTerminal;
+module.exports.DoorInterface = DoorInterface;
+module.exports.DoorEntity = DoorEntity;
+module.exports.VentTerminal = VentTerminal;
+module.exports.VentInterface = VentInterface;
+module.exports.Code = Code;
+module.exports.InterfaceButton = InterfaceButton;
+module.exports.invisibleButton = invisibleButton;
+module.exports.Cart = Cart;
+module.exports.CartFiller = CartFiller;
+module.exports.WaterTank = WaterTank;
+module.exports.Vault = Vault;
+module.exports.FoodDispencer = FoodDispencer;
+module.exports.Burger = Burger;
+module.exports.PushOutBox = PushOutBox;
+module.exports.MeltdownParticle = MeltdownParticle;
+module.exports.raycast = raycast;*/
+/*export {
+	raycast,
+	MeltdownParticle,
+	PushOutBox,
+	Burger,
+	FoodDispencer,
+	Vault,
+	WaterTank,
+	CartFiller,
+	Cart,
+	invisibleButton,
+	InterfaceButton,
+	Code,
+	VentInterface,
+	VentTerminal,
+	DoorEntity,
+	DoorInterface,
+	DoorTerminal,
+	BaseDoor,
+	WiringInterface,
+	WireBreakpoint,
+	WiringConnector,
+	Wire,
+	PathfindingPoint,
+	CellBox,
+	Cell,
+	MainTerminalInterface,
+	MainTerminal,
+	BaseBackend
+}*/
