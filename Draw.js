@@ -1,129 +1,144 @@
 class Draw{
-	constructor(){
-		let canv = document.getElementById("canv");
-		this.can = canv.getContext("2d");
-		this.murasama = new Image;
-		this.shade = new Image;
-		this.cartFrame = new Image;
-		this.doors = [new Image, new Image];
-		this.hornet = new Image;
-		this.doomguy = new Image;
-		this.obstacle = new Image;
-		this.fireImg = [new Image, new Image];
-		this.leverImg = [new Image, new Image];
-		this.buttonImg = [new Image, new Image, new Image, new Image, new Image, new Image];
-		this.glyphidGrunt = new Image;
-		this.glyphidSwarmer = new Image;
-		this.glyphidPraetorian = new Image;
-		this.bulletImg = new Image;
-		this.wiringBackground = new Image;
-		this.ventInterface = new Image;
-		this.tube = new Image;
-		this.vault = new Image;
-		this.mainTerminal = new Image;
-		this.dispencer = new Image;
-		this.waterPort = new Image;
-		this.tank = new Image;
-		this.o2 = new Image;
-		this.reactorImg = new Image;
-		this.ventTerminalImg = new Image;
-		this.elevatorButton = new Image;
-		this.caveBg = new Image;
-		this.blood = new Image;
-		this.floorImg = new Image;
-		this.wireframe = new Image;
-		this.bgStone = new Image;
-		this.cornerImg = new Image;
-		this.ladderImg = new Image;
-		this.vent1img = new Image;
-		this.vent2img = new Image;
-		this.el1 = new Image;
-		this.el2 = new Image;
-		this.wire1 = new Image;
-		this.wire2 = new Image;
-		this.lpad1 = new Image;
-		this.lpad2 = new Image;
-		this.rocket1 = new Image;
-		this.rocket2 = new Image;
-		this.terminal2 = new Image;
-		this.doorTerm = new Image;
-		this.wallImg = [new Image, new Image, new Image, new Image];
-		this.symbols = [new Image, new Image, new Image, new Image, new Image, new Image];
-		this.doors[0].src = "textures/door1.png";
-		this.doors[1].src = "textures/door2.png";
-		this.leverImg[0].src = "textures/lever1.png";
-		this.leverImg[1].src = "textures/lever2.png";
-		this.buttonImg[0].src = "textures/button1.png";
-		this.buttonImg[1].src = "textures/button2.png";
-		this.buttonImg[2].src = "textures/button3.png";
-		this.buttonImg[3].src = "textures/button4.png";
-		this.buttonImg[4].src = "textures/button5.png";
-		this.buttonImg[5].src = "textures/button6.png";
-		this.blood.src = "textures/Blood.png";
-		this.shade.src = "textures/enemy.png";
-		this.cartFrame.src = "textures/cart.png";
-		this.murasama.src = "textures/Murasama.jpeg";
-		this.hornet.src = "textures/player.png";
-		this.doorTerm.src = "textures/doorTerminal.png";
-		this.doomguy.src = "textures/slayer.png";
-		this.wiringBackground.src = "textures/wiringBackground.png";
-		this.ventInterface.src = "textures/ventInterface.png";
-		this.tube.src = "textures/pipe.png";
-		this.vault.src = "textures/vault.png";
-		this.dispencer.src = "textures/dispencer.png";
-		this.o2.src = "textures/o2.png";
-		this.ventTerminalImg.src = "textures/ventTerminal.png";
-		this.tank.src = "textures/tank.png";
-		this.waterPort.src = "textures/waterPort.png";
-		this.reactorImg.src = "textures/reactor.png";
-		this.wireframe.src = "textures/wireFrame.png";
-		this.mainTerminal.src = "textures/mainTerminal.png";
-		this.elevatorButton.src = "textures/elevButton.png";
-		this.bgStone.src = "textures/BackgroundStone.png";
-		this.obstacle.src = "textures/Obstacle.png";
-		this.glyphidGrunt.src = "textures/Glyphid_grunt.png";
-		this.glyphidSwarmer.src = "textures/Glyphid_swarmer.png";
-		this.glyphidPraetorian.src = "textures/Glyphid_praetorian.png";
-		this.caveBg.src = "textures/caveBackground1.png";
-		this.floorImg.src = "textures/floor.png";
-		this.cornerImg.src = "textures/corner.png";
-		this.ladderImg.src = "textures/ladder.png";
-		this.wire1.src = "textures/wire1.png";
-		this.wire2.src = "textures/wire2.png";
-		this.vent1img.src = "textures/vent.png";
-		this.vent2img.src = "textures/ventFloor.png";
-		this.lpad1.src = "textures/landingPad1.png";
-		this.lpad2.src = "textures/landingPad2.png";
-		this.rocket1.src = "textures/rocket1.png";
-		this.rocket2.src = "textures/rocket2.png";
-		this.el1.src = "textures/Elevator.png";
-		this.el2.src = "textures/NoElevator.png";
-		this.terminal2.src = "textures/mainTerminalFrame.png";
-		this.fireImg[0].src = "textures/Fire.png";
-		this.fireImg[1].src = "textures/Fire2.png";
-		this.bulletImg.src = "textures/Bullet.png";
-		this.wallImg[0].src = "textures/Wall3.png";
-		this.wallImg[1].src = "textures/Wall4.png";
-		this.wallImg[2].src = "textures/Wall2.png";
-		this.wallImg[3].src = "textures/Wall1.png";
-		this.symbols[0].src = "textures/symb1.png";
-		this.symbols[1].src = "textures/symb2.png";
-		this.symbols[2].src = "textures/symb3.png";
-		this.symbols[3].src = "textures/symb4.png";
-		this.symbols[4].src = "textures/symb5.png";
-		this.symbols[5].src = "textures/symb6.png";
-		this.particleImg = [new Image, new Image, new Image, new Image, new Image, new Image];
-		this.particleImg[0].src = "textures/Particle1.png";
-		this.particleImg[1].src = "textures/Particle2.png";
-		this.particleImg[2].src = "textures/Particle3.png";
-		this.particleImg[3].src = "textures/Particle4.png";
-		this.particleImg[4].src = "textures/Particle5.png";
-		this.particleImg[5].src = "textures/Particle6.png";
-		this.amogusLegs = [new Image, new Image, new Image, new Image];
-		this.amogusLegs[0].src = "textures/AmogusLegs0.png";
-		this.amogusLegs[1].src = "textures/AmogusLegs1.png";
-		this.amogusLegs[2].src = "textures/AmogusLegs2.png";
-		this.amogusLegs[3].src = "textures/AmogusLegs3.png";
+	constructor(real = true){
+		if (real){
+			let canv = document.getElementById("canv");
+			this.can = canv.getContext("2d");
+			this.murasama = new Image;
+			this.shade = new Image;
+			this.cartFrame = new Image;
+			this.doors = [new Image, new Image];
+			this.hornet = new Image;
+			this.doomguy = new Image;
+			this.obstacle = new Image;
+			this.fireImg = [new Image, new Image];
+			this.leverImg = [new Image, new Image];
+			this.buttonImg = [new Image, new Image, new Image, new Image, new Image, new Image];
+			this.glyphidGrunt = new Image;
+			this.glyphidSwarmer = new Image;
+			this.glyphidPraetorian = new Image;
+			this.bulletImg = new Image;
+			this.wiringBackground = new Image;
+			this.ventInterface = new Image;
+			this.tube = new Image;
+			this.vault = new Image;
+			this.mainTerminal = new Image;
+			this.dispencer = new Image;
+			this.waterPort = new Image;
+			this.tank = new Image;
+			this.o2 = new Image;
+			this.reactorImg = new Image;
+			this.ventTerminalImg = new Image;
+			this.elevatorButton = new Image;
+			this.caveBg = new Image;
+			this.blood = new Image;
+			this.floorImg = new Image;
+			this.wireframe = new Image;
+			this.bgStone = new Image;
+			this.cornerImg = new Image;
+			this.ladderImg = new Image;
+			this.vent1img = new Image;
+			this.vent2img = new Image;
+			this.el1 = new Image;
+			this.el2 = new Image;
+			this.wire1 = new Image;
+			this.wire2 = new Image;
+			this.lpad1 = new Image;
+			this.lpad2 = new Image;
+			this.rocket1 = new Image;
+			this.rocket2 = new Image;
+			this.terminal2 = new Image;
+			this.doorTerm = new Image;
+			this.wallImg = [new Image, new Image, new Image, new Image];
+			this.symbols = [new Image, new Image, new Image, new Image, new Image, new Image];
+			this.doors[0].src = "textures/door1.png";
+			this.doors[1].src = "textures/door2.png";
+			this.leverImg[0].src = "textures/lever1.png";
+			this.leverImg[1].src = "textures/lever2.png";
+			this.buttonImg[0].src = "textures/button1.png";
+			this.buttonImg[1].src = "textures/button2.png";
+			this.buttonImg[2].src = "textures/button3.png";
+			this.buttonImg[3].src = "textures/button4.png";
+			this.buttonImg[4].src = "textures/button5.png";
+			this.buttonImg[5].src = "textures/button6.png";
+			this.blood.src = "textures/Blood.png";
+			this.shade.src = "textures/enemy.png";
+			this.cartFrame.src = "textures/cart.png";
+			this.murasama.src = "textures/Murasama.jpeg";
+			this.hornet.src = "textures/player.png";
+			this.doorTerm.src = "textures/doorTerminal.png";
+			this.doomguy.src = "textures/slayer.png";
+			this.wiringBackground.src = "textures/wiringBackground.png";
+			this.ventInterface.src = "textures/ventInterface.png";
+			this.tube.src = "textures/pipe.png";
+			this.vault.src = "textures/vault.png";
+			this.dispencer.src = "textures/dispencer.png";
+			this.o2.src = "textures/o2.png";
+			this.ventTerminalImg.src = "textures/ventTerminal.png";
+			this.tank.src = "textures/tank.png";
+			this.waterPort.src = "textures/waterPort.png";
+			this.reactorImg.src = "textures/reactor.png";
+			this.wireframe.src = "textures/wireFrame.png";
+			this.mainTerminal.src = "textures/mainTerminal.png";
+			this.elevatorButton.src = "textures/elevButton.png";
+			this.bgStone.src = "textures/BackgroundStone.png";
+			this.obstacle.src = "textures/Obstacle.png";
+			this.glyphidGrunt.src = "textures/Glyphid_grunt.png";
+			this.glyphidSwarmer.src = "textures/Glyphid_swarmer.png";
+			this.glyphidPraetorian.src = "textures/Glyphid_praetorian.png";
+			this.caveBg.src = "textures/caveBackground1.png";
+			this.floorImg.src = "textures/floor.png";
+			this.cornerImg.src = "textures/corner.png";
+			this.ladderImg.src = "textures/ladder.png";
+			this.wire1.src = "textures/wire1.png";
+			this.wire2.src = "textures/wire2.png";
+			this.vent1img.src = "textures/vent.png";
+			this.vent2img.src = "textures/ventFloor.png";
+			this.lpad1.src = "textures/landingPad1.png";
+			this.lpad2.src = "textures/landingPad2.png";
+			this.rocket1.src = "textures/rocket1.png";
+			this.rocket2.src = "textures/rocket2.png";
+			this.el1.src = "textures/Elevator.png";
+			this.el2.src = "textures/NoElevator.png";
+			this.terminal2.src = "textures/mainTerminalFrame.png";
+			this.fireImg[0].src = "textures/Fire.png";
+			this.fireImg[1].src = "textures/Fire2.png";
+			this.bulletImg.src = "textures/Bullet.png";
+			this.wallImg[0].src = "textures/Wall3.png";
+			this.wallImg[1].src = "textures/Wall4.png";
+			this.wallImg[2].src = "textures/Wall2.png";
+			this.wallImg[3].src = "textures/Wall1.png";
+			this.symbols[0].src = "textures/symb1.png";
+			this.symbols[1].src = "textures/symb2.png";
+			this.symbols[2].src = "textures/symb3.png";
+			this.symbols[3].src = "textures/symb4.png";
+			this.symbols[4].src = "textures/symb5.png";
+			this.symbols[5].src = "textures/symb6.png";
+			this.particleImg = [new Image, new Image, new Image, new Image, new Image, new Image];
+			this.particleImg[0].src = "textures/Particle1.png";
+			this.particleImg[1].src = "textures/Particle2.png";
+			this.particleImg[2].src = "textures/Particle3.png";
+			this.particleImg[3].src = "textures/Particle4.png";
+			this.particleImg[4].src = "textures/Particle5.png";
+			this.particleImg[5].src = "textures/Particle6.png";
+			this.amogusLegs = [new Image, new Image, new Image, new Image];
+			this.amogusLegs[0].src = "textures/AmogusLegs0.png";
+			this.amogusLegs[1].src = "textures/AmogusLegs1.png";
+			this.amogusLegs[2].src = "textures/AmogusLegs2.png";
+			this.amogusLegs[3].src = "textures/AmogusLegs3.png";
+		} else {
+			this.isFalse = true;
+		}
+	}
+
+	clearMethods(){
+		if (this.isFalse){
+			for (let a = 1; a < Object.getOwnPropertyNames(this.constructor.prototype).length - 1; a++){
+				this[Object.getOwnPropertyNames(this.constructor.prototype)[a]] = function(){};
+			}
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	player(ent){
@@ -343,6 +358,16 @@ class Draw{
 		this.can.drawImage(this.wiringBackground, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
 
+	HUDBasic(owner){
+		this.can.fillStyle = "grey";
+		this.can.fillRect(28, 28, 204, 19);
+		this.can.fillStyle = "black";
+		this.can.fillRect(30, 30, 200, 15);
+		this.can.fillStyle = "red";
+		this.can.fillRect(30, 30, owner.hp / owner.maxHp * 200, 15);
+	}
+
+
 	ventBg(part){
 		this.can.drawImage(this.ventInterface, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
@@ -396,9 +421,12 @@ class Draw{
 	}
 
 	backgroundDrg(field){
-		this.can.fillStyle = "black";
-		this.can.fillRect(0, 0, field.size, field.size);
-		//this.can.drawImage(this.caveBg, -field.xshift() % field.size + field.size, -field.yshift() % field.size + field.size, field.size, field.size, 0, 0, field.size, field.size);
+		if (this.clearMethods()){return} else {this.backgroundDrg = function(field){
+				this.can.fillStyle = "black";
+				this.can.fillRect(0, 0, field.size, field.size);
+				//this.can.drawImage(this.caveBg, -field.xshift() % field.size + field.size, -field.yshift() % field.size + field.size, field.size, field.size, 0, 0, field.size, field.size);
+			}
+		}
 	}
 
 	item(icon, x1, x2, y1, y2){
@@ -429,6 +457,11 @@ class Draw{
 	electroParticle(ptl){
 		this.can.fillStyle = "lightblue";
 		this.can.fillRect(ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1);
+	}
+
+	meltdownParticle(){
+		this.can.fillStyle = "rgba(255, 0, 0, 0.15)";
+		this.can.fillRect(0, 0, this.map.size, this.map.size);
 	}
 
 	grid1(x1, y1, y2, maP){
@@ -493,3 +526,7 @@ class Draw{
 		this.can.rotate(angle);
 	}
 }
+
+
+//export {Draw}
+//module.exports.Draw = Draw;

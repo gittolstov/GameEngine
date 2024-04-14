@@ -123,3 +123,10 @@ function mouseMoveHandler(){
 function clickHandler(event){
     map.manageClick();
 }
+
+
+/*module.exports.keyDownHandlerlayer = keyDownHandler;
+module.exports.keyUpHandler = keyUpHandler;
+module.exports.mouseMoveHandler = mouseMoveHandler;
+module.exports.clickHandler = clickHandler;*/
+//export {keyDownHandler, keyUpHandler, mouseMoveHandler, clickHandler};

@@ -12,6 +12,7 @@ class Box{
 		this.map.reloadBoxActiveList();
 		this.reloadLoadingZone();
 		this.damageSetter();
+		this.map.assignIndividualId(this);
 	}
 
 	draw(){
@@ -412,10 +413,17 @@ class Tool{
 		this.hitbox = {x1: -40, x2: 40, y1: 5, y2: -15};
 		this.maxCooldown = 500;
 		this.active = false;
-		this.toolIcon = new Image;
-		this.toolIcon.src = icon;
-		this.sprite = new Image;
-		this.sprite.src = sprite;
+		if (typeof Image !== typeof undefined){
+			this.toolIcon = new Image;
+			this.toolIcon.src = icon;
+			this.sprite = new Image;
+			this.sprite.src = sprite;
+		} else {
+			this.toolIcon = {};
+			this.toolIcon.src = icon;
+			this.sprite = {};
+			this.sprite.src = sprite;
+		}
 	}
 
 	draw(x1, x2, y1, y2){
@@ -479,8 +487,13 @@ class Resource extends PlaceholderItem{
 		this.amount = amount;
 		this.ammoType = ammoType;
 		this.isPlaceholder = false;
-		this.icon = new Image;
-		this.icon.src = image;
+		if (typeof Image !== typeof undefined){
+			this.icon = new Image;
+			this.icon.src = image;
+		} else {
+			this.icon = {};
+			this.icon.src = image;
+		}
 	}
 
 	draw(x1, x2, y1, y2){
@@ -638,6 +651,9 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.enemyDamageMultiplier = 1;
 		this.playerDamageMultiplier = 1;
 		this.map.reloadEntityActiveList();
+		if (!this.isTechnical){
+			this.map.assignIndividualId(this);
+		}
 	}
 
 	draw(){
@@ -798,6 +814,10 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.checkDeath();
 	}
 
+	remove(){
+		this.kill();
+	}
+
 	heal(amount){
 		this.hp += amount;
 		if (this.hp > this.maxHp){
@@ -868,6 +888,7 @@ class Entity{//создаёт сущность с параметрами, хит
 				if(this.bindedParticles[a] === undefined){continue}
 				this.bindedParticles[a].life = 0;
 			}
+			this.map.removeIndividualId(this);
 			this.map.reloadEntityActiveList();
 			this.deathPlaceholder1();
 		}
@@ -1036,6 +1057,25 @@ class Entity{//создаёт сущность с параметрами, хит
 			}
 		}
 	}
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name];
+		return(parameters.join(" "));
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length - 1; a++){
+			if (typeof numberParams[a] !== 'number'){continue}
+			this[parameterNames[a]] = numberParams[a];
+			if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}
+		}
+		
+	}
 }
 
 
@@ -1115,7 +1155,7 @@ class ObjectHitbox{
 		return a;
 	}
 
-	scaledHitbox(scale){
+	scaledHitbox(scale){//returns different hitbox
 		let a = {x1: this.hitbox.x1, x2: this.hitbox.x2, y1: this.hitbox.y1, y2: this.hitbox.y2};
 		a.x1 *= scale;
 		a.x2 *= scale;
@@ -1181,6 +1221,8 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		this.fieldWidth = width;
 		this.fieldHeight = height;
 		this.renderCenterpoint = {xshift: 0, yshift: 0};
+		this.individualObjects = [];//used for server-client data exchange
+		this.individualObjectCounter = 1;
 		this.entityList = [];
 		this.entityListActive = [];
 		this.boxList = [];
@@ -1215,7 +1257,6 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	drawEverything(ent){
 		draw.backgroundDrg(this);
 		this.renderCenterpoint = ent;
-		console.log("tick");
 		let zonesToLoad = [
 			{x: -1, y: -1}, {x: 0, y: -1}, {x: 1, y: -1}, {x: -1, y: 0}, {x: 0, y: 0}, {x: 1, y: 0}, {x: -1, y: 1}, {x: 0, y: 1}, {x: 1, y: 1}
 		];
@@ -1360,6 +1401,38 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			if (this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]] === undefined){continue}
 			this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]].shadowRealmReturnAttempt();
 		}
+	}
+
+	checkCounter(){
+		if (this.individualObjects[this.individualObjectCounter] !== undefined){
+			this.individualObjectCounter++;
+			this.checkCounter();
+		}
+	}
+
+	assignIndividualId(obj){
+		this.checkCounter();
+		obj.individualId = this.individualObjectCounter;
+		this.individualObjects[this.individualObjectCounter] = obj;
+		this.individualObjectCounter++;
+	}
+
+	reassignIndividualId(obj, id){
+		if (this.individualObjects[id] === undefined){
+			this.individualObjects[id] = obj;
+			obj.individualId = [id];
+			return;
+		}
+		this.individualObjects[obj.individualId] = this.individualObjects[id];
+		this.individualObjects[obj.individualId].individualId = obj.individualId;
+		obj.individualId = id;
+		this.individualObjects[id] = obj;
+	}
+
+	removeIndividualId(obj){
+		if (obj.individualId === undefined){return}
+		this.individualObjects[obj.individualId] = undefined;
+		obj.individualId = -obj.individualId;
 	}
 }
 
@@ -1562,3 +1635,21 @@ class DevKit{
 		}
 	}
 }
+
+
+/*module.exports.Box = Box;
+module.exports.Tool = Tool;
+module.exports.PlaceholderItem = PlaceholderItem;
+module.exports.Resource = Resource;
+module.exports.Particle = Particle;
+module.exports.StatusEffect = StatusEffect;
+module.exports.Entity = Entity;
+module.exports.ObjectHitbox = ObjectHitbox;
+module.exports.BackgroundImage = BackgroundImage;
+module.exports.Map = Map;
+module.exports.ShadowRealm = ShadowRealm;
+module.exports.Interface = Interface;
+module.exports.InterfaceElement = InterfaceElement;
+module.exports.InteractivityHitbox = InteractivityHitbox;
+module.exports.DevKit = DevKit;*/
+//export {Box, Tool, PlaceholderItem, Resource, Particle, StatusEffect, Entity, ObjectHitbox, BackgroundImage, Map, ShadowRealm, Interface, InterfaceElement, InteractivityHitbox, DevKit};

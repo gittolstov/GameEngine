@@ -1,3 +1,28 @@
+/*let Formulasjs = require("./Formulas.js");
+let Classesjs = require("./Classes.js");
+let projections = Formulasjs.projections;
+let defenceCount = Formulasjs.defenceCount;
+let spreadCounter = Formulasjs.spreadCounter;
+let turn = Formulasjs.turn;
+let euclidianDistance = Formulasjs.euclidianDistance;
+let Box = Classesjs.Box;
+let Tool = Classesjs.Tool;
+let PlaceholderItem = Classesjs.PlaceholderItem;
+let Resource = Classesjs.Resource;
+let Particle = Classesjs.Particle;
+let StatusEffect = Classesjs.StatusEffect;
+let Entity = Classesjs.Entity;
+let ObjectHitbox = Classesjs.ObjectHitbox;
+let BackgroundImage = Classesjs.BackgroundImage;
+let Map = Classesjs.Map;
+let ShadowRealm = Classesjs.ShadowRealm;
+let Interface = Classesjs.Interface;
+let InterfaceElement = Classesjs.InterfaceElement;
+let InteractivityHitbox = Classesjs.InteractivityHitbox;
+let DevKit = Classesjs.DevKit;
+*/
+
+
 class WeaponHandle extends Tool{
     constructor(primaries = 1, melee = 1, consumable = 1){
         super();
@@ -145,6 +170,7 @@ class WeaponHandle extends Tool{
     }
 }
 
+
 class Primary extends Resource{
     constructor(damage = {type: "generic", amount: 3, iFrame: 10}, pelletNum = 1, spread1 = 1, spread2 = 30, spreadSpeed = 0.08, cooldown = 10, magSize = 30, ammoNeeded = "rifleBullet", reloadTime = 2000){
         super();
@@ -176,6 +202,7 @@ class Primary extends Resource{
         return 0;
     }
 }
+
 
 class ItemSlotWeapon extends InterfaceElement{
 	constructor(parentInterface, x1, x2, y1, y2, id1, id2, condition){
@@ -210,3 +237,9 @@ class ItemSlotWeapon extends InterfaceElement{
 		return this.parentInterface.slots[this.slotId1][this.slotId2];
 	}
 }
+
+
+/*module.exports.WeaponHandle = WeaponHandle;
+module.exports.Primary = Primary;
+module.exports.ItemSlotWeapon = ItemSlotWeapon;*/
+//export {WeaponHandle, Primary, ItemSlotWeapon};
