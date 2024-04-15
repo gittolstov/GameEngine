@@ -1,3 +1,4 @@
+
 function projections(a, b, hypothesis){//a, b - расстояния до цели, hyp. - длина шага, возвращает объект с проекциями шага
     if (a === 0 && b === 0){
         return {x: 0, y: 0};
