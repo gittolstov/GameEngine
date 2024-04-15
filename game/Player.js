@@ -1,4 +1,3 @@
-
 /*let Formulasjs = require("./Formulas.js");
 let Classesjs = require("./Classes.js");
 let projections = Formulasjs.projections;
