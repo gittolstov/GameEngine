@@ -16,8 +16,7 @@ compilationArray = [
 with open("Compiled.js", "w", encoding="UTF-8") as file:
     file.write("")
 for a in compilationArray:
-    with open(a, "r", encoding="UTF-8") as file:
+    with open("game/ " + a, "r", encoding="UTF-8") as file:
         code = file.read()
     with open("Compiled.js", "a", encoding="UTF-8") as file:
         file.write(code)
-        file.write("\n")

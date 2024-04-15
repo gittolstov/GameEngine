@@ -205,7 +205,7 @@ class Server{
 						})
 						.on('end', () => {
 							body = Buffer.concat(body).toString();// at this point, `body` has the entire request body stored in it as a string
-							immediateApi.clientInfo = body;
+							immediateApi.clientInfo[parseInt(Array.from('some string')[0])] = body;
 							//console.log(body);
 						});
 						response.end();
@@ -219,7 +219,7 @@ class Server{
 		this.devKit = new DevKit;
 		this.activePlayerId = 0;
 		this.savedState = "";
-		this.clientInfo = "";
+		this.clientInfo = [];
 		this.syncCounter = 0;
 		this.summoningCircle = {
 			Grunt: function(id, x, y, useless1, useless2, useless3, useless4){
@@ -292,7 +292,9 @@ class Server{
 
 	sync(){
 		if (this.syncCounter >= 2){
-			this.correctGameData(this.clientInfo);
+			for (let a in this.clientInfo){
+				this.correctGameData(this.clientInfo[a]);
+			}
 			this.savedState = this.sendServerData();
 			this.syncCounter = 0;
 			//console.log("tick: " + this.savedState);
@@ -316,7 +318,7 @@ class Server{
 
 	correctGameData(data){
 		let parsedData = data.split("	");
-		let parsedEntityData = parsedData[0].split(";");
+		let parsedEntityData = parsedData[1].split(";");
 		for (let a in parsedEntityData){
 			if (parsedEntityData[a] === ""){continue}
 			let parsedParams = parsedEntityData[a].split(" ");//пробел для разделения параметров внутри объекта
@@ -336,7 +338,7 @@ class Server{
 			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
 		}
 		try{
-		var parsedEvents = parsedData[1].split(";");
+		var parsedEvents = parsedData[2].split(";");
 		} catch {console.error("empty package")}
 		for (let a in parsedEvents){
 			let parsedParams = parsedEvents[a].split(" ");
@@ -366,6 +368,7 @@ class Client extends Server{
 				baseBackend.baseTick2 = function(){}
 			}, 5
 		);
+		this.clientNumber = -1;
 	}
 
 	inGameTime(){
@@ -423,7 +426,7 @@ class Client extends Server{
 	}
 
 	sendClientData(){
-		let saved = "";
+		let saved = this.activePlayerId + "	";
 		saved += this.getPlayer().getSaveData();
 		if (this.getPlayer().isDead){
 			saved = "";
