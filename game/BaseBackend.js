@@ -622,7 +622,7 @@ class MainTerminalInterface extends Interface{
 			}
 		}
 		if (a && !this.blockLifterGiven){
-			immediateApi.getPlayer().give(new Resource(1, "blockLifter", undefined, "blockLifter.png"));
+			immediateApi.getPlayer().give(new Resource(1, "blockLifter", undefined, "textures/blockLifter.png"));
 		}
 	}
 }
@@ -1098,6 +1098,7 @@ class BaseDoor extends ObjectHitbox{
 	interact(){
 		if (!this.moving){
 			this.logEvent("interact");
+			this.moving = true;
 			if (this.fake){
 				this.close();
 			} else {
@@ -1123,9 +1124,18 @@ class BaseDoor extends ObjectHitbox{
 	}
 
 	leverSwitch(){
-		this.logEvent("leverSwitch");
-		if ((!this.isLocked && !this.isBlocked && this.powered) || (!this.powered && !this.isLocked && !this.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
+		if ((!this.isLocked && !this.isBlocked && this.powered)){
+			if (immediateApi.constructor.name === "Client"){
+				this.logEvent("leverSwitch");
+				console.log("ev: lev")
+				return;
+			}
 			this.interact();
+			return;
+		}
+		if (immediateApi.constructor.name === "Client" && (!this.powered && !this.isLocked && !this.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
+			this.interact();
+			return;
 		}
 	}
 

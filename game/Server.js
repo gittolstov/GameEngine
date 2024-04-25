@@ -193,10 +193,10 @@ class Server{
 					});
 				} else {
 				
-					response.setHeader('Access-Control-Allow-Origin', '*');
+					/*response.setHeader('Access-Control-Allow-Origin', '*');
 					response.setHeader('Access-Control-Request-Method', '*');
 					response.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET, POST');
-					response.setHeader('Access-Control-Allow-Headers', '*');
+					response.setHeader('Access-Control-Allow-Headers', '*');*/
 					if (request.method === "POST"){
 						let body = [];
 						request
@@ -214,7 +214,7 @@ class Server{
 						response.end(immediateApi.savedState);
 					}
 				}
-			}).listen(3000, "127.0.0.1");
+			}).listen(3000, "0.0.0.0");
 		}
 		this.devKit = new DevKit;
 		this.activePlayerId = 0;
@@ -445,7 +445,7 @@ class Client extends Server{
 	}
 
 	getServerData(){
-		let url = 'http://127.0.0.1:3000';
+		let url = '/';
 		fetch(url)
 		.then(function(response){
 			let a = response.text();
@@ -458,7 +458,7 @@ class Client extends Server{
 	}
 
 	sendDataToServer(data){
-		let url = 'http://127.0.0.1:3000';
+		let url = '/';
 		fetch(url, {
 			method: "post",
 			headers: {
