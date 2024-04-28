@@ -629,8 +629,9 @@ function keyDownHandler(){
         p.inventory.mainhand[0] = p.inventory.hotbar[9];
     } else if (event.keyCode === 69){
 		d = false;
-		if (baseBackend.cart.linked){
-			baseBackend.cart.linked = false;
+		if (baseBackend.cart.linked[immediateApi.activePlayerId]){
+			baseBackend.cart.block.interact(immediateApi.getPlayer());
+			baseBackend.cart.unstuck();
 			baseBackend.cart.block.hitbox = {x1: 15, x2: -15, y1: 15, y2: -15};
 			p.speedMultipliers[2] = 1;
 			d = true;
@@ -1565,31 +1566,31 @@ class Entity{//создаёт сущность с параметрами, хит
 	
 	damageGeneric(dmg){
 		this.hp -= defenceCount(dmg, this.defence);
-		this.damagePlaceholder(defenceCount(dmg, this.defence));
+		this.damagePlaceholder(defenceCount(dmg, this.defence), "damageGeneric");
 		this.checkDeath();
 	}
 	
 	damagePiercing(dmg){
 		this.hp -= dmg;
-		this.damagePlaceholder(dmg);
+		this.damagePlaceholder(dmg, "damagePiercing");
 		this.checkDeath();
 	}
 
 	damageEnemy(dmg){
 		this.hp -= defenceCount(dmg, this.defence) * this.enemyDamageMultiplier;
-		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.enemyDamageMultiplier);
+		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.enemyDamageMultiplier, "damageEnemy");
 		this.checkDeath();
 	}
 
 	damagePlayer(dmg){
 		this.hp -= defenceCount(dmg, this.defence) * this.playerDamageMultiplier;
-		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.playerDamageMultiplier);
+		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.playerDamageMultiplier, "damagePlayer");
 		this.checkDeath();
 	}
 
 	damageFire(dmg){
 		this.hp -= dmg;
-		this.damagePlaceholder(dmg);
+		this.damagePlaceholder(dmg, "damagePlayer");
 		this.checkDeath();
 	}
 	
@@ -1605,10 +1606,14 @@ class Entity{//создаёт сущность с параметрами, хит
 				if(this.bindedParticles[a] === undefined){continue}
 				this.bindedParticles[a].life = 0;
 			}
-			this.map.removeIndividualId(this);
+			//this.map.removeIndividualId(this);
 			this.map.reloadEntityActiveList();
 			this.deathPlaceholder1();
 		}
+	}
+
+	forceRemove(){
+		this.map.removeIndividualId(this);
 	}
 
 	damagePlaceholder(){}
@@ -1791,7 +1796,6 @@ class Entity{//создаёт сущность с параметрами, хит
 				console.error("server asyncronization: " + parameterNames[a]);
 			}
 		}
-		
 	}
 }
 
@@ -2855,7 +2859,7 @@ class Glyphid extends Entity{
 		for (let a = 0; a < map.api.players.length; a++){
 			if (dist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y) * 5){
 				this.mainAggro = this.pickAggro();
-				return
+				return;
 			}
 		}
 	}
@@ -2901,7 +2905,8 @@ class Glyphid extends Entity{
 
     deathPlaceholder2(){}
 
-    damagePlaceholder(dmg){
+    damagePlaceholder(dmg, type){
+		this.logEvent(type + " " + dmg);
         for (let a = 0; a < dmg; a++){
             new BloodParticle(this);
         }
@@ -2923,6 +2928,46 @@ class Glyphid extends Entity{
             this.mapTransfer(this.map.backLink);
         }
     }
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name];//this.aggro
+		let saved = parameters.join(" ");
+		if (this.aggro.constructor.name === "PathfindingPoint"){
+			saved += " " + this.aggro.pointsId;
+		} else {
+			saved += " " + -this.aggro.individualId;
+		}
+		return saved;
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length - 1; a++){
+			if (typeof numberParams[a] !== 'number'){continue}
+			this[parameterNames[a]] = numberParams[a];
+			if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}
+		}
+		if (numberParams[8] < 0){
+			this.aggro = map.individualObjects[-numberParams[8]];
+			return;
+		}
+		this.aggro = baseBackend.wayPoints[numberParams[8]];
+	}
+
+	logEvent(ev){
+		immediateApi.eventLog += this.individualId + " " + ev + ";";
+	}
+
+	forceEvents(data){//primarily damage
+		console.log(data);
+		let parameters = data.split(" ");
+		if (parameters[1] === ""){return}
+		this[parameters[1]](parameters[2]);
+	}
 }
 		   
 
@@ -4501,6 +4546,7 @@ class BaseBackend{
 		}
 		this.cells[19].distance = 100;
 		this.cells[19].rarity = 150;
+		this.eventLog = "";
 	}
 
 	startBackendTicks(){
@@ -4830,6 +4876,39 @@ class BaseBackend{
 			this.mainTerminal.log("rocket can't be launched");
 		}
 	}
+
+	clearEventLog(){
+		this.eventLog = "";
+	}
+
+	/*getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name];//this.aggro
+		let saved = parameters.join(" ");
+		if (this.aggro.constructor.name === "PathfindingPoint"){
+			saved += " " + this.aggro.pointsId;
+		} else {
+			saved += " " + -this.aggro.individualId;
+		}
+		return saved;
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length - 1; a++){
+			if (typeof numberParams[a] !== 'number'){continue}
+			this[parameterNames[a]] = numberParams[a];
+			if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}
+		}
+		if (numberParams[8] < 0){
+			this.aggro = map.individualObjects[-numberParams[8]];
+			return;
+		}
+		this.aggro = baseBackend.wayPoints[numberParams[8]];
+	}*/
 }
 
 
@@ -4931,6 +5010,7 @@ class MainTerminalInterface extends Interface{
 		this.textDisplay.draw = function(){
 			draw.text(this);
 		}
+		backend.map.assignIndividualId(this);
 	}
 
 	log(txt, obj = this){
@@ -4980,12 +5060,14 @@ class MainTerminalInterface extends Interface{
 	}
 
 	lockProtocol(){
+		this.logEvent("lockProtocol");
 		for (let a in baseBackend.heavyDoors){
 			baseBackend.heavyDoors[a].lock();
 		}
 	}
 
 	unlockProtocol(){
+		this.logEvent("unlockProtocol");
 		if (!this.access){
 			return;
 		}
@@ -5009,6 +5091,7 @@ class MainTerminalInterface extends Interface{
 	}
 
 	grantAccess(){
+		this.logEvent("grantAccess");
 		this.access = true;
 		setTimeout((obj) => {obj.access = false}, 5000, this)
 	}
@@ -5017,6 +5100,7 @@ class MainTerminalInterface extends Interface{
 		if (!this.access){
 			return;
 		}
+		this.logEvent("unlockVault");
 		setTimeout(() => {baseBackend.heavyDoors[7].interact()}, 20000);
 		this.access = false;
 	}
@@ -5025,19 +5109,23 @@ class MainTerminalInterface extends Interface{
 		if (!this.access){
 			return;
 		}
+		this.logEvent("power");
 		this.backend.generalPower = !this.backend.generalPower;
 		this.access = false;
 	}
 
 	vent(){
+		this.logEvent("vent");
 		this.backend.ventOn = !this.backend.ventOn;
 	}
 
 	ventDef(){
+		this.logEvent("ventDef");
 		this.backend.ventDefence = !this.backend.ventDefence;
 	}
 
 	openBay(){
+		this.logEvent("openBay");
 		this.rocketBayAccess = true;
 		if (this.backend.rocketLanded){
 			this.backend.launchRocket();
@@ -5047,10 +5135,11 @@ class MainTerminalInterface extends Interface{
 	}
 
 	closeBay(){
+		this.logEvent("closeBay");
 		this.rocketBayAccess = false;
 	}
 
-	diagnostic(){
+	diagnostic(){//nolog
 		this.backend.runDiagnostics();
 	}
 
@@ -5058,11 +5147,12 @@ class MainTerminalInterface extends Interface{
 		if (!this.access){
 			return;
 		}
+		this.logEvent("mainDoor" + num);
 		this.backend.heavyDoors[num].isLocked = false;
 		this.access = false;
 	}
 
-	blockLifter(){
+	blockLifter(){//no log
 		let a = false;
 		for (let b in this.backend.heavyDoors){
 			if (this.backend.heavyDoors[b].isBlocked){
@@ -5072,6 +5162,42 @@ class MainTerminalInterface extends Interface{
 		if (a && !this.blockLifterGiven){
 			immediateApi.getPlayer().give(new Resource(1, "blockLifter", undefined, "textures/blockLifter.png"));
 		}
+	}
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.rocketBayAccess, this.elevatorOpen, this.access, this.blockLifterGiven, -1, -1, this.constructor.name];
+		let saved = parameters.join(" ");
+		saved += ";";
+		return saved;
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "rocketBayAccess", "elevatorOpen", "access", "blockLifterGiven"];
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length - 1; a++){
+			if (typeof numberParams[a] !== 'number'){continue}
+			this[parameterNames[a]] = parameters[a] === "true";
+			/*if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}*/
+		}
+	}
+
+	logEvent(ev){
+		console.log(ev);
+		this.backend.eventLog += this.individualId + " " + ev + ";";
+	}
+
+	forceEvents(data){
+		console.log(data);
+		let parameters = data.split(" ");
+		if (parameters[1] === ""){return}
+		if (parameters.length < 3){
+			this[parameters[1]]();
+			return;
+		}
+		this[parameters[1]](parameters[2]);
 	}
 }
 
@@ -5535,7 +5661,6 @@ class BaseDoor extends ObjectHitbox{
 		}
 		base.doors.push(this);
 		this.map.assignIndividualId(this);
-		this.clientEvents = this.individualId + " ";
 	}
 
 	draw(){
@@ -5575,7 +5700,6 @@ class BaseDoor extends ObjectHitbox{
 		if ((!this.isLocked && !this.isBlocked && this.powered)){
 			if (immediateApi.constructor.name === "Client"){
 				this.logEvent("leverSwitch");
-				console.log("ev: lev")
 				return;
 			}
 			this.interact();
@@ -5665,21 +5789,14 @@ class BaseDoor extends ObjectHitbox{
 		this.dir = parseFloat(parameters[10]);
 	}
 
-	clearLog(){
-		this.clientEvents = this.individualId + " ";
-	}
-
 	logEvent(ev){
-		this.clientEvents += " " + ev;
+		this.backend.eventLog += this.individualId + " " + ev + ";";
 	}
 
-	forceEvents(data){
+	forceEvents(data){//one event
 		let parameters = data.split(" ");
-		for (let a = 1; a < parameters.length; a++){
-		if (parameters[a] === ""){continue}
-			console.log(parameters[a]);
-			this[parameters[a]]();
-		}
+		if (parameters[1] === ""){return}
+		this[parameters[1]]();
 	}
 }
 
@@ -5861,20 +5978,28 @@ class Cart extends Entity{
 		super(x, y, -1000, 10000, {x1: -15, x2: 15, y1: -15, y2: 15}, maP);
 		this.backend = backend;
 		this.backend.cart = this;
-		this.linked = false;
+		this.linked = [false, false, false, false, false, false, false, false, false];
 		this.fuel = 0;
 		this.oxygen = 0;
 		this.water = 0;
 		this.spacing = {x: 0, y: 0};
 		this.block = new ObjectHitbox(this.x + this.hitbox.x1, this.x + this.hitbox.x2, this.y + this.hitbox.y1, this.y + this.hitbox.y2, false, this.x, this.y, this.map);
 		this.block.draw = function(){}
+		maP.assignIndividualId(this.block);
 		this.block.backlink = this;
 		this.block.interactive = true;
-		this.block.interact = function(ent){
-			this.backlink.linked = !this.backlink.linked;
-			if (this.backlink.linked){
-				this.backlink.spacing.x = this.x - ent.x;
-				this.backlink.spacing.y = this.y - ent.y;
+		this.block.forceEvents = function(data){//only interact
+			let parameters = data.split(" ");
+			if (parameters[1] === ""){return}
+			this[parameters[1]](this.backlink.backend.map.individualObjects[parameters[2]], parameters[3], parameters[4]);
+		}
+		this.block.interact = function(ent, x = immediateApi.getPlayer().x, y = immediateApi.getPlayer().y){
+			if (!this.backlink.linked[immediateApi.players.indexOf(ent)] && this.backlink.getIfLinked()){return}
+			this.backlink.backend.eventLog += this.individualId + " interact " + immediateApi.getPlayer().individualId + " " + x + " " + y + ";";
+			this.backlink.linked[immediateApi.players.indexOf(ent)] = !this.backlink.linked[immediateApi.players.indexOf(ent)];
+			if (this.backlink.linked[immediateApi.players.indexOf(ent)]){
+				this.backlink.spacing.x = this.x - x;
+				this.backlink.spacing.y = this.y - y;
 				this.hitbox = {x1: -11.5, x2: 11.5, y1: -11.5, y2: 11.5};
 				immediateApi.getPlayer().speedMultipliers[2] = 0.8;
 			} else {
@@ -5884,16 +6009,27 @@ class Cart extends Entity{
 		}
 	}
 
+	getIfLinked(){
+		let t = false;
+		for (let a in this.linked){
+			t = this.linked[a] || t;
+		}
+		return t;
+	}
+
 	draw(){
 		draw.cart(this);
 	}
 
 	tickPlaceholderMain(){
-		if (this.linked){
-			this.tp(immediateApi.getPlayer().x + this.spacing.x, immediateApi.getPlayer().y + this.spacing.y);
-		}
-		if (this.x - this.backend.heavyDoors[7].x > 0 && this.x - this.backend.heavyDoors[7].x < 60 && Math.abs(this.y - this.backend.heavyDoors[7].y) < 20 && !this.backend.heavyDoors[7].isOpen){
-			this.backend.heavyDoors[7].interact();
+		for (let a in immediateApi.players){
+			if (this.linked[a]){
+				this.tp(immediateApi.players[a].x + this.spacing.x, immediateApi.players[a].y + this.spacing.y);
+				return;
+			}
+			if (this.x - this.backend.heavyDoors[7].x > 0 && this.x - this.backend.heavyDoors[7].x < 60 && Math.abs(this.y - this.backend.heavyDoors[7].y) < 20 && !this.backend.heavyDoors[7].isOpen){
+				this.backend.heavyDoors[7].interact();
+			}
 		}
 	}
 
@@ -5930,6 +6066,43 @@ class Cart extends Entity{
 		this.block.x = this.x;
 		this.block.y = this.y;
 		this.block.additionalHitboxes();
+	}
+
+	unstuck(){
+		if (immediateApi.getPlayer().overlapList().indexOf(this.block) >= 0){
+			immediateApi.getPlayer().move(20, 0);
+			immediateApi.getPlayer().move(-20, 0);
+			immediateApi.getPlayer().move(0, 20);
+			immediateApi.getPlayer().move(0, -20);
+		}
+	}
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name];
+		return(parameters.join(" "));
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "x", "y", "life", "hp", "hitbox", "linked"];
+		let b = parameters[6].split("#");
+		for (let a in b){
+			this[parameterNames[6]][a] = b[a] === "true";
+		}
+		if (parameters[5] <= -15){
+			this.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15, additional: []};
+		} else {
+			this.block.hitbox = {x1: -11.5, x2: 11.5, y1: -11.5, y2: 11.5};
+		}
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length - 3; a++){
+			if (typeof numberParams[a] !== 'number'){continue}
+			this[parameterNames[a]] = numberParams[a];
+			if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}
+		}
+		this.tp(parseFloat(parameters[1]), parseFloat(parameters[2]));
 	}
 }
 
@@ -6475,6 +6648,7 @@ class Server{
 			},
 			Player: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			BaseDoor: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
+			MainTerminalInterface: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			Cart: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){}
 		}
 		this.defaultConstNameId = 7;//7 is id of constructor name by default
@@ -6540,7 +6714,7 @@ class Server{
 	sync(){
 		if (this.syncCounter >= 2){
 			for (let a in this.clientInfo){
-				this.correctGameData(this.clientInfo[a]);
+				this.correctGameData(a);//id in clientInfo
 			}
 			this.savedState = this.sendServerData();
 			this.syncCounter = 0;
@@ -6556,6 +6730,7 @@ class Server{
 			saved += this.map.entityList[this.map.entityListActive[a]].getSaveData();
 			saved += ";";
 		}
+		saved += baseBackend.mainTerminal.getSaveData(); + ";";
 		for (let a in baseBackend.doors){
 			saved += baseBackend.doors[a].getSaveData();
 			saved += ";";
@@ -6563,7 +6738,8 @@ class Server{
 		return saved;
 	}
 
-	correctGameData(data){
+	correctGameData(num){
+		let data = this.clientInfo[num];
 		let parsedData = data.split("	");
 		let parsedEntityData = parsedData[1].split(";");
 		for (let a in parsedEntityData){
@@ -6585,13 +6761,16 @@ class Server{
 			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
 		}
 		try{
-		var parsedEvents = parsedData[2].split(";");
+		var parsedEvents = parsedData[2].split(";");//events handled by individual ids
 		} catch {console.error("empty package")}
 		for (let a in parsedEvents){
-			let parsedParams = parsedEvents[a].split(" ");
+			//console.log(parsedEvents[a]);
 			if (parsedEvents[a] === "") {continue}
+			let parsedParams = parsedEvents[a].split(" ");-
 			this.map.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
 		}
+		parsedData[2] = "";
+		this.clientInfo[num] = parsedData.join("	");
 	}
 
 	endgame(){
@@ -6616,6 +6795,7 @@ class Client extends Server{
 			}, 5
 		);
 		this.clientNumber = -1;
+		this.eventLog = "";
 	}
 
 	inGameTime(){
@@ -6656,6 +6836,7 @@ class Client extends Server{
 						for (let d = counter; d < c; d++){
 							let toKill = this.map.individualObjects[this.previousObjects[d]];
 							toKill.remove();
+							toKill.forceRemove();
 						}
 						counter = c + 1;
 					} else {
@@ -6683,11 +6864,11 @@ class Client extends Server{
 			console.log("sending last player package: " + saved);
 		}
 		saved += "	";
-		for (let a in baseBackend.doors){
-			saved += baseBackend.doors[a].clientEvents;
-			baseBackend.doors[a].clearLog();
-			saved += ";";
-		}
+		saved += baseBackend.eventLog;
+		saved += this.eventLog;
+		this.clearEventLog();
+		baseBackend.clearEventLog();
+		//console.log(saved);
 		this.sendDataToServer(saved);
 	}
 
@@ -6737,6 +6918,10 @@ class Client extends Server{
 			}
 			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
 		}
+	}
+
+	clearEventLog(){
+		this.eventLog = "";
 	}
 }
 

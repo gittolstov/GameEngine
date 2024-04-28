@@ -228,6 +228,7 @@ class Server{
 			},
 			Player: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			BaseDoor: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
+			MainTerminalInterface: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			Cart: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){}
 		}
 		this.defaultConstNameId = 7;//7 is id of constructor name by default
@@ -293,7 +294,7 @@ class Server{
 	sync(){
 		if (this.syncCounter >= 2){
 			for (let a in this.clientInfo){
-				this.correctGameData(this.clientInfo[a]);
+				this.correctGameData(a);//id in clientInfo
 			}
 			this.savedState = this.sendServerData();
 			this.syncCounter = 0;
@@ -309,6 +310,7 @@ class Server{
 			saved += this.map.entityList[this.map.entityListActive[a]].getSaveData();
 			saved += ";";
 		}
+		saved += baseBackend.mainTerminal.getSaveData(); + ";";
 		for (let a in baseBackend.doors){
 			saved += baseBackend.doors[a].getSaveData();
 			saved += ";";
@@ -316,7 +318,8 @@ class Server{
 		return saved;
 	}
 
-	correctGameData(data){
+	correctGameData(num){
+		let data = this.clientInfo[num];
 		let parsedData = data.split("	");
 		let parsedEntityData = parsedData[1].split(";");
 		for (let a in parsedEntityData){
@@ -338,13 +341,16 @@ class Server{
 			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
 		}
 		try{
-		var parsedEvents = parsedData[2].split(";");
+		var parsedEvents = parsedData[2].split(";");//events handled by individual ids
 		} catch {console.error("empty package")}
 		for (let a in parsedEvents){
-			let parsedParams = parsedEvents[a].split(" ");
+			//console.log(parsedEvents[a]);
 			if (parsedEvents[a] === "") {continue}
+			let parsedParams = parsedEvents[a].split(" ");-
 			this.map.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
 		}
+		parsedData[2] = "";
+		this.clientInfo[num] = parsedData.join("	");
 	}
 
 	endgame(){
@@ -369,6 +375,7 @@ class Client extends Server{
 			}, 5
 		);
 		this.clientNumber = -1;
+		this.eventLog = "";
 	}
 
 	inGameTime(){
@@ -409,6 +416,7 @@ class Client extends Server{
 						for (let d = counter; d < c; d++){
 							let toKill = this.map.individualObjects[this.previousObjects[d]];
 							toKill.remove();
+							toKill.forceRemove();
 						}
 						counter = c + 1;
 					} else {
@@ -436,11 +444,11 @@ class Client extends Server{
 			console.log("sending last player package: " + saved);
 		}
 		saved += "	";
-		for (let a in baseBackend.doors){
-			saved += baseBackend.doors[a].clientEvents;
-			baseBackend.doors[a].clearLog();
-			saved += ";";
-		}
+		saved += baseBackend.eventLog;
+		saved += this.eventLog;
+		this.clearEventLog();
+		baseBackend.clearEventLog();
+		//console.log(saved);
 		this.sendDataToServer(saved);
 	}
 
@@ -490,6 +498,10 @@ class Client extends Server{
 			}
 			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
 		}
+	}
+
+	clearEventLog(){
+		this.eventLog = "";
 	}
 }
 

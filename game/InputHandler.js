@@ -44,8 +44,9 @@ function keyDownHandler(){
         p.inventory.mainhand[0] = p.inventory.hotbar[9];
     } else if (event.keyCode === 69){
 		d = false;
-		if (baseBackend.cart.linked){
-			baseBackend.cart.linked = false;
+		if (baseBackend.cart.linked[immediateApi.activePlayerId]){
+			baseBackend.cart.block.interact(immediateApi.getPlayer());
+			baseBackend.cart.unstuck();
 			baseBackend.cart.block.hitbox = {x1: 15, x2: -15, y1: 15, y2: -15};
 			p.speedMultipliers[2] = 1;
 			d = true;

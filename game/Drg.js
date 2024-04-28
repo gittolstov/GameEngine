@@ -76,7 +76,7 @@ class Glyphid extends Entity{
 		for (let a = 0; a < map.api.players.length; a++){
 			if (dist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y) * 5){
 				this.mainAggro = this.pickAggro();
-				return
+				return;
 			}
 		}
 	}
@@ -122,7 +122,8 @@ class Glyphid extends Entity{
 
     deathPlaceholder2(){}
 
-    damagePlaceholder(dmg){
+    damagePlaceholder(dmg, type){
+		this.logEvent(type + " " + dmg);
         for (let a = 0; a < dmg; a++){
             new BloodParticle(this);
         }
@@ -144,6 +145,46 @@ class Glyphid extends Entity{
             this.mapTransfer(this.map.backLink);
         }
     }
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name];//this.aggro
+		let saved = parameters.join(" ");
+		if (this.aggro.constructor.name === "PathfindingPoint"){
+			saved += " " + this.aggro.pointsId;
+		} else {
+			saved += " " + -this.aggro.individualId;
+		}
+		return saved;
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length - 1; a++){
+			if (typeof numberParams[a] !== 'number'){continue}
+			this[parameterNames[a]] = numberParams[a];
+			if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}
+		}
+		if (numberParams[8] < 0){
+			this.aggro = map.individualObjects[-numberParams[8]];
+			return;
+		}
+		this.aggro = baseBackend.wayPoints[numberParams[8]];
+	}
+
+	logEvent(ev){
+		immediateApi.eventLog += this.individualId + " " + ev + ";";
+	}
+
+	forceEvents(data){//primarily damage
+		console.log(data);
+		let parameters = data.split(" ");
+		if (parameters[1] === ""){return}
+		this[parameters[1]](parameters[2]);
+	}
 }
 		   
 

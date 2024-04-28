@@ -848,31 +848,31 @@ class Entity{//создаёт сущность с параметрами, хит
 	
 	damageGeneric(dmg){
 		this.hp -= defenceCount(dmg, this.defence);
-		this.damagePlaceholder(defenceCount(dmg, this.defence));
+		this.damagePlaceholder(defenceCount(dmg, this.defence), "damageGeneric");
 		this.checkDeath();
 	}
 	
 	damagePiercing(dmg){
 		this.hp -= dmg;
-		this.damagePlaceholder(dmg);
+		this.damagePlaceholder(dmg, "damagePiercing");
 		this.checkDeath();
 	}
 
 	damageEnemy(dmg){
 		this.hp -= defenceCount(dmg, this.defence) * this.enemyDamageMultiplier;
-		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.enemyDamageMultiplier);
+		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.enemyDamageMultiplier, "damageEnemy");
 		this.checkDeath();
 	}
 
 	damagePlayer(dmg){
 		this.hp -= defenceCount(dmg, this.defence) * this.playerDamageMultiplier;
-		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.playerDamageMultiplier);
+		this.damagePlaceholder(defenceCount(dmg, this.defence) * this.playerDamageMultiplier, "damagePlayer");
 		this.checkDeath();
 	}
 
 	damageFire(dmg){
 		this.hp -= dmg;
-		this.damagePlaceholder(dmg);
+		this.damagePlaceholder(dmg, "damagePlayer");
 		this.checkDeath();
 	}
 	
@@ -888,10 +888,14 @@ class Entity{//создаёт сущность с параметрами, хит
 				if(this.bindedParticles[a] === undefined){continue}
 				this.bindedParticles[a].life = 0;
 			}
-			this.map.removeIndividualId(this);
+			//this.map.removeIndividualId(this);
 			this.map.reloadEntityActiveList();
 			this.deathPlaceholder1();
 		}
+	}
+
+	forceRemove(){
+		this.map.removeIndividualId(this);
 	}
 
 	damagePlaceholder(){}
@@ -1074,7 +1078,6 @@ class Entity{//создаёт сущность с параметрами, хит
 				console.error("server asyncronization: " + parameterNames[a]);
 			}
 		}
-		
 	}
 }
 
