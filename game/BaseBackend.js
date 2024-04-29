@@ -54,10 +54,12 @@ class BaseBackend{
 		this.cells[19].distance = 100;
 		this.cells[19].rarity = 150;
 		this.eventLog = "";
+		maP.assignIndividualId(this);
 	}
 
 	startBackendTicks(){
 		setTimeout(() => {
+			baseBackend.cells[3].wiringBreakpoints[0].break();////
 			immediateApi.getPlayer().tickCounter = 0;
 			immediateApi.getPlayer().tickPlaceholder3 = function(){
 				if (this.tickCounter % 50 === 0){
@@ -79,12 +81,23 @@ class BaseBackend{
 		if (this.stopped){
 			return;
 		}
+		for (let a = 0; a < this.map.api.players.length; a++){
+			if (this.map.api.players[a].x > 4260 && this.map.api.players[a].x < 5920 && this.map.api.players[a].y > 3280 && this.map.api.players[a].y < 4760 && this.ventDefence){
+				this.map.api.players[a].damageGeneric(this.ventDamage);
+			}
+			if (this.airCondition > 12){
+				this.map.api.players[a].damageGeneric(this.ventDamage / 3);
+			}
+		}
+		if (this.map.entityList.length > 1500){
+			this.map.reloadEntityList();
+		}
 		this.findPlayer();
 		this.findPlayer2();
 		this.baseTick3();
 	}
 
-	baseTick2(){
+	baseTick2(){//gets nullified by Client
 		if (this.stopped){
 			return;
 		}
@@ -115,22 +128,11 @@ class BaseBackend{
 		for (let a = 0; a < this.cells.length; a++){
 			this.cells[a].reactInfestationStatus();
 		}
-		if (this.map.entityList.length > 1500){
-			this.map.reloadEntityList();
-		}
 		this.cells[19].status = 100;
 		this.systemsTick();
 	}
 
-	baseTick3(){
-		for (let a = 0; a < this.map.api.players.length; a++){
-			if (this.map.api.players[a].x > 4260 && this.map.api.players[a].x < 5920 && this.map.api.players[a].y > 3280 && this.map.api.players[a].y < 4760 && this.ventDefence){
-				this.map.api.players[a].damageGeneric(this.ventDamage);
-			}
-			if (this.airCondition > 12){
-				this.map.api.players[a].damageGeneric(this.ventDamage / 3);
-			}
-		}
+	baseTick3(){//gets nullified by Client
 		for (let a = 0; a < this.cells.length; a++){
 			this.cells[a].distance = 100;
 			this.cells[a].voltage = 100;
@@ -299,6 +301,7 @@ class BaseBackend{
 	}
 	
 	findPlayer2(){
+		this.activeCells = [];
 		for (let a in this.cells){
 			this.cells[a].playerIn = false;
 			for (let b in this.cells[a].hitboxes){
@@ -307,7 +310,7 @@ class BaseBackend{
 		}
 	}
 
-	checkPlayer(id){
+	checkInPlayer(id){
 		for (let a in this.cells){
 			if (a == id){
 				this.cells[a].playerIn = true;
@@ -348,6 +351,10 @@ class BaseBackend{
 	}
 
 	rocketCondition(){
+		console.log(this.cells[9].wiringIntegrity + " wiring");
+		console.log(this.cells[9].status + " status");
+		console.log(this.rocketIsInbound + " rocketIsInbound");
+		console.log(this.rocketRefueller + " rocketCargo");
 		return this.cells[9].wiringIntegrity && this.cells[9].status < 40 && this.rocketIsInbound && this.rocketRefueller.fuel === 0 && this.rocketRefueller.oxygen === 0 && this.rocketRefueller.water === 0;
 	}
 
@@ -388,34 +395,39 @@ class BaseBackend{
 		this.eventLog = "";
 	}
 
-	/*getSaveData(){
+	getSaveData(){
 		if (this.isTechnical){return ""}
-		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name];//this.aggro
+		let parameters = [
+			this.individualId,
+			this.generalPower,
+			this.rocketLanded,
+			this.ventDefence,
+			this.ventOn,
+			this.stopped,
+			this.rocketIsInbound,
+			this.constructor.name,
+			this.ventDamage,//nums
+			this.rocketCounter,
+			this.rocketExplosionTimer,
+			this.fuelConsumptionTimer,
+			this.reactorTemperature,
+			this.airCondition,
+		];
 		let saved = parameters.join(" ");
-		if (this.aggro.constructor.name === "PathfindingPoint"){
-			saved += " " + this.aggro.pointsId;
-		} else {
-			saved += " " + -this.aggro.individualId;
-		}
 		return saved;
 	}
 
 	setSaveData(parameters){
-		let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
+		let parameterNames = ["individualId", "generalPower", "rocketLanded", "ventDefence", "ventOn", "stopped", "rocketIsInbound"];
+		for (let a = 1; a < parameterNames.length; a++){
+			this[parameterNames[a]] = parameters[a] === "true";
+		}
+		parameterNames = ["ventDamage", "rocketCounter", "rocketExplosionTimer", "fuelConsumptionTimer", "reactorTemperature", "airCondition"];
 		let numberParams = parameters.map(Number);
-		for (let a = 1; a < parameterNames.length - 1; a++){
-			if (typeof numberParams[a] !== 'number'){continue}
-			this[parameterNames[a]] = numberParams[a];
-			if (this[parameterNames[a]] !== numberParams[a]){
-				console.error("server asyncronization: " + parameterNames[a]);
-			}
+		for (let a = 0; a < parameterNames.length; a++){
+			this[parameterNames[a]] = numberParams[a + 8];
 		}
-		if (numberParams[8] < 0){
-			this.aggro = map.individualObjects[-numberParams[8]];
-			return;
-		}
-		this.aggro = baseBackend.wayPoints[numberParams[8]];
-	}*/
+	}
 }
 
 
@@ -654,7 +666,7 @@ class MainTerminalInterface extends Interface{
 		if (!this.access){
 			return;
 		}
-		this.logEvent("mainDoor" + num);
+		this.logEvent("mainDoor " + num);
 		this.backend.heavyDoors[num].isLocked = false;
 		this.access = false;
 	}
@@ -692,7 +704,6 @@ class MainTerminalInterface extends Interface{
 	}
 
 	logEvent(ev){
-		console.log(ev);
 		this.backend.eventLog += this.individualId + " " + ev + ";";
 	}
 
@@ -919,9 +930,9 @@ class CellBox extends Box{
 	}
 
 	draw(){
-		//if (this.cell.distance < 3){
-			//draw.placeholderHitbox(this, this.cell.status * 0.01);
-		//}
+		/*if (this.cell.distance < 3){
+			draw.placeholderHitbox(this, this.cell.status * 0.01);
+		}*/
 	}
 
 	highlight(){
@@ -929,9 +940,9 @@ class CellBox extends Box{
 	}
 
 	checkPlayer(){
-		for (let a = 0; a < this.map.api.players; a++){
-			if (this.touchSpecific(this.map.api.players[a])){
-				this.cell.backend.checkPlayer(this.cell.id);
+		for (let a = 0; a < immediateApi.players.length; a++){
+			if (this.touchSpecific(immediateApi.players[a])){
+				this.cell.backend.checkInPlayer(this.cell.id);
 				return true;
 			}
 		}
@@ -961,9 +972,8 @@ class CellBox extends Box{
 
 class PathfindingPoint extends Entity{
 	constructor(x, y, connections, maP){
-		super(x, y, -1000, 10000, {x1: 50, x2: -50, y1: 50, y2: -50}, maP);
+		super(x, y, -1000, 10000, {x1: 50, x2: -50, y1: 50, y2: -50}, maP, undefined, true);
 		this.baseBackend = baseBackend;
-		this.isTechnical = true;
 		this.distance = [100, 100, 100, 100, 100, 100, 100];
 		this.pointsId = this.baseBackend.wayPoints.push(this) - 1;
 		this.connections = [];
@@ -1035,12 +1045,10 @@ class Wire extends ObjectHitbox{
 
 class WiringConnector{
 	constructor(x1, y1, x2, y2, maP = map){
-		let a = new Entity(x2, y2, -1000, 10000, {x1: 0, y1: 0, x2: 0, y2: 0}, maP, 50);
-		a.isTechnical = true;
+		let a = new Entity(x2, y2, -1000, 10000, {x1: 0, y1: 0, x2: 0, y2: 0}, maP, 50, true);
 		a.tickMove = function(){this.age()};
-		let b = new Entity(x1, y1, -1000, 10000, {x1: 0, y1: 0, x2: 0, y2: 0}, maP, 50);
+		let b = new Entity(x1, y1, -1000, 10000, {x1: 0, y1: 0, x2: 0, y2: 0}, maP, 50, true);
 		b.tickMove = function(){this.age()};
-		b.isTechnical = true;
 		a.other = b;
 		b.other = a;
 		a.connector = true;
@@ -1054,13 +1062,13 @@ class WiringConnector{
 class WireBreakpoint extends ObjectHitbox{
 	constructor(x, y, x2, y2, maP = map){
 		super(x + 5, x + 15, y + 5, y + 15, true, undefined, undefined, maP);
-		let a = new Entity(x2, y2, -1000, 10000, {x1: 2, y1: 2, x2: 2, y2: 2}, maP, 20);
+		let a = new Entity(x2, y2, -1000, 10000, {x1: 2, y1: 2, x2: 2, y2: 2}, maP, 20, true);
 		a.tickMove = function(){this.age()};
-		a.isTechnical = true;
 		a.backlink = this;
 		this.whole = true;
 		this.interactive = true;
 		this.interface = new WiringInterface(this);
+		maP.assignIndividualId(this);
 	}
 
 	interact(ent){
@@ -1104,6 +1112,29 @@ class WireBreakpoint extends ObjectHitbox{
 		this.whole = true;
 		this.bindedCell.tryFixing();
 	}
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.whole, this.interface.brokenWire.status, undefined, undefined, undefined, undefined, this.constructor.name];
+		return(parameters.join(" "));
+	}
+
+	setSaveData(parameters){
+		this.whole = parameters[1] === "true";
+		this.interface.brokenWire.status = parseFloat(parameters[2]);
+	}
+
+	logEvent(ev){
+		baseBackend.eventLog += this.individualId + " " + ev + ";";
+	}
+
+	forceEvents(data){
+		let parameters = data.split(" ");
+		this.interface.brokenWire.status = parseFloat(parameters[1]);
+		if (parameters[1] === "2"){
+			this.fix();
+		}
+	}
 }
 
 
@@ -1126,9 +1157,11 @@ class WiringInterface extends Interface{
 		this.brokenWire.functionality = function(){
 			if (immediateApi.getPlayer().inventory.mainhand[0].type === "wirecutters" && this.status === 0){
 				this.status = 1;
+				this.parentInterface.point.logEvent("1");
 			}
 			if (immediateApi.getPlayer().inventory.mainhand[0].type === "replacementWire" && this.status === 1){
 				this.parentInterface.fix();
+				this.parentInterface.point.logEvent("2");
 			}
 		}
 	}
@@ -1365,10 +1398,9 @@ class DoorInterface extends Interface{
 
 class DoorEntity extends Entity{
 	constructor(x, y, maP, door, backend = baseBackend){
-		super(x + 1, y + 1, -1000, 10000, {x1: 10, x2: -10, y1: 10, y2: -10}, maP);
+		super(x + 1, y + 1, -1000, 10000, {x1: 10, x2: -10, y1: 10, y2: -10}, maP, undefined, true);
 		this.backend = backend;
 		this.backend.doorEntities.push(this);
-		this.isTechnical = true;
 		this.assignedDoor = door;
 		this.doorId = door.entities.push(this) - 1;
 	}
@@ -1546,7 +1578,7 @@ class Cart extends Entity{
 			this.x = x;
 			this.y = y;
 		} else {
-			immediateApi.getPlayer().movePlayer(-immediateApi.getPlayer().moveVectoring.x, -immediateApi.getPlayer().moveVectoring.y);
+			immediateApi.getPlayer().movePlayer(-immediateApi.getPlayer().moveVectoring.x, -immediateApi.getPlayer().moveVectoring.y);//TODO костыль исправить
 		}
 		if (!this.overlap(0, 0)){
 			this.hitbox = {x1: 15, x2: -15, y1: 15, y2: -15, additional: []};
@@ -1586,7 +1618,7 @@ class Cart extends Entity{
 
 	getSaveData(){
 		if (this.isTechnical){return ""}
-		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name];
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name, this.fuel, this.oxygen, this.water];
 		return(parameters.join(" "));
 	}
 
@@ -1609,6 +1641,10 @@ class Cart extends Entity{
 				console.error("server asyncronization: " + parameterNames[a]);
 			}
 		}
+		parameterNames = ["fuel", "oxygen", "water"];
+		for (let a = 0; a < parameterNames.length; a++){
+			this[parameterNames[a]] = numberParams[a + 8];
+		}
 		this.tp(parseFloat(parameters[1]), parseFloat(parameters[2]));
 	}
 }
@@ -1624,6 +1660,7 @@ class CartFiller extends Box{
 		this.water = 0;
 		this.oxygen = 0;
 		this[this.type]();
+		maP.assignIndividualId(this);
 	}
 
 	rocketType(){
@@ -1722,6 +1759,24 @@ class CartFiller extends Box{
 		this.ready++
 		if (this.ready > 10){
 			this.ready = 0;
+		}
+	}
+
+	getSaveData(){
+		if (this.isTechnical){return ""}
+		let parameters = [this.individualId, this.fuel, this.oxygen, this.water, undefined, undefined, undefined, this.constructor.name];
+		return(parameters.join(" "));
+	}
+
+	setSaveData(parameters){
+		let parameterNames = ["individualId", "fuel", "oxygen", "water"];
+		let numberParams = parameters.map(Number);
+		for (let a = 1; a < parameterNames.length - 3; a++){
+			if (typeof numberParams[a] !== 'number'){continue}
+			this[parameterNames[a]] = numberParams[a];
+			if (this[parameterNames[a]] !== numberParams[a]){
+				console.error("server asyncronization: " + parameterNames[a]);
+			}
 		}
 	}
 }
@@ -1849,8 +1904,7 @@ class MeltdownParticle extends Particle{
 
 
 function raycast(source, speed, destination){
-	let a = new Entity(source.x, source.y, -1000, 10000, {x1: 0, x2: 0, y1: 0, y2: 0}, source.map, 100);
-	a.isTechnical = true;
+	let a = new Entity(source.x, source.y, -1000, 10000, {x1: 0, x2: 0, y1: 0, y2: 0}, source.map, 100, true);
 	let stepProjections = projections(destination.x - source.x, destination.y - source.y, speed);
 	while(a.life > 0){
 		a.age();

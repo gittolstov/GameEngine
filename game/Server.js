@@ -229,6 +229,9 @@ class Server{
 			Player: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			BaseDoor: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			MainTerminalInterface: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
+			BaseBackend: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
+			CartFiller: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
+			WireBreakpoint: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			Cart: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){}
 		}
 		this.defaultConstNameId = 7;//7 is id of constructor name by default
@@ -314,6 +317,15 @@ class Server{
 		for (let a in baseBackend.doors){
 			saved += baseBackend.doors[a].getSaveData();
 			saved += ";";
+		}
+		saved += baseBackend.getSaveData() + ";";
+		saved += baseBackend.rocketRefueller.getSaveData() + ";";
+		saved += baseBackend.reactorPort.getSaveData() + ";";
+		saved += baseBackend.supplies.getSaveData() + ";";
+		for (let a in baseBackend.cells){
+			for (let b in baseBackend.cells[a].wiringBreakpoints){
+				saved += baseBackend.cells[a].wiringBreakpoints[b].getSaveData() + ";";
+			}
 		}
 		return saved;
 	}

@@ -210,14 +210,14 @@ class Player extends Entity{
 			this.moveVectoring.x = numberParams[8];
 			this.moveVectoring.y = numberParams[9];
 			return
-		} else {
+		}/* else {
 			let a = this.previousReceivedState - parseFloat(parameters[4])
 			if (a > 0){
 				this.damageGeneric(a);
 			}
 			this.previousReceivedState = parseFloat(parameters[4]);//only hp can be modified by the server
 
-		}
+		}*/
 		//console.log("wrong player: this is player № " + this.individualId + " and the player in the data is № " + parameters[0]);
 	}
 }

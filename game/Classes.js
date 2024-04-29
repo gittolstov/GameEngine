@@ -630,7 +630,7 @@ class StatusEffect{
 
 
 class Entity{//создаёт сущность с параметрами, хитбокс - это смещение относительно координат тела
-	constructor(x = 100, y = 100, hp = 10, defence = 0, hitbox = {x1: -10, x2: 10, y1: -10, y2: 10}, entityScreen = map, life = 5000){
+	constructor(x = 100, y = 100, hp = 10, defence = 0, hitbox = {x1: -10, x2: 10, y1: -10, y2: 10}, entityScreen = map, life = 5000, isTechnical = false){
 		this.x = x;
 		this.y = y;
 		this.life = life;
@@ -651,6 +651,7 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.enemyDamageMultiplier = 1;
 		this.playerDamageMultiplier = 1;
 		this.map.reloadEntityActiveList();
+		this.isTechnical = isTechnical;
 		if (!this.isTechnical){
 			this.map.assignIndividualId(this);
 		}
