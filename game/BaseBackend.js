@@ -1297,11 +1297,12 @@ class BaseDoor extends ObjectHitbox{
 		if (a < chance){
 			this.breach();
 		}
+		//console.log("rolled for breach: " + a + " out of " + chance);
 	}
 
 	breach(){
 		this.isBlocked = true;
-		//console.log("!!!door breached!!!");
+		console.log("!!!door breached!!!");
 		this.open();
 	}	
 
@@ -1627,6 +1628,9 @@ class Cart extends Entity{
 		let b = parameters[6].split("#");
 		for (let a in b){
 			this[parameterNames[6]][a] = b[a] === "true";
+			if (this.linked === false || this.linked === true){
+				console.error("critical pizdets");
+			}
 		}
 		if (parameters[5] <= -15){
 			this.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15, additional: []};
@@ -1746,6 +1750,7 @@ class CartFiller extends Box{
 	}
 
 	tick5(){
+		console.log(this.water, this.backend.cart.water);
 		if (this.ready === 10 && this.touchSpecific(this.backend.cart)){
 			if (this.water < 20 && this.backend.cart.water > 0){
 				this.water++;
@@ -1769,6 +1774,7 @@ class CartFiller extends Box{
 	}
 
 	setSaveData(parameters){
+		console.log("savedata edited");
 		let parameterNames = ["individualId", "fuel", "oxygen", "water"];
 		let numberParams = parameters.map(Number);
 		for (let a = 1; a < parameterNames.length - 3; a++){
@@ -1786,6 +1792,7 @@ class WaterTank extends ObjectHitbox{
 	constructor(x1, y1, x2,y2){
 		super(x1, x2, y1, y2);
 		this.interactive = true;
+		this.map.assignIndividualId(this);
 	}
 
 	draw(){
@@ -1793,10 +1800,31 @@ class WaterTank extends ObjectHitbox{
 	}
 
 	interact(){
-		if (immediateApi.getPlayer().inventory.mainhand[0].type === "unHydratedBurger" && baseBackend.supplies.water >= 20){
-			immediateApi.getPlayer().inventory.mainhand[0].hydrate();
+		if (immediateApi.constructor.name === "Server"){
 			baseBackend.supplies.water -= 20;
+			return;
+		}//TODO inventory sync
+		if (immediateApi.getPlayer().inventory.mainhand[0].type === "unHydratedBurger" && baseBackend.supplies.water >= 20){
+			this.logEvent("interact");
+			baseBackend.supplies.water -= 20;
+			immediateApi.getPlayer().inventory.mainhand[0].hydrate();
 		}
+	}
+
+	logEvent(ev){
+		baseBackend.eventLog += this.individualId + " " + ev + ";";
+	}
+
+	forceEvents(data){
+		console.log(data);
+		let parameters = data.split(" ");
+		if (parameters[1] === ""){return}
+		if (parameters.length < 3){
+			this[parameters[1]]();
+			return;
+		}
+		console.log(parameters[1]);
+		this[parameters[1]]();
 	}
 }
 

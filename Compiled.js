@@ -4298,7 +4298,7 @@ class Ladder extends BackgroundImage{
 			a.shifter2 = shift2;
 			a.tickPlaceholderMain = function(){
 				if (this.touchSpecific(immediateApi.getPlayer())){
-					baseBackend.cart.linked = false;
+					baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 					baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 					immediateApi.getPlayer().speedMultipliers[2] = 1;
 					immediateApi.getPlayer().move(-this.shifter.x - this.shifter2.x, -this.shifter.y - this.shifter2.y);
@@ -4307,7 +4307,7 @@ class Ladder extends BackgroundImage{
 					}
 				}
 				if (this.touchSpecific(baseBackend.cart)){
-					baseBackend.cart.linked = false;
+					baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 					baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 					immediateApi.getPlayer().speedMultipliers[2] = 1;
 					immediateApi.getPlayer().move(-this.shifter.x - this.shifter2.x, -this.shifter.y - this.shifter2.y);
@@ -4326,7 +4326,7 @@ class Ladder extends BackgroundImage{
 		a.tickPlaceholderMain 
 		a.tickPlaceholderMain = function(){
 			if (this.touchSpecific(immediateApi.getPlayer())){
-				baseBackend.cart.linked = false;
+				baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 				baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 				immediateApi.getPlayer().speedMultipliers[2] = 1;
 				immediateApi.getPlayer().move(this.shifter.x + this.shifter2.x, this.shifter.y + this.shifter2.y);
@@ -4335,7 +4335,7 @@ class Ladder extends BackgroundImage{
 				}
 			}
 			if (this.touchSpecific(baseBackend.cart)){
-				baseBackend.cart.linked = false;
+				baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 				baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 				immediateApi.getPlayer().speedMultipliers[2] = 1;
 				immediateApi.getPlayer().move(this.shifter.x + this.shifter2.x, this.shifter.y + this.shifter2.y);
@@ -5791,11 +5791,12 @@ class BaseDoor extends ObjectHitbox{
 		if (a < chance){
 			this.breach();
 		}
+		//console.log("rolled for breach: " + a + " out of " + chance);
 	}
 
 	breach(){
 		this.isBlocked = true;
-		//console.log("!!!door breached!!!");
+		console.log("!!!door breached!!!");
 		this.open();
 	}	
 
@@ -6121,6 +6122,9 @@ class Cart extends Entity{
 		let b = parameters[6].split("#");
 		for (let a in b){
 			this[parameterNames[6]][a] = b[a] === "true";
+			if (this.linked === false || this.linked === true){
+				console.error("critical pizdets");
+			}
 		}
 		if (parameters[5] <= -15){
 			this.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15, additional: []};
@@ -6240,6 +6244,7 @@ class CartFiller extends Box{
 	}
 
 	tick5(){
+		console.log(this.water, this.backend.cart.water);
 		if (this.ready === 10 && this.touchSpecific(this.backend.cart)){
 			if (this.water < 20 && this.backend.cart.water > 0){
 				this.water++;
@@ -6263,6 +6268,7 @@ class CartFiller extends Box{
 	}
 
 	setSaveData(parameters){
+		console.log("savedata edited");
 		let parameterNames = ["individualId", "fuel", "oxygen", "water"];
 		let numberParams = parameters.map(Number);
 		for (let a = 1; a < parameterNames.length - 3; a++){
@@ -6280,6 +6286,7 @@ class WaterTank extends ObjectHitbox{
 	constructor(x1, y1, x2,y2){
 		super(x1, x2, y1, y2);
 		this.interactive = true;
+		this.map.assignIndividualId(this);
 	}
 
 	draw(){
@@ -6287,10 +6294,31 @@ class WaterTank extends ObjectHitbox{
 	}
 
 	interact(){
-		if (immediateApi.getPlayer().inventory.mainhand[0].type === "unHydratedBurger" && baseBackend.supplies.water >= 20){
-			immediateApi.getPlayer().inventory.mainhand[0].hydrate();
+		if (immediateApi.constructor.name === "Server"){
 			baseBackend.supplies.water -= 20;
+			return;
+		}//TODO inventory sync
+		if (immediateApi.getPlayer().inventory.mainhand[0].type === "unHydratedBurger" && baseBackend.supplies.water >= 20){
+			this.logEvent("interact");
+			baseBackend.supplies.water -= 20;
+			immediateApi.getPlayer().inventory.mainhand[0].hydrate();
 		}
+	}
+
+	logEvent(ev){
+		baseBackend.eventLog += this.individualId + " " + ev + ";";
+	}
+
+	forceEvents(data){
+		console.log(data);
+		let parameters = data.split(" ");
+		if (parameters[1] === ""){return}
+		if (parameters.length < 3){
+			this[parameters[1]]();
+			return;
+		}
+		console.log(parameters[1]);
+		this[parameters[1]]();
 	}
 }
 
@@ -6707,6 +6735,7 @@ class Server{
 			BaseBackend: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			CartFiller: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			WireBreakpoint: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
+			WaterTank: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			Cart: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){}
 		}
 		this.defaultConstNameId = 7;//7 is id of constructor name by default

@@ -612,7 +612,7 @@ class Ladder extends BackgroundImage{
 			a.shifter2 = shift2;
 			a.tickPlaceholderMain = function(){
 				if (this.touchSpecific(immediateApi.getPlayer())){
-					baseBackend.cart.linked = false;
+					baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 					baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 					immediateApi.getPlayer().speedMultipliers[2] = 1;
 					immediateApi.getPlayer().move(-this.shifter.x - this.shifter2.x, -this.shifter.y - this.shifter2.y);
@@ -621,7 +621,7 @@ class Ladder extends BackgroundImage{
 					}
 				}
 				if (this.touchSpecific(baseBackend.cart)){
-					baseBackend.cart.linked = false;
+					baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 					baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 					immediateApi.getPlayer().speedMultipliers[2] = 1;
 					immediateApi.getPlayer().move(-this.shifter.x - this.shifter2.x, -this.shifter.y - this.shifter2.y);
@@ -640,7 +640,7 @@ class Ladder extends BackgroundImage{
 		a.tickPlaceholderMain 
 		a.tickPlaceholderMain = function(){
 			if (this.touchSpecific(immediateApi.getPlayer())){
-				baseBackend.cart.linked = false;
+				baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 				baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 				immediateApi.getPlayer().speedMultipliers[2] = 1;
 				immediateApi.getPlayer().move(this.shifter.x + this.shifter2.x, this.shifter.y + this.shifter2.y);
@@ -649,7 +649,7 @@ class Ladder extends BackgroundImage{
 				}
 			}
 			if (this.touchSpecific(baseBackend.cart)){
-				baseBackend.cart.linked = false;
+				baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
 				baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 				immediateApi.getPlayer().speedMultipliers[2] = 1;
 				immediateApi.getPlayer().move(this.shifter.x + this.shifter2.x, this.shifter.y + this.shifter2.y);

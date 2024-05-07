@@ -232,6 +232,7 @@ class Server{
 			BaseBackend: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			CartFiller: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			WireBreakpoint: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
+			WaterTank: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			Cart: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){}
 		}
 		this.defaultConstNameId = 7;//7 is id of constructor name by default
