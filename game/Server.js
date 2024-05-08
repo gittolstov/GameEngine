@@ -260,26 +260,6 @@ class Server{
 		this.devKit.worldBorder();
 		new LevelEditor(this.getPlayer(), 20);
 		this.getPlayer().activeLevelEditor.placeSchematic(mainScheme);
-		let x = new Primary;
-		x.statMultipliers = [0.8, 1, 0.5, 1, 10, 1, 1, 1, 1, 1];
-		let f = new WeaponHandle;
-		f.toolIcon.src = "textures/rifle2.png";
-		f.sprite.src = "textures/Rifle.png";
-		f.slots.primaries[0] = x;
-		this.getPlayer().give(f);
-		this.getPlayer().give(new Resource(3000, "rifleBullet", "rifleBullet"));
-		let a = new Tool(undefined, undefined, "crowbar");
-		a.toolIcon.src = "textures/crowbar2.png";
-		a.sprite.src = "textures/Crowbar.png";
-		a.isWrench = true;
-		this.getPlayer().give(a);
-		a = new Resource(1, "replacementWire", undefined, "textures/replacementWire.png");
-		this.getPlayer().give(a);
-		a = new Resource(1, "wirecutters", undefined, "textures/wirecutters.png");
-		this.getPlayer().give(a);
-		this.getPlayer().inventoryIsActive = false;
-		this.getPlayer().inventory.mainhand[0] = new PlaceholderItem;
-		this.players[1].inventory.mainhand[0] = new PlaceholderItem;
 		this.inGameTime();
 	}
 
@@ -359,8 +339,12 @@ class Server{
 		for (let a in parsedEvents){
 			//console.log(parsedEvents[a]);
 			if (parsedEvents[a] === "") {continue}
-			let parsedParams = parsedEvents[a].split(" ");-
+			let parsedParams = parsedEvents[a].split(" ");
+			try{
 			this.map.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+			} catch {
+				console.log(parsedEvents[a]);
+			}
 		}
 		parsedData[2] = "";
 		this.clientInfo[num] = parsedData.join("	");

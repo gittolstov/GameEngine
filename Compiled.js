@@ -2431,6 +2431,26 @@ class Player extends Entity{
 				this.player.target = list[0];
 			}
 		}
+		x = new Primary;
+		x.statMultipliers = [0.8, 1, 0.5, 1, 10, 1, 1, 1, 1, 1];
+		let f = new WeaponHandle;
+		f.toolIcon.src = "textures/rifle2.png";
+		f.sprite.src = "textures/Rifle.png";
+		f.slots.primaries[0] = x;
+		this.give(f);
+		this.give(new Resource(3000, "rifleBullet", "rifleBullet"));
+		let a = new Tool(undefined, undefined, "crowbar");
+		a.toolIcon.src = "textures/crowbar2.png";
+		a.sprite.src = "textures/Crowbar.png";
+		a.isWrench = true;
+		this.give(a);
+		a = new Resource(1, "replacementWire", undefined, "textures/replacementWire.png");
+		this.give(a);
+		a = new Resource(1, "wirecutters", undefined, "textures/wirecutters.png");
+		this.give(a);
+		this.inventoryIsActive = false;
+		this.inventory.mainhand[0] = new PlaceholderItem;
+		this.inventory.mainhand[0] = new PlaceholderItem;
 		this.previousReceivedState = this.hp;
 		new HUD(this.inventory, this);
 	}
@@ -4545,6 +4565,7 @@ class BaseBackend{
 		for (let a = 0; a < 20; a++){
 			new Cell(this);
 		}
+		this.day = 0;
 		this.cells[19].distance = 100;
 		this.cells[19].rarity = 150;
 		this.eventLog = "";
@@ -6244,7 +6265,7 @@ class CartFiller extends Box{
 	}
 
 	tick5(){
-		console.log(this.water, this.backend.cart.water);
+		//console.log(this.water, this.backend.cart.water);
 		if (this.ready === 10 && this.touchSpecific(this.backend.cart)){
 			if (this.water < 20 && this.backend.cart.water > 0){
 				this.water++;
@@ -6268,7 +6289,7 @@ class CartFiller extends Box{
 	}
 
 	setSaveData(parameters){
-		console.log("savedata edited");
+		//console.log("savedata edited");
 		let parameterNames = ["individualId", "fuel", "oxygen", "water"];
 		let numberParams = parameters.map(Number);
 		for (let a = 1; a < parameterNames.length - 3; a++){
@@ -6763,26 +6784,6 @@ class Server{
 		this.devKit.worldBorder();
 		new LevelEditor(this.getPlayer(), 20);
 		this.getPlayer().activeLevelEditor.placeSchematic(mainScheme);
-		let x = new Primary;
-		x.statMultipliers = [0.8, 1, 0.5, 1, 10, 1, 1, 1, 1, 1];
-		let f = new WeaponHandle;
-		f.toolIcon.src = "textures/rifle2.png";
-		f.sprite.src = "textures/Rifle.png";
-		f.slots.primaries[0] = x;
-		this.getPlayer().give(f);
-		this.getPlayer().give(new Resource(3000, "rifleBullet", "rifleBullet"));
-		let a = new Tool(undefined, undefined, "crowbar");
-		a.toolIcon.src = "textures/crowbar2.png";
-		a.sprite.src = "textures/Crowbar.png";
-		a.isWrench = true;
-		this.getPlayer().give(a);
-		a = new Resource(1, "replacementWire", undefined, "textures/replacementWire.png");
-		this.getPlayer().give(a);
-		a = new Resource(1, "wirecutters", undefined, "textures/wirecutters.png");
-		this.getPlayer().give(a);
-		this.getPlayer().inventoryIsActive = false;
-		this.getPlayer().inventory.mainhand[0] = new PlaceholderItem;
-		this.players[1].inventory.mainhand[0] = new PlaceholderItem;
 		this.inGameTime();
 	}
 
@@ -6862,8 +6863,12 @@ class Server{
 		for (let a in parsedEvents){
 			//console.log(parsedEvents[a]);
 			if (parsedEvents[a] === "") {continue}
-			let parsedParams = parsedEvents[a].split(" ");-
+			let parsedParams = parsedEvents[a].split(" ");
+			try{
 			this.map.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+			} catch {
+				console.log(parsedEvents[a]);
+			}
 		}
 		parsedData[2] = "";
 		this.clientInfo[num] = parsedData.join("	");

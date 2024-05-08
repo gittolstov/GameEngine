@@ -51,6 +51,7 @@ class BaseBackend{
 		for (let a = 0; a < 20; a++){
 			new Cell(this);
 		}
+		this.day = 0;
 		this.cells[19].distance = 100;
 		this.cells[19].rarity = 150;
 		this.eventLog = "";
@@ -1750,7 +1751,7 @@ class CartFiller extends Box{
 	}
 
 	tick5(){
-		console.log(this.water, this.backend.cart.water);
+		//console.log(this.water, this.backend.cart.water);
 		if (this.ready === 10 && this.touchSpecific(this.backend.cart)){
 			if (this.water < 20 && this.backend.cart.water > 0){
 				this.water++;
@@ -1774,7 +1775,7 @@ class CartFiller extends Box{
 	}
 
 	setSaveData(parameters){
-		console.log("savedata edited");
+		//console.log("savedata edited");
 		let parameterNames = ["individualId", "fuel", "oxygen", "water"];
 		let numberParams = parameters.map(Number);
 		for (let a = 1; a < parameterNames.length - 3; a++){
