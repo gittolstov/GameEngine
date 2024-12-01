@@ -205,8 +205,8 @@ class Server{
 						})
 						.on('end', () => {
 							body = Buffer.concat(body).toString();// at this point, `body` has the entire request body stored in it as a string
-							immediateApi.clientInfo[parseInt(Array.from('some string')[0])] = body;
-							//console.log(body);
+							immediateApi.clientInfo[parseInt(Array.from(body[0]))] = body;//uses THE FIRST symbol in received data to choose a writing cell
+							//  console.log(immediateApi.clientInfo);
 						});
 						response.end();
 					} else {
@@ -214,7 +214,7 @@ class Server{
 						response.end(immediateApi.savedState);
 					}
 				}
-			}).listen(3000, "0.0.0.0");
+			}).listen(3000);//25565, "0.0.0.0"
 		}
 		this.devKit = new DevKit;
 		this.activePlayerId = 0;
@@ -223,8 +223,8 @@ class Server{
 		this.syncCounter = 0;
 		this.summoningCircle = {
 			Grunt: function(id, x, y, useless1, useless2, useless3, useless4){
-				let a = new Grunt(x, y);
-				a.map.reassignIndividualId(a, id);
+				let a = new Grunt(x, y, id);
+				immediateApi.reassignIndividualId(a, id);
 			},
 			Player: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			BaseDoor: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
@@ -236,6 +236,11 @@ class Server{
 			Cart: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){}
 		}
 		this.defaultConstNameId = 7;//7 is id of constructor name by default
+		this.individualObjects = [];//used for server-client data exchange
+		this.individualObjectCounter = 1;
+		this.deadList = [];
+		this.serverEventLog = "";
+		this.serverEventMayLogged = true;
 	}
 
 	start(){
@@ -266,6 +271,7 @@ class Server{
 	summonObject(parameters){
 		let objectData = parameters.map(Number);
 		this.summoningCircle[parameters[this.defaultConstNameId]](objectData[0], objectData[1], objectData[2], objectData[3], objectData[4], objectData[5], objectData[6]);
+		//console.log("summoned new object of type " + parameters[this.defaultConstNameId] + " of id " + objectData[0]);
 	}
 
 	inGameTime(){
@@ -281,6 +287,7 @@ class Server{
 				this.correctGameData(a);//id in clientInfo
 			}
 			this.savedState = this.sendServerData();
+			this.clearEventLog();
 			this.syncCounter = 0;
 			//console.log("tick: " + this.savedState);
 			return;
@@ -308,20 +315,24 @@ class Server{
 				saved += baseBackend.cells[a].wiringBreakpoints[b].getSaveData() + ";";
 			}
 		}
+		saved += this.getDeadData() + ";";
+		saved += "	";
+		saved += this.serverEventLog;
 		return saved;
 	}
 
 	correctGameData(num){
+		console.log(this.clientInfo[num]);
 		let data = this.clientInfo[num];
 		let parsedData = data.split("	");
 		let parsedEntityData = parsedData[1].split(";");
 		for (let a in parsedEntityData){
 			if (parsedEntityData[a] === ""){continue}
 			let parsedParams = parsedEntityData[a].split(" ");//пробел для разделения параметров внутри объекта
-			if (this.map.individualObjects[parseFloat(parsedParams[0])] === undefined){
+			if (this.individualObjects[parseFloat(parsedParams[0])] === undefined){
 				if (parseFloat(parsedParams[0]) < 0){
 					try {
-						this.map.individualObjects[-parseFloat(parsedParams[0])].kill();
+						this.individualObjects[-parseFloat(parsedParams[0])].kill();
 						console.log("DEATH!!!");
 						continue;
 					} catch {
@@ -331,23 +342,49 @@ class Server{
 				console.error("no such object: " + parsedParams[0]);
 				continue;
 			}
-			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
+			this.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
 		}
 		try{
-		var parsedEvents = parsedData[2].split(";");//events handled by individual ids
+			var parsedEvents = parsedData[2].split(";");//events handled by individual ids
+			//console.log(parsedEvents + " event");
 		} catch {console.error("empty package")}
 		for (let a in parsedEvents){
 			//console.log(parsedEvents[a]);
 			if (parsedEvents[a] === "") {continue}
 			let parsedParams = parsedEvents[a].split(" ");
 			try{
-			this.map.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+				this.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
 			} catch {
 				console.log(parsedEvents[a]);
 			}
 		}
+		parsedEvents = parsedData[3].split(";");//server events handled by individual ids (global events)
+		for (let a in parsedEvents){
+			//console.log(parsedEvents[a]);
+			if (parsedEvents[a] === "") {continue}
+			let parsedParams = parsedEvents[a].split(" ");
+			try{
+				this.serverEventMayLogged = false;
+				this.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+				this.serverEventMayLogged = true;
+				this.logAllClientEvent(parsedEvents[a] + ";");
+			} catch {
+				console.error(parsedEvents[a]);
+			}
+		}
 		parsedData[2] = "";
 		this.clientInfo[num] = parsedData.join("	");
+	}
+
+	getDeadData(){
+		//console.log("DEAD " + this.deadList.join(" "));
+		return "DEAD " + this.deadList.join(" ");
+	}
+
+	listAsDead(num){
+		if (this.deadList.indexOf(num) === -1){
+			this.deadList.push(num);
+		}
 	}
 
 	endgame(){
@@ -358,6 +395,48 @@ class Server{
 
 	getPlayer(){
 		return this.players[this.activePlayerId];
+	}
+
+	checkCounter(){
+		if (this.individualObjects[this.individualObjectCounter] !== undefined){
+			this.individualObjectCounter++;
+			this.checkCounter();
+		}
+	}
+
+	assignIndividualId(obj){
+		this.checkCounter();
+		obj.individualId = this.individualObjectCounter;
+		this.individualObjects[this.individualObjectCounter] = obj;
+		this.individualObjectCounter++;
+	}
+
+	reassignIndividualId(obj, id){
+		if (this.individualObjects[id] === undefined){
+			this.individualObjects[id] = obj;
+			obj.individualId = [id];
+			return;
+		}
+		this.individualObjects[obj.individualId] = this.individualObjects[id];
+		this.individualObjects[obj.individualId].individualId = obj.individualId;
+		obj.individualId = id;
+		this.individualObjects[id] = obj;
+	}
+
+	removeIndividualId(obj){
+		if (obj.individualId === undefined){return}
+		this.individualObjects[obj.individualId] = undefined;
+		obj.individualId = -obj.individualId;
+	}
+
+	clearEventLog(){
+		this.serverEventLog = "";
+	}
+
+	protect(){}
+
+	logAllClientEvent(ev){//Logs event, but only on server side. Use for important events, that need to be executed on every client
+		this.serverEventLog += ev;
 	}
 }
 
@@ -373,11 +452,14 @@ class Client extends Server{
 		);
 		this.clientNumber = -1;
 		this.eventLog = "";
+		this.serverEventLog = "";
+		this.overwriteProtection = {};
+		this.serverEventMayLogged = true;
 	}
 
 	inGameTime(){
 		setInterval((obj) => {
-			map.tick(obj.getPlayer());
+			obj.getPlayer().map.tick(obj.getPlayer());
 			obj.sync();
 		}, map.framerate, this);
 	}
@@ -389,9 +471,15 @@ class Client extends Server{
 			this.handleNewObjects(this.savedState);
 			this.correctGameData(this.savedState);
 			this.syncCounter = 0;
-			return;
 		}
 		this.syncCounter++;
+		for (let a in this.overwriteProtection){
+			this.overwriteProtection[a]--;
+			if (this.overwriteProtection[a] <= 0){
+				delete this.overwriteProtection[a];
+			}
+			if (Number.isNaN(this.overwriteProtection[a])){console.log(" FUCK ")}
+		}
 	}
 
 	handleNewObjects(data){
@@ -400,25 +488,27 @@ class Client extends Server{
 		let counter = 0;
 		for (let a in parsedEntityData){
 			if (parsedEntityData[a] === ""){continue}
+			if (parsedEntityData[a].startsWith("DEAD")){
+				let deadData = parsedEntityData[a].split(" ");
+				for (let c in deadData){
+					let d = immediateApi.individualObjects[deadData[c]];
+					if (typeof d !== "undefined"){
+						d.remove();
+						d.forceRemove();
+					}
+				}
+				continue;
+			}
 			let b = parseInt(parsedEntityData[a].split(" ")[0]);
-			if (b === this.previousObjects[counter]){
+			if (b === this.previousObjects[counter]){//сравниваем с позицией из предыдущего списка
 				counter++;
 			} else {
-				let c = this.previousObjects.indexOf(b);
-				if (c === -1){
-					console.log("1 less obj than needed");
+				let c = this.previousObjects.indexOf(b);//ищем в предыдущем списке
+				if (c === -1){//если не нашли в предыдущих значит объект новый для клиента - создаём
+					// console.log("1 less obj than needed " + b);
 					this.summonObject(parsedEntityData[a].split(" "));
 				} else {
-					if (c > counter){
-						for (let d = counter; d < c; d++){
-							let toKill = this.map.individualObjects[this.previousObjects[d]];
-							toKill.remove();
-							toKill.forceRemove();
-						}
-						counter = c + 1;
-					} else {
-						console.error("FUCKING FUCKS");
-					}
+					counter = c + 1;
 				}
 			}
 		}
@@ -443,6 +533,8 @@ class Client extends Server{
 		saved += "	";
 		saved += baseBackend.eventLog;
 		saved += this.eventLog;
+		saved += "	";
+		saved += this.serverEventLog;
 		this.clearEventLog();
 		baseBackend.clearEventLog();
 		//console.log(saved);
@@ -458,11 +550,11 @@ class Client extends Server{
 		})
 		.then(function(text){
 			immediateApi.savedState = text;
-			console.log("data from server received");
+			//console.log("data from server received");
 		})
 	}
 
-	sendDataToServer(data){
+	sendDataToServer(data){//data is a string with structure: activeplayerdata-TAB-server_affecting_events-all_client_events
 		let url = '/';
 		fetch(url, {
 			method: "post",
@@ -474,35 +566,69 @@ class Client extends Server{
 		})
 	}
 
-	correctGameData(data){
+	correctGameData(data){//data is a string with structure: entity_getdata-TAB-events
 		let parsedData = data.split("	");
 		let parsedEntityData = parsedData[0].split(";");
 		for (let a in parsedEntityData){
-			if (parsedEntityData[a] === ""){continue}
+			if (parsedEntityData[a] === "" || parsedEntityData[a].startsWith("DEAD")){continue}
 			let parsedParams = parsedEntityData[a].split(" ");//пробел для разделения параметров внутри объекта
-			if (this.map.individualObjects[parseFloat(parsedParams[0])] === undefined){
-				if (parseFloat(parsedParams[0]) < 0){
+			if (this.overwriteProtection[[parseFloat(parsedParams[0])]] > 0){continue}
+			if (this.individualObjects[parseFloat(parsedParams[0])] === undefined){
+				if (parseFloat(parsedParams[0]) < 0){//gets negative index when the object is pretty much DEAD
 					try {
-						this.map.individualObjects[-parseFloat(parsedParams[0])].kill();
+						this.individualObjects[-parseFloat(parsedParams[0])].kill();
 						console.log("DEATH!!!");
 						continue;
 					} catch {
 						console.error(-parseFloat(parsedParams[0]));
+						console.error("Oi chap, something went HORRID");
 					}
 				}
 				console.error("no such object: " + parsedParams[0]);
 				continue;
 			}
-			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
+			this.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
+		}
+		let parsedEvents = parsedData[1].split(";");//server events handled by individual ids (global events)
+		for (let a in parsedEvents){
+			//console.log(parsedEvents[a]);
+			if (parsedEvents[a] === "") {continue}
+			let parsedParams = parsedEvents[a].split(" ");
+			try{
+				this.serverEventMayLogged = false;
+				this.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+				this.serverEventMayLogged = true;
+				this.logAllClientEvent(parsedEvents[a] + ";");
+			} catch {
+				console.error(parsedEvents[a]);
+			}
 		}
 	}
 
 	clearEventLog(){
 		this.eventLog = "";
+		this.serverEventLog = "";
+	}
+
+	protect(number, ticks){
+		this.overwriteProtection[number] = ticks;
+	}
+
+	logAllClientEvent(ev){//Logs event. Use for important events, that need to be executed on every client
+		this.serverEventLog += ev + "" + this.activePlayerId;
 	}
 }
 
-
+/*setInterval(() => {// remove
+			b = "";
+			for(a in gruntList){
+				if (gruntList[a].hp <= 0){continue}
+				b += gruntList[a].individualId + " ";
+			}
+			console.log(b);
+			return;
+}, 8000)*/
+			
 let map
 let baseBackend
 const screenSizeMultiplier = 0.6;//document.getElementById("canv").height / parseInt(document.getElementById("wrapper").style.height.slice(0, document.getElementById("wrapper").style.height.length - 2));

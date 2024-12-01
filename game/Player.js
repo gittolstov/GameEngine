@@ -205,7 +205,7 @@ class Player extends Entity{
 			for (let a = 0; a < this.bindedHitboxes.length; a++){
 				this.bindedHitboxes[a].reloadLoadingZone();
 			}
-			this.map.reloadEnemies();
+			//this.map.reloadEnemies(); //legacy code
 		}
 	}
 
@@ -216,7 +216,7 @@ class Player extends Entity{
 	}
 
 	setSaveData(parameters){
-		if ((this.map.individualObjects[parseFloat(parameters[0])] !== immediateApi.getPlayer()) || immediateApi.constructor.name === "Server"){
+		if ((immediateApi.individualObjects[parseFloat(parameters[0])] !== immediateApi.getPlayer()) || immediateApi.constructor.name === "Server"){
 			//console.log("player data edited" + parameters[1]);
 			let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
 			let numberParams = parameters.map(Number);
