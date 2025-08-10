@@ -56,7 +56,6 @@ class BaseBackend{
 		this.cells[19].rarity = 150;
 		this.eventLog = "";
 		immediateApi.assignIndividualId(this);
-		immediateApi.assignIndividualId(this);
 	}
 
 	startBackendTicks(){
@@ -97,15 +96,11 @@ class BaseBackend{
 		if (this.map.entityList.length > 1500){
 			this.map.reloadEntityList();
 		}
-		if (this.map.particles.length > 1500){
-			this.map.reloadParticleList();
-		}
 		this.findPlayer();
 		this.findPlayer2();
 		this.baseTick3();
 	}
 
-	baseTick2(){//no longer ticks on client
 	baseTick2(){//no longer ticks on client
 		if (this.stopped){
 			return;
@@ -244,7 +239,6 @@ class BaseBackend{
 			this.moving = true;
 			this.isOpen = false;
 			setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false; obj.isLocked = true;}, this.cooldown, this);
-			setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false; obj.isLocked = true;}, this.cooldown, this);
 		}
 		this.heavyDoors[0].close = a;
 		this.heavyDoors[9].close = a;
@@ -352,34 +346,18 @@ class BaseBackend{
 			}
 		}
 		dis = 10000;
-		let closest;
-		let dis = 1000000;
-		for (let i in immediateApi.players){
-			let d = euclidianDistance(immediateApi.players[i].x, immediateApi.players[i].y, ent.x, ent.y);
-			if (d < dis){
-				d = dis;
-				closest = immediateApi.players[i];
-			}
-		}
-		dis = 10000;
 		for (let b = 0; b < this.wayPoints.length; b++){
 			if (this.wayPoints[b] === undefined){continue}
 			let d = euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y);
 			if (d <= dis && raycast(ent, 8, this.wayPoints[b])){
-			let d = euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y);
-			if (d <= dis && raycast(ent, 8, this.wayPoints[b])){
 				closest = this.wayPoints[b];
-				dis = d;
 				dis = d;
 			}
 		}
 		for (let b = 0; b < immediateApi.players.length; b++){
 			let d = euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y);
 			if (d <= dis && raycast(ent, 8, immediateApi.players[b])){
-			let d = euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y);
-			if (d <= dis && raycast(ent, 8, immediateApi.players[b])){
 				closest = immediateApi.players[b];
-				dis = d;
 				dis = d;
 			}
 		}
@@ -425,7 +403,6 @@ class BaseBackend{
 		if (this.rocketCondition()){
 			this.rocketLanded = false;
 			this.rocket.fake = true;
-			this.rocketIsInbound = false;
 			this.rocketIsInbound = false;
 			this.rocketExplosionTimer = -1;
 			this.mainTerminal.log("rocket launched successfully");
@@ -507,7 +484,6 @@ class MainTerminal extends ObjectHitbox{
 
 
 class MainTerminalInterface extends Interface{//actually has the essential methods the terminal
-class MainTerminalInterface extends Interface{//actually has the essential methods the terminal
 	constructor(backend = baseBackend){
 		super(0, 600, 150, 450);
 		this.backend = backend;
@@ -580,7 +556,6 @@ class MainTerminalInterface extends Interface{//actually has the essential metho
 			draw.text(this);
 		}
 		immediateApi.assignIndividualId(this);
-		immediateApi.assignIndividualId(this);
 	}
 
 	log(txt, obj = this){
@@ -612,7 +587,6 @@ class MainTerminalInterface extends Interface{//actually has the essential metho
 
 	briefElevatorOpening(){
 		this.changeElevatorState();
-		this.logEvent("briefElevatorOpening");
 		this.logEvent("briefElevatorOpening");
 		setTimeout((obj) => {obj.changeElevatorState()}, 5000, this);
 	}
@@ -665,7 +639,6 @@ class MainTerminalInterface extends Interface{//actually has the essential metho
 	grantAccess(){
 		this.logEvent("grantAccess");
 		this.access = true;
-		setTimeout((obj) => {console.log(obj.access);obj.access = false;console.log(obj.access);}, 5000, this);
 		setTimeout((obj) => {console.log(obj.access);obj.access = false;console.log(obj.access);}, 5000, this);
 	}
 
@@ -1217,7 +1190,6 @@ class WireBreakpoint extends ObjectHitbox{
 		this.interactive = true;
 		this.interface = new WiringInterface(this);
 		immediateApi.assignIndividualId(this);
-		immediateApi.assignIndividualId(this);
 	}
 
 	interact(ent){
@@ -1345,7 +1317,6 @@ class BaseDoor extends ObjectHitbox{
 		}
 		base.doors.push(this);
 		immediateApi.assignIndividualId(this);
-		immediateApi.assignIndividualId(this);
 	}
 
 	draw(){
@@ -1354,11 +1325,7 @@ class BaseDoor extends ObjectHitbox{
 	}
 
 	interact(outer = "unconfirmed"){
-	interact(outer = "unconfirmed"){
 		if (!this.moving){
-			if (outer !== "confirmed"){
-				immediateApi.protect(this.individualId, 40);
-			}
 			if (outer !== "confirmed"){
 				immediateApi.protect(this.individualId, 40);
 			}
@@ -1415,12 +1382,6 @@ class BaseDoor extends ObjectHitbox{
 	close(){
 		this.moving = true;
 		this.isOpen = false;
-		setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false}, this.cooldown, this);
-	}
-
-	pushOut(){
-		new PushOutBox(20, this, 4);
-		this.logAllClientEvent("pushOut");
 		setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false}, this.cooldown, this);
 	}
 
@@ -1519,7 +1480,6 @@ class BaseDoor extends ObjectHitbox{
 		//console.log(data);
 		let parameters = data.split(" ");
 		if (parameters[1] === ""){return}
-		this[parameters[1]]("confirmed");
 		this[parameters[1]]("confirmed");
 	}
 }
@@ -1730,7 +1690,6 @@ class Cart extends Entity{
 		this.block = new ObjectHitbox(this.x + this.hitbox.x1, this.x + this.hitbox.x2, this.y + this.hitbox.y1, this.y + this.hitbox.y2, false, this.x, this.y, this.map);
 		this.block.draw = function(){}
 		immediateApi.assignIndividualId(this.block);
-		immediateApi.assignIndividualId(this.block);
 		this.block.backlink = this;
 		this.block.interactive = true;
 		this.block.forceEvents = function(data){//only interact
@@ -1759,7 +1718,6 @@ class Cart extends Entity{
 				immediateApi.getPlayer().speedMultipliers[2] = 1;
 			}
 			console.log(this.backlink.spacing.x, this.backlink.spacing.y);
-			console.log(this.backlink.spacing.x, this.backlink.spacing.y);
 		}
 	}
 
@@ -1779,10 +1737,6 @@ class Cart extends Entity{
 		for (let a in immediateApi.players){
 			if (this.linked[a]){
 				this.tp(immediateApi.players[a].x + this.spacing.x, immediateApi.players[a].y + this.spacing.y);
-				if (immediateApi.players.indexOf(immediateApi.getPlayer()) == a){
-					immediateApi.protect(this.individualId, 20);
-					immediateApi.protect(this.block.individualId, 20);
-				}
 				if (immediateApi.players.indexOf(immediateApi.getPlayer()) == a){
 					immediateApi.protect(this.individualId, 20);
 					immediateApi.protect(this.block.individualId, 20);
@@ -1842,7 +1796,6 @@ class Cart extends Entity{
 	getSaveData(){
 		if (this.isTechnical){return ""}
 		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name, this.fuel, this.oxygen, this.water, this.spacing.x, this.spacing.y];
-		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name, this.fuel, this.oxygen, this.water, this.spacing.x, this.spacing.y];
 		return(parameters.join(" "));
 	}
 
@@ -1876,10 +1829,6 @@ class Cart extends Entity{
 		for (let a = 0; a < parameterNames.length; a++){
 			this.spacing[parameterNames[a]] = numberParams[a + 11];
 		}
-		parameterNames = ["x", "y"];
-		for (let a = 0; a < parameterNames.length; a++){
-			this.spacing[parameterNames[a]] = numberParams[a + 11];
-		}
 		this.tp(parseFloat(parameters[1]), parseFloat(parameters[2]));
 	}
 }
@@ -1895,7 +1844,6 @@ class CartFiller extends Box{
 		this.water = 0;
 		this.oxygen = 0;
 		this[this.type]();
-		immediateApi.assignIndividualId(this);
 		immediateApi.assignIndividualId(this);
 	}
 
@@ -2024,7 +1972,6 @@ class WaterTank extends ObjectHitbox{
 	constructor(x1, y1, x2,y2){
 		super(x1, x2, y1, y2);
 		this.interactive = true;
-		immediateApi.assignIndividualId(this);
 		immediateApi.assignIndividualId(this);
 	}
 

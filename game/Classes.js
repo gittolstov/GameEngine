@@ -13,7 +13,6 @@ class Box{
 		this.reloadLoadingZone();
 		this.damageSetter();
 		immediateApi.assignIndividualId(this);
-		immediateApi.assignIndividualId(this);
 	}
 
 	draw(){
@@ -655,7 +654,6 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.isTechnical = isTechnical;
 		if (!this.isTechnical){
 			immediateApi.assignIndividualId(this);
-			immediateApi.assignIndividualId(this);
 		}
 	}
 
@@ -898,7 +896,6 @@ class Entity{//создаёт сущность с параметрами, хит
 	}
 
 	forceRemove(){
-		immediateApi.removeIndividualId(this);
 		immediateApi.removeIndividualId(this);
 	}
 
@@ -1398,7 +1395,6 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 	}
 
 	/*reloadEnemies(){
-	/*reloadEnemies(){
 		for (let a = 0; a < this.entityListActive.length; a++){
 			if (this.entityList[this.entityListActive[a]] === undefined || this.entityList[this.entityListActive[a]].shadowRealmSibasAttempt === undefined){continue}
 			this.entityList[this.entityListActive[a]].shadowRealmSibasAttempt();
@@ -1407,7 +1403,6 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			if (this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]] === undefined){continue}
 			this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]].shadowRealmReturnAttempt();
 		}
-	}*/
 	}*/
 }
 
@@ -1423,7 +1418,6 @@ class ShadowRealm extends Map{
 }
 
 
-class Interface{//a template for onscreen interface
 class Interface{//a template for onscreen interface
 	constructor(x1 = 100, x2 = 500, y1 = 200, y2 = 400){
 		this.cursor = {x: 0, y: 0};
@@ -1624,7 +1618,6 @@ class DevKit{
 		for (let c = 0; c < 2; c++){
 			new Praetorian();
 		}
-		//map.reloadEnemies();
 		//map.reloadEnemies();
 	}
 
