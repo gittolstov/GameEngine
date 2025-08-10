@@ -48,6 +48,11 @@ class Draw{
 			this.rocket2 = new Image;
 			this.terminal2 = new Image;
 			this.doorTerm = new Image;
+			this.arrowImage = new Image;
+			this.cog = new Image;
+			this.temperature = new Image;
+			this.breach = new Image;
+			this.blackout = new Image;
 			this.wallImg = [new Image, new Image, new Image, new Image];
 			this.symbols = [new Image, new Image, new Image, new Image, new Image, new Image];
 			this.doors[0].src = "textures/door1.png";
@@ -100,6 +105,11 @@ class Draw{
 			this.el1.src = "textures/Elevator.png";
 			this.el2.src = "textures/NoElevator.png";
 			this.terminal2.src = "textures/mainTerminalFrame.png";
+			this.arrowImage.src = "textures/Arrow.png";
+			this.cog.src = "textures/Cog.png";
+			this.temperature.src = "textures/Temperature.png";
+			this.breach.src = "textures/Breach.png";
+			this.blackout.src = "textures/Blackout.png";
 			this.fireImg[0].src = "textures/Fire.png";
 			this.fireImg[1].src = "textures/Fire2.png";
 			this.bulletImg.src = "textures/Bullet.png";
@@ -120,11 +130,21 @@ class Draw{
 			this.particleImg[3].src = "textures/Particle4.png";
 			this.particleImg[4].src = "textures/Particle5.png";
 			this.particleImg[5].src = "textures/Particle6.png";
-			this.amogusLegs = [new Image, new Image, new Image, new Image];
-			this.amogusLegs[0].src = "textures/AmogusLegs0.png";
-			this.amogusLegs[1].src = "textures/AmogusLegs1.png";
-			this.amogusLegs[2].src = "textures/AmogusLegs2.png";
-			this.amogusLegs[3].src = "textures/AmogusLegs3.png";
+			this.playerLegs = [new Image, new Image, new Image, new Image];
+			this.playerLegs[0].src = "textures/Legs0.png";
+			this.playerLegs[1].src = "textures/Legs1.png";
+			this.playerLegs[2].src = "textures/Legs2.png";
+			this.playerLegs[3].src = "textures/Legs3.png";
+			this.torsoIdle = [new Image, new Image, new Image, new Image]
+			this.torsoIdle[0].src = "textures/TorsoIdleRed.png";
+			this.torsoIdle[1].src = "textures/TorsoIdleYellow.png";
+			this.torsoIdle[2].src = "textures/TorsoIdleBlue.png";
+			this.torsoIdle[3].src = "textures/TorsoIdleGreen.png";
+			this.torsoHolding = [new Image, new Image, new Image, new Image]
+			this.torsoHolding[0].src = "textures/TorsoHoldingRed.png";
+			this.torsoHolding[1].src = "textures/TorsoHoldingYellow.png";
+			this.torsoHolding[2].src = "textures/TorsoHoldingBlue.png";
+			this.torsoHolding[3].src = "textures/TorsoHoldingGreen.png";
 		} else {
 			this.isFalse = true;
 		}
@@ -147,9 +167,25 @@ class Draw{
 		this.can.restore();
 	}
 
-	amogus(ent, num){
+	amogus(ent, num){//currently unavaliable images
 		this.modifyContextMatrix(/*turn(ent.mouseShift.x, ent.mouseShift.y).angle*/0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), ent.walkAnimationTechnicalities.turn/*ent.turn*/);
 		this.can.drawImage(this.amogusLegs[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		this.can.restore();
+	}
+
+	legs(ent, num){
+		this.modifyContextMatrix(/*turn(ent.mouseShift.x, ent.mouseShift.y).angle*/0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), ent.walkAnimationTechnicalities.turn/*ent.turn*/);
+		this.can.drawImage(this.playerLegs[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		this.can.restore();
+	}
+
+	torso(ent, num){
+		this.modifyContextMatrix(/*turn(ent.mouseShift.x, ent.mouseShift.y).angle*/0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), ent.walkAnimationTechnicalities.turn/*ent.turn*/);
+		if (ent.inventory.mainhand[0].isPlaceholder){
+			this.can.drawImage(this.torsoIdle[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		} else {
+			this.can.drawImage(this.torsoHolding[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		}
 		this.can.restore();
 	}
 	
@@ -260,8 +296,8 @@ class Draw{
 	waterTank(obj, water){
 		this.can.fillStyle = "black";
 		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5);
-		this.can.fillStyle = "rgb(200, 200, 200)";
-		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5 * water / 20);
+		this.can.fillStyle = "rgba(41, 172, 252, 1)";
+		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y2 + obj.map.yshift() + (obj.hitbox.y1 - obj.hitbox.y2) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y1 - obj.hitbox.y2) * 0.5 * water / 20);
 		this.can.drawImage(this.tank, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 	}
 
@@ -367,7 +403,6 @@ class Draw{
 		this.can.fillRect(30, 30, owner.hp / owner.maxHp * 200, 15);
 	}
 
-
 	ventBg(part){
 		this.can.drawImage(this.ventInterface, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
@@ -461,7 +496,40 @@ class Draw{
 
 	meltdownParticle(){
 		this.can.fillStyle = "rgba(255, 0, 0, 0.15)";
-		this.can.fillRect(0, 0, this.map.size, this.map.size);
+		this.can.fillRect(0, 0, immediateApi.map.size, immediateApi.map.size);
+	}
+
+	blackoutParticle(ptl){
+		this.can.globalAlpha = 0.45;
+		this.can.fillStyle = "black";
+		let sizex = ptl.hitbox.x2 - ptl.hitbox.x1;
+		let sizey = ptl.hitbox.y2 - ptl.hitbox.y1;
+		this.can.fillRect(0, 0, ptl.map.size, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.x1);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, sizey);
+		this.can.fillRect(ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x2, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.map.size - ptl.coordinates.x - ptl.map.xshift() - ptl.hitbox.x2, sizey);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y2, ptl.map.size, ptl.map.size - ptl.coordinates.y - ptl.map.yshift() - ptl.hitbox.y2);
+		this.can.drawImage(this.blackout, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, sizex, sizey);
+		this.can.fillRect(0, 0, ptl.map.size, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.x1);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, sizey);
+		this.can.fillRect(ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x2, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.map.size - ptl.coordinates.x - ptl.map.xshift() - ptl.hitbox.x2, sizey);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y2, ptl.map.size, ptl.map.size - ptl.coordinates.y - ptl.map.yshift() - ptl.hitbox.y2);
+		this.can.drawImage(this.blackout, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, sizex, sizey);
+		this.can.fillRect(0, 0, ptl.map.size, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.x1);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, sizey);
+		this.can.fillRect(ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x2, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.map.size - ptl.coordinates.x - ptl.map.xshift() - ptl.hitbox.x2, sizey);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y2, ptl.map.size, ptl.map.size - ptl.coordinates.y - ptl.map.yshift() - ptl.hitbox.y2);
+		this.can.drawImage(this.blackout, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, sizex, sizey);
+		this.can.globalAlpha = 1;
+	}
+
+	temperatureIndicator(temp){
+		this.can.fillStyle = "red";
+		this.can.fillRect(immediateApi.map.size * 0.918, immediateApi.map.size * 0.1475, immediateApi.map.size * 0.014, -immediateApi.map.size * 0.042 * temp);
+		this.can.drawImage(this.temperature,  immediateApi.map.size * 0.9, immediateApi.map.size * 0.1, immediateApi.map.size * 0.05, immediateApi.map.size * 0.05);
+	}
+
+	breachIndicator(temp){
+		this.can.drawImage(this.breach,  immediateApi.map.size * 0.875, 0, immediateApi.map.size * 0.1, immediateApi.map.size * 0.1);
 	}
 
 	grid1(x1, y1, y2, maP){
@@ -472,6 +540,31 @@ class Draw{
 	grid2(y1, x1, x2, maP){
 		this.can.fillStyle = "rgba(0, 200, 0, 0.2)";
 		this.can.fillRect(x1 + maP.xshift(), y1 - 2 + maP.yshift(), x2 - x1, 2);
+	}
+
+	ventParticle(ptl, percentage = 0.5){
+		let x0 = ptl.coordinates.x + ptl.map.xshift() + (ptl.hitbox.x1 + ptl.hitbox.x2) / 2;
+		let y0 = ptl.coordinates.y + ptl.map.yshift() + (ptl.hitbox.y1 + ptl.hitbox.y2) / 2;
+		this.can.beginPath();
+		this.can.moveTo(x0, y0);
+		this.can.arc(x0, y0, ptl.hitbox.x2 * 0.6, 0.5 * Math.PI, (0.5 - percentage * 2) * Math.PI);
+		this.can.moveTo(x0, y0);
+		this.can.fillStyle = "orange";
+		this.can.fill();
+		this.can.drawImage(this.cog, ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1);
+	}
+
+	arrowParticle(x, y, maP, x2, y2, scale = 1){
+		this.modifyContextMatrix(turn(x2, y2).angle - Math.PI/2, x + maP.xshift(), y + maP.yshift(), turn(x2, y2).side);
+		this.can.drawImage(this.arrowImage, -scale/2, -scale/2, scale, scale);
+		this.can.restore();
+	}
+
+	floatingExpression(box, yshift, color = "darkgrey", text = "[ E ]"){
+		this.can.textAlign = "center";
+		this.can.fillStyle = color;
+		this.can.font = "7px arial";
+		this.can.fillText(text, box.coordinates.x + box.map.xshift(), box.coordinates.y + yshift + box.map.yshift());
 	}
 
 	wall1(obj, side){

@@ -1,4 +1,4 @@
-let immediateApi = new Server();
+let immediateApi = new Server(false);
 immediateApi.start();
 
 

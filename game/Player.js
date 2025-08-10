@@ -54,6 +54,7 @@ class Player extends Entity{
 				this.player.target = list[0];
 			}
 		}
+		this.interactivityHitbox = new InteractivityHitbox(this);
 		x = new Primary;
 		x.statMultipliers = [0.8, 1, 0.5, 1, 10, 1, 1, 1, 1, 1];
 		let f = new WeaponHandle;
@@ -75,11 +76,14 @@ class Player extends Entity{
 		this.inventory.mainhand[0] = new PlaceholderItem;
 		this.inventory.mainhand[0] = new PlaceholderItem;
 		this.previousReceivedState = this.hp;
+		this.overwriteClient = false;
 		new HUD(this.inventory, this);
 	}
 
 	draw(){
-		draw.amogus(this, Math.floor(this.walkAnimationTechnicalities.stepAnimation/this.walkAnimationTechnicalities.ticksPerStep));
+		//draw.amogus(this, Math.floor(this.walkAnimationTechnicalities.stepAnimation/this.walkAnimationTechnicalities.ticksPerStep));
+		draw.torso(this, immediateApi.players.indexOf(this));
+		draw.legs(this, Math.floor(this.walkAnimationTechnicalities.stepAnimation/this.walkAnimationTechnicalities.ticksPerStep));
 	}
 
 	outOfSight(x, y){
@@ -131,7 +135,27 @@ class Player extends Entity{
 	}
 
 	deathPlaceholder1(){
-		console.log("game over")
+		console.log("game over");
+		this.overwriteClient = true;
+		immediateApi.listAsDead(this.individualId);
+	}
+	
+	checkDeath(){
+		if (this.hp <= 0 && this.hp > -1000){
+			//this.map.entityList[this.id] = undefined;
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
+			for (let a = 0; a < this.bindedHitboxes.length; a++){
+				if(this.bindedHitboxes[a] === undefined){continue}
+				this.bindedHitboxes[a].remove();
+			}
+			for (let a = 0; a < this.bindedParticles.length; a++){
+				if(this.bindedParticles[a] === undefined){continue}
+				this.bindedParticles[a].life = 0;
+			}
+			//this.map.removeIndividualId(this);
+			this.map.reloadEntityActiveList();
+			this.deathPlaceholder1();
+		}
 	}
 	
 	upPress(){
@@ -205,18 +229,18 @@ class Player extends Entity{
 			for (let a = 0; a < this.bindedHitboxes.length; a++){
 				this.bindedHitboxes[a].reloadLoadingZone();
 			}
-			this.map.reloadEnemies();
+			//this.map.reloadEnemies(); //legacy code
 		}
 	}
 
 	getSaveData(){
 		if (this.isTechnical){return ""}
-		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name, this.moveVectoring.x, this.moveVectoring.y];
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name, this.moveVectoring.x, this.moveVectoring.y, this.overwriteClient];
 		return(parameters.join(" "));
 	}
 
 	setSaveData(parameters){
-		if ((this.map.individualObjects[parseFloat(parameters[0])] !== immediateApi.getPlayer()) || immediateApi.constructor.name === "Server"){
+		if ((immediateApi.individualObjects[parseFloat(parameters[0])] !== immediateApi.getPlayer()) || immediateApi.isServer || "true" == parameters[10]){
 			//console.log("player data edited" + parameters[1]);
 			let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
 			let numberParams = parameters.map(Number);

@@ -21,10 +21,11 @@ let InterfaceElement = Classesjs.InterfaceElement;
 let InteractivityHitbox = Classesjs.InteractivityHitbox;
 let DevKit = Classesjs.DevKit;
 */
+let gruntList = [];
 
 
 class Glyphid extends Entity{
-    constructor(size, hp, damage, defence, x = 0, y = 0){
+    constructor(size, hp, damage, defence, x = 0, y = 0){//TODO remove id
         super(x, y, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, map);
         /*while (true){
             this.x = Math.floor(Math.random() * map.size * map.fieldHeight);
@@ -42,6 +43,8 @@ class Glyphid extends Entity{
         this.enemyDamageMultiplier = 0;
 		this.glyphid = true;
         this.isPraetorian = false;
+		//gruntList.push(this);//TODO remove
+
     }
 
     tickPlaceholder1(){
@@ -49,7 +52,7 @@ class Glyphid extends Entity{
         this.side = (this.aggro.x - this.x) / Math.abs(this.aggro.x - this.x) + 0.00001;
     }
 
-	pickAggro(){
+	pickAggro(){//returns closest current player
 		let minimumDist = 1000000;
 		let minimum = 0;
 		for (let a = 0; a < map.api.players.length; a++){
@@ -72,9 +75,9 @@ class Glyphid extends Entity{
 	}
 
 	repickAggro(){
-		let dist = euclidianDistance(this.x, this.y, this.mainAggro, this.mainAggro);
+		let dist = euclidianDistance(this.x, this.y, this.mainAggro.x, this.mainAggro.y);
 		for (let a = 0; a < map.api.players.length; a++){
-			if (dist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y) * 5){
+			if (dist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y) * 5){// times FIVE!!!
 				this.mainAggro = this.pickAggro();
 				return;
 			}
@@ -90,12 +93,12 @@ class Glyphid extends Entity{
 			this.posCheck.x = this.x;
 			this.posCheck.y = this.y;
 		}
-		if (euclidianDistance(this.x, this.y, this.aggro.x, this.aggro.y) < 10){
-			if (this.aggro.distance === 0){
+		if (euclidianDistance(this.x, this.y, this.aggro.x, this.aggro.y) < 10){//TODO maybe change to manhattan distance
+			if (this.aggro.constructor.name == "PathfindingPoint"){if (this.aggro.distance[immediateApi.players.indexOf(this.mainAggro)] === 0){
 				this.aggro = this.mainAggro;
 				this.onRoute = 0;
 				return;
-			}
+			}}
 			if (this.onRoute > 0){
 				this.onRoute--;
 				return;
@@ -116,7 +119,10 @@ class Glyphid extends Entity{
 	}
 
     deathPlaceholder1(){
-        map.api.getPlayer().killCount++;
+        immediateApi.getPlayer().killCount++;
+		immediateApi.listAsDead(this.individualId);
+		console.log(immediateApi.deadList);
+		this.logEvent("remove");
 		this.deathPlaceholder2();
     }
 
@@ -136,14 +142,14 @@ class Glyphid extends Entity{
 	}
 
     shadowRealmSibasAttempt(){//TODO исправить референс на карту
-        if (this.minimalDistanceToPlayer() > immediateApi.getPlayer().map.size * 2){
+        /*if (this.minimalDistanceToPlayer() > immediateApi.getPlayer().map.size * 2){
             this.mapTransfer(this.map.shadowRealm);
-        }
+        }*/
     }
     shadowRealmReturnAttempt(){
-        if (this.minimalDistanceToPlayer() <= immediateApi.getPlayer().map.size * 2){
+        /*if (this.minimalDistanceToPlayer() <= immediateApi.getPlayer().map.size * 2){
             this.mapTransfer(this.map.backLink);
-        }
+        }*/
     }
 
 	getSaveData(){
@@ -169,7 +175,7 @@ class Glyphid extends Entity{
 			}
 		}
 		if (numberParams[8] < 0){
-			this.aggro = map.individualObjects[-numberParams[8]];
+			this.aggro = immediateApi.individualObjects[-numberParams[8]];
 			return;
 		}
 		this.aggro = baseBackend.wayPoints[numberParams[8]];
@@ -199,7 +205,7 @@ class MeleeAttackHitbox extends Box{
 
     tickPlaceholderMain(){
 		let t = false;
-		for (let a = 0; a < this.map.api.players; a++){
+		for (let a = 0; a < this.map.api.players.length; a++){
 			if (this.touchSpecific(this.map.api.players[a])){
 				t = true;
 				break;
@@ -238,8 +244,8 @@ class MeleeAttackHitbox extends Box{
 
 
 class Grunt extends Glyphid{
-    constructor(x = 0, y = 0){
-        super(10, 10, 5, 20, x, y);
+    constructor(x = 0, y = 0){//TODO remove id
+        super(10, 10, 5, 20, x, y);//TODO remove id
     }
 
     draw(){
@@ -620,10 +626,16 @@ class BloodParticle extends Particle{
 }
 
 
-class EletroParticle extends Particle{
-    constructor(block){
-        super(block.x, block.y, 20, {x1: -1, x2: 1, y1: -1, y2: 1}, block.map);
+class ElectroParticle extends Particle{
+    constructor(block, direction = 0, size = 1, speedModifier = 1){
+        super(block.x, block.y, 20, {x1: -size, x2: size, y1: -size, y2: size}, block.map);
         this.speedVectoring = {x: Math.random() * block.hitbox.x1 * 0.4 - block.hitbox.x1 * 0.2, y: Math.random() * block.hitbox.x1 * 0.4 - block.hitbox.x1 * 0.2};
+		if (direction > 0){
+			this.speedVectoring.x *= 4 * (direction === 1) + 1;
+			this.speedVectoring.y *= 4 * (direction === 2) + 1;
+		}
+		this.speedVectoring.x *= speedModifier;
+		this.speedVectoring.y *= speedModifier;
         this.accVectoring = {x: this.speedVectoring.x / 50, y: this.speedVectoring.y / 50};
     }
 
@@ -653,5 +665,5 @@ module.exports.Flamethrower = Flamethrower;
 module.exports.CaveGenerator = CaveGenerator;
 module.exports.WeaponEditor = WeaponEditor;
 module.exports.BloodParticle = BloodParticle;
-module.exports.EletroParticle = EletroParticle;*/
-//export {Glyphid, MeleeAttackHitbox, Grunt, Swarmer, Praetorian, Bullet, Weapon, Flame, Breaker, Missile, Flamethrower, CaveGenerator, WeaponEditor, BloodParticle, EletroParticle};
+module.exports.ElectroParticle = ElectroParticle;*/
+//export {Glyphid, MeleeAttackHitbox, Grunt, Swarmer, Praetorian, Bullet, Weapon, Flame, Breaker, Missile, Flamethrower, CaveGenerator, WeaponEditor, BloodParticle, ElectroParticle};

@@ -39,15 +39,15 @@ class BaseBackend{
 		this.generalPower = true;
 		this.rocketLanded = false;
 		this.ventDamage = 1;
-		this.ventDefence = true;
-		this.ventOn = true;
-		this.rocketCounter = -1;
-		this.rocketExplosionTimer = -1;
-		this.fuelConsumptionTimer = 0;
-		this.reactorTemperature = 0;
-		this.airCondition = 0;
-		this.oxygenTick = true;
-		this.stopped = false;
+		this.ventDefence = true;//damage in the ventillation (client also)
+		this.ventOn = true;//if vent is off (or reactor is offline) air condition gets worse
+		this.rocketCounter = -1;//if 150, rocket is inbound, restarts on every rocket. Server side.
+		this.rocketExplosionTimer = -1;//if 50, ends the game (server side)
+		this.fuelConsumptionTimer = 0;//when 10, subtracts reactor fuel. increases up to 10 every 10 ticks
+		this.reactorTemperature = 0;//calculates on both? if reaches 20, BOOM, game over
+		this.airCondition = 0;//calculated on server side, but should affect client side. If more than 12, damages the player. Ticks up to 20
+		this.oxygenTick = true;//a simple state machine used to subtract oxygen every other (second) FUEL tick from the supplies
+		this.stopped = false;//as far as I remember, can be used to stop the whole thing
 		for (let a = 0; a < 20; a++){
 			new Cell(this);
 		}
@@ -55,11 +55,14 @@ class BaseBackend{
 		this.cells[19].distance = 100;
 		this.cells[19].rarity = 150;
 		this.eventLog = "";
-		maP.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	startBackendTicks(){
 		setTimeout(() => {
+			for (let a in immediateApi.players){
+				immediateApi.players[a].tp(2910 + 20 * a, 4365);
+			}
 			baseBackend.cells[3].wiringBreakpoints[0].break();////
 			immediateApi.getPlayer().tickCounter = 0;
 			immediateApi.getPlayer().tickPlaceholder3 = function(){
@@ -93,12 +96,15 @@ class BaseBackend{
 		if (this.map.entityList.length > 1500){
 			this.map.reloadEntityList();
 		}
+		if (this.map.particles.length > 1500){
+			this.map.reloadParticleList();
+		}
 		this.findPlayer();
 		this.findPlayer2();
 		this.baseTick3();
 	}
 
-	baseTick2(){//gets nullified by Client
+	baseTick2(){//no longer ticks on client
 		if (this.stopped){
 			return;
 		}
@@ -133,6 +139,10 @@ class BaseBackend{
 		this.systemsTick();
 	}
 
+	baseTick2Client(){
+		this.meltdownIndicate();
+	}
+
 	baseTick3(){//gets nullified by Client
 		for (let a = 0; a < this.cells.length; a++){
 			this.cells[a].distance = 100;
@@ -149,6 +159,8 @@ class BaseBackend{
 		}
 	}
 
+	baseTick3Client(){}
+
 	systemsTick(){
 		if (this.fuelConsumptionTimer === 10 && this.generalPower){
 			this.fuelConsumptionTimer = 0;
@@ -163,7 +175,7 @@ class BaseBackend{
 			this.generalPower = false;
 		}
 		this.heatReactor((2 - 1 * this.coolingSystems[0].powered - 1 * this.coolingSystems[1].powered) * this.generalPower);
-		if (this.reactorTemperature > 15){
+		if (this.reactorTemperature > 20){
 			immediateApi.endgame();
 		}
 	}
@@ -171,10 +183,16 @@ class BaseBackend{
 	heatReactor(t){
 		if (t > 0){
 			this.reactorTemperature += t;
-			new MeltdownParticle();
 			//console.log("!!!meltdown!!!");
 		} else if (this.reactorTemperature > 0){
 			this.reactorTemperature--;
+		}
+		this.meltdownIndicate();
+	}
+
+	meltdownIndicate(){
+		if (this.reactorTemperature > 0){
+			new MeltdownParticle(this.reactorTemperature);
 		}
 	}
 
@@ -223,7 +241,7 @@ class BaseBackend{
 		let a = function(){
 			this.moving = true;
 			this.isOpen = false;
-			setTimeout((obj) => {obj.fake = false; new PushOutBox(20, this, 4); obj.moveTick(obj, 20); obj.moving = false; obj.isLocked = true;}, this.cooldown, this);
+			setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false; obj.isLocked = true;}, this.cooldown, this);
 		}
 		this.heavyDoors[0].close = a;
 		this.heavyDoors[9].close = a;
@@ -321,19 +339,29 @@ class BaseBackend{
 	}
 
 	locateClosest(ent){
-		let closest = immediateApi.getPlayer();
-		let dis = 10000;
+		let closest;
+		let dis = 1000000;
+		for (let i in immediateApi.players){
+			let d = euclidianDistance(immediateApi.players[i].x, immediateApi.players[i].y, ent.x, ent.y);
+			if (d < dis){
+				d = dis;
+				closest = immediateApi.players[i];
+			}
+		}
+		dis = 10000;
 		for (let b = 0; b < this.wayPoints.length; b++){
 			if (this.wayPoints[b] === undefined){continue}
-			if (euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y) <= dis && raycast(ent, 8, this.wayPoints[b])){
+			let d = euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y);
+			if (d <= dis && raycast(ent, 8, this.wayPoints[b])){
 				closest = this.wayPoints[b];
-				dis = euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y);
+				dis = d;
 			}
 		}
 		for (let b = 0; b < immediateApi.players.length; b++){
-			if (euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y) <= dis && raycast(ent, 8, immediateApi.players[b])){
+			let d = euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y);
+			if (d <= dis && raycast(ent, 8, immediateApi.players[b])){
 				closest = immediateApi.players[b];
-				dis = euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y);
+				dis = d;
 			}
 		}
 		return closest;
@@ -378,7 +406,7 @@ class BaseBackend{
 		if (this.rocketCondition()){
 			this.rocketLanded = false;
 			this.rocket.fake = true;
-			this.rocketInbound = false;
+			this.rocketIsInbound = false;
 			this.rocketExplosionTimer = -1;
 			this.mainTerminal.log("rocket launched successfully");
 			this.day++;
@@ -458,7 +486,7 @@ class MainTerminal extends ObjectHitbox{
 }
 
 
-class MainTerminalInterface extends Interface{
+class MainTerminalInterface extends Interface{//actually has the essential methods the terminal
 	constructor(backend = baseBackend){
 		super(0, 600, 150, 450);
 		this.backend = backend;
@@ -530,7 +558,7 @@ class MainTerminalInterface extends Interface{
 		this.textDisplay.draw = function(){
 			draw.text(this);
 		}
-		backend.map.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	log(txt, obj = this){
@@ -562,6 +590,7 @@ class MainTerminalInterface extends Interface{
 
 	briefElevatorOpening(){
 		this.changeElevatorState();
+		this.logEvent("briefElevatorOpening");
 		setTimeout((obj) => {obj.changeElevatorState()}, 5000, this);
 	}
 
@@ -579,14 +608,14 @@ class MainTerminalInterface extends Interface{
 		}
 	}
 
-	lockProtocol(){
+	lockProtocol(){//locks all doors except exits from base
 		this.logEvent("lockProtocol");
 		for (let a in baseBackend.heavyDoors){
 			baseBackend.heavyDoors[a].lock();
 		}
 	}
 
-	unlockProtocol(){
+	unlockProtocol(){//unlocks all doors except exits from base
 		this.logEvent("unlockProtocol");
 		if (!this.access){
 			return;
@@ -613,7 +642,7 @@ class MainTerminalInterface extends Interface{
 	grantAccess(){
 		this.logEvent("grantAccess");
 		this.access = true;
-		setTimeout((obj) => {obj.access = false}, 5000, this)
+		setTimeout((obj) => {console.log(obj.access);obj.access = false;console.log(obj.access);}, 5000, this);
 	}
 
 	unlockVault(){
@@ -681,6 +710,7 @@ class MainTerminalInterface extends Interface{
 		}
 		if (a && !this.blockLifterGiven){
 			immediateApi.getPlayer().give(new Resource(1, "blockLifter", undefined, "textures/blockLifter.png"));
+			this.log("Dispenced block lifter");
 		}
 	}
 
@@ -717,6 +747,99 @@ class MainTerminalInterface extends Interface{
 			return;
 		}
 		this[parameters[1]](parameters[2]);
+	}
+}
+
+
+class TutorialDrone extends Entity{
+	constructor(backend = baseBackend){
+		super();
+		this.pointing = false;
+		this.active = false;
+		this.goal = {x: 0, y: 0}
+		this.pointingDelay = 25;
+		this.pointingTimer = 0;
+		this.pointingShift = 0;
+		this.pointingPhases = 5;
+		this.pointingSize = 80;
+		this.backend = backend;
+		this.floorShortcuts = [];
+		let sh = this.backend.map.bgObjectZones;
+		for (let a in sh){
+			for (let b in sh[a]){
+				for (let c in sh[a][b]){
+					if (sh[a][b][c].constructor.name === "Ladder" || sh[a][b][c].constructor.name === "Elevator"){
+						this.floorShortcuts.push(sh[a][b][c]);
+					}
+				}
+			}
+		}
+	}
+
+	tickPlaceholder2(){
+		if (this.pointing){
+			if (this.pointingTimer >= this.pointingDelay){
+				this.pointingTimer = 0;
+				new ArrowParticle(this.correctGoal(), this.pointingDelay, this.pointingShift, this.pointingSize);
+				this.pointingShift += this.pointingSize / this.pointingPhases;
+				if (this.pointingShift >= this.pointingSize){
+					this.pointingShift = 0;
+				}
+			}
+			this.pointingTimer += 1;
+		}
+	}
+
+	correctGoal(){
+		if ((this.goal.y > 3000) === this.findPlayer().floor2){
+			return this.goal;
+		}
+		let min_l = 100000;
+		let closest = this.floorShortcuts[0]
+		for (let a in this.floorShortcuts){
+			let dst = euclidianDistance(immediateApi.getPlayer().x, immediateApi.getPlayer().y, this.floorShortcuts[a].x, this.floorShortcuts[a].y)
+			if (dst < min_l){
+				min_l = dst;
+				closest = this.floorShortcuts[a];
+			}
+		}
+		return closest;
+	}
+
+	startTutorial(){
+		
+	}
+
+	findPlayer(){
+		let a = immediateApi.getPlayer();
+		return {x: a.x, y: a.y, floor2: a.y > 3000};
+	}
+
+	pointToPlace(x, y){
+		this.pointing = true;
+		this.goal.x = x;
+		this.goal.y = y;
+	}
+}
+
+
+class ArrowParticle extends Particle{
+	constructor(goal, life = 50, shift = 0, sz = 80){
+		super(immediateApi.getPlayer().x, immediateApi.getPlayer().y, life, {x1: 0, x2: 0, y1: 0, y2: 0}, immediateApi.getPlayer().map);
+		this.goal = goal;
+		this.sz = sz;
+		this.shift = shift;
+	}
+
+	draw(){
+		let a = immediateApi.getPlayer();
+		let dx = a.x - this.goal.x;
+		let dy = a.y - this.goal.y;
+		let b = projections(dx, dy, 1);
+		let l = (dx ** 2 + dy ** 2) ** 0.5;
+		for (let i = 0; i < (l - this.shift) / this.sz && i < 640/this.sz; i++){
+			draw.arrowParticle(a.x - b.x * this.sz * i - this.shift * b.x, a.y - b.y * this.sz * i - this.shift * b.y, a.map, b.x, b.y, this.sz/3);
+		}
 	}
 }
 
@@ -931,8 +1054,8 @@ class CellBox extends Box{
 	}
 
 	draw(){
-		/*if (this.cell.distance < 3){
-			draw.placeholderHitbox(this, this.cell.status * 0.01);
+		/*if (this.cell.voltage > 0){
+			draw.placeholderHitbox(this, this.cell.voltage * 0.005);
 		}*/
 	}
 
@@ -1069,14 +1192,10 @@ class WireBreakpoint extends ObjectHitbox{
 		this.whole = true;
 		this.interactive = true;
 		this.interface = new WiringInterface(this);
-		maP.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	interact(ent){
-		if (ent.secondTime){
-			delete ent.secondTime;
-			return;
-		}
 		if ((this.whole && !ent.activeInterfaces[4]) || (ent.touchingWires && !this.touched)){
 			return;
 		}
@@ -1093,13 +1212,12 @@ class WireBreakpoint extends ObjectHitbox{
 			ent.speedMultipliers[0] = 1;
 			delete ent.touchingWires;
 		}
-		ent.secondTime = true;
-		new InteractivityHitbox(ent);
+		//ent.interactivityHitbox.actuate();
 	}
 
 	draw(){
 		if (!this.whole){
-			new EletroParticle(this);
+			new ElectroParticle(this);
 		}
 	}
 
@@ -1201,7 +1319,7 @@ class BaseDoor extends ObjectHitbox{
 			this.interactive = true;
 		}
 		base.doors.push(this);
-		this.map.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	draw(){
@@ -1209,8 +1327,11 @@ class BaseDoor extends ObjectHitbox{
 		//console.log(this.stage);
 	}
 
-	interact(){
+	interact(outer = "unconfirmed"){
 		if (!this.moving){
+			if (outer !== "confirmed"){
+				immediateApi.protect(this.individualId, 40);
+			}
 			this.logEvent("interact");
 			this.moving = true;
 			if (this.fake){
@@ -1239,14 +1360,17 @@ class BaseDoor extends ObjectHitbox{
 
 	leverSwitch(){
 		if ((!this.isLocked && !this.isBlocked && this.powered)){
-			if (immediateApi.constructor.name === "Client"){
+			if (immediateApi.isClient && !immediateApi.isServer){
 				this.logEvent("leverSwitch");
 				return;
 			}
 			this.interact();
 			return;
 		}
-		if (immediateApi.constructor.name === "Client" && (!this.powered && !this.isLocked && !this.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
+		if (immediateApi.isClient && (!this.powered && !this.isLocked && !this.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
+			for (let a = 0; a < 30; a++){
+				new ElectroParticle(this, this.direction + 1, 2, 0.1);
+			}
 			this.interact();
 			return;
 		}
@@ -1261,7 +1385,12 @@ class BaseDoor extends ObjectHitbox{
 	close(){
 		this.moving = true;
 		this.isOpen = false;
-		setTimeout((obj) => {obj.fake = false; new PushOutBox(20, this, 4); obj.moveTick(obj, 20); obj.moving = false}, this.cooldown, this);
+		setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false}, this.cooldown, this);
+	}
+
+	pushOut(){
+		new PushOutBox(20, this, 4);
+		this.logAllClientEvent("pushOut");
 	}
 
 	lock(){
@@ -1280,6 +1409,7 @@ class BaseDoor extends ObjectHitbox{
 	}
 
 	unblock(){
+		this.logEvent("unblock");
 		this.isBlocked = false;
 	}
 
@@ -1287,13 +1417,13 @@ class BaseDoor extends ObjectHitbox{
 		let a = Math.random() * 100;
 		let chance = 0.06;
 		if (this.isHeavy){
-			chance *= 4 * !this.powered + 1;
-			chance *= -0.5 * (this.isLocked && this.powered) + 1;
+			chance *= 4 * !this.powered + 1;//if not powered chance is 5 times more
+			chance *= -0.5 * (this.isLocked && this.powered) + 1;//if locked and powered chance is halved
 		} else {
 			chance = 2;
 		}
 		if (this.isBlocked){
-			chance = 0.03;
+			chance = 0.03;//if blocked chance is minimized anyway
 		}
 		if (a < chance){
 			this.breach();
@@ -1302,10 +1432,16 @@ class BaseDoor extends ObjectHitbox{
 	}
 
 	breach(){
-		this.isBlocked = true;
-		console.log("!!!door breached!!!");
+		this.isLocked = true;
+		console.log("!!!door breached!!! " + immediateApi.serverEventMayLogged);
 		this.open();
-	}	
+		this.logAllClientEvent("breachWarning");
+		this.breachWarning();
+	}
+
+	breachWarning(){
+		new BreachParticle();
+	}
 
 	getSaveData(){
 		if (this.isTechnical){return ""}
@@ -1333,12 +1469,21 @@ class BaseDoor extends ObjectHitbox{
 
 	logEvent(ev){
 		this.backend.eventLog += this.individualId + " " + ev + ";";
+		//console.log(ev + "logged");
+	}
+
+	logAllClientEvent(ev){
+		if (immediateApi.serverEventMayLogged){
+			immediateApi.logAllClientEvent(this.individualId + " " + ev + ";");
+		}
+		//immediateApi.serverEventMayLogged = true;
 	}
 
 	forceEvents(data){//one event
+		//console.log(data);
 		let parameters = data.split(" ");
 		if (parameters[1] === ""){return}
-		this[parameters[1]]();
+		this[parameters[1]]("confirmed");
 	}
 }
 
@@ -1387,11 +1532,12 @@ class DoorInterface extends Interface{
 			this.parentInterface.terminal.leverSwitch();
 		}
 		this.lockdown.functionality = function(){
-			this.parentInterface.terminal.block();
 			if (this.parentInterface.terminal.bound.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "blockLifter"){
 				this.parentInterface.terminal.bound.unblock();
 				immediateApi.getPlayer().inventory.mainhand[0].decrease(1);
 				this.parentInterface.terminal.bound.backend.mainTerminal.blockLifterGiven = false;
+			} else {
+				this.parentInterface.terminal.block();
 			}
 		}
 	}
@@ -1436,6 +1582,7 @@ class VentInterface extends Interface{
 	constructor(backend){
 		super(150, 450, 225, 375);
 		this.backend = backend;
+		immediateApi.assignIndividualId(this);
 		this.elements[0].draw = function(){
 			draw.ventBg(this);
 		}
@@ -1450,16 +1597,35 @@ class VentInterface extends Interface{
 		}
 		a = new InterfaceButton(240, 300, this, 100, true);
 		a.functionality = function(){this.parentInterface.defence()}
+		a.draw = function(){
+			draw.lever(this, this.parentInterface.backend.ventDefence);
+		}
 		a = new InterfaceButton(360, 300, this, 100, true);
 		a.functionality = function(){this.parentInterface.vent()}
+		a.draw = function(){
+			draw.lever(this, this.parentInterface.backend.ventOn);
+		}
 	}
 
 	defence(){
+		this.logEvent("defence");
 		this.backend.ventDefence = !this.backend.ventDefence;
 	}
 
 	vent(){
+		this.logEvent("vent");
 		this.backend.ventOn = !this.backend.ventOn;
+	}
+
+	logEvent(ev){
+		this.backend.eventLog += this.individualId + " " + ev + ";";
+		//console.log(ev + "logged");
+	}
+
+	forceEvents(data){
+		let parameters = data.split(" ");
+		if (parameters[1] === ""){return}
+		this[parameters[1]]("confirmed");
 	}
 }
 
@@ -1526,27 +1692,35 @@ class Cart extends Entity{
 		this.spacing = {x: 0, y: 0};
 		this.block = new ObjectHitbox(this.x + this.hitbox.x1, this.x + this.hitbox.x2, this.y + this.hitbox.y1, this.y + this.hitbox.y2, false, this.x, this.y, this.map);
 		this.block.draw = function(){}
-		maP.assignIndividualId(this.block);
+		immediateApi.assignIndividualId(this.block);
 		this.block.backlink = this;
 		this.block.interactive = true;
 		this.block.forceEvents = function(data){//only interact
 			let parameters = data.split(" ");
 			if (parameters[1] === ""){return}
-			this[parameters[1]](this.backlink.backend.map.individualObjects[parameters[2]], parameters[3], parameters[4]);
+			//console.log(data);
+			this[parameters[1]](immediateApi.individualObjects[parameters[2]], parseFloat(parameters[3]), parseFloat(parameters[4]), parseFloat(parameters[5]), parseFloat(parameters[6]), parameters[7] === "true");
 		}
-		this.block.interact = function(ent, x = immediateApi.getPlayer().x, y = immediateApi.getPlayer().y){
-			if (!this.backlink.linked[immediateApi.players.indexOf(ent)] && this.backlink.getIfLinked()){return}
-			this.backlink.backend.eventLog += this.individualId + " interact " + immediateApi.getPlayer().individualId + " " + x + " " + y + ";";
-			this.backlink.linked[immediateApi.players.indexOf(ent)] = !this.backlink.linked[immediateApi.players.indexOf(ent)];
-			if (this.backlink.linked[immediateApi.players.indexOf(ent)]){
-				this.backlink.spacing.x = this.x - x;
-				this.backlink.spacing.y = this.y - y;
+		this.block.interact = function(ent, x = immediateApi.getPlayer().x, y = immediateApi.getPlayer().y, selfx = this.x, selfy = this.y, linkedNoW = !this.backlink.linked[immediateApi.players.indexOf(ent)]){
+			//console.log(linkedNoW);
+			let isLinkeD = this.backlink.getIfLinked();
+			if (isLinkeD && linkedNoW === "true"){
+				//console.log(isLinkeD && linkedNoW);
+				return;
+			}
+			this.backlink.backend.eventLog += this.individualId + " interact " + immediateApi.getPlayer().individualId + " " + x + " " + y + " " + selfx + " " + selfy + " " + linkedNoW + ";";//no logEvent?
+			console.log(this.individualId + " interact " + immediateApi.getPlayer().individualId + " " + x + " " + y + ";");
+			this.backlink.linked[immediateApi.players.indexOf(ent)] = linkedNoW;
+			if (linkedNoW){
+				this.backlink.spacing.x = selfx - x;
+				this.backlink.spacing.y = selfy - y;
 				this.hitbox = {x1: -11.5, x2: 11.5, y1: -11.5, y2: 11.5};
 				immediateApi.getPlayer().speedMultipliers[2] = 0.8;
 			} else {
 				this.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 				immediateApi.getPlayer().speedMultipliers[2] = 1;
 			}
+			console.log(this.backlink.spacing.x, this.backlink.spacing.y);
 		}
 	}
 
@@ -1566,6 +1740,10 @@ class Cart extends Entity{
 		for (let a in immediateApi.players){
 			if (this.linked[a]){
 				this.tp(immediateApi.players[a].x + this.spacing.x, immediateApi.players[a].y + this.spacing.y);
+				if (immediateApi.players.indexOf(immediateApi.getPlayer()) == a){
+					immediateApi.protect(this.individualId, 20);
+					immediateApi.protect(this.block.individualId, 20);
+				}
 				return;
 			}
 			if (this.x - this.backend.heavyDoors[7].x > 0 && this.x - this.backend.heavyDoors[7].x < 60 && Math.abs(this.y - this.backend.heavyDoors[7].y) < 20 && !this.backend.heavyDoors[7].isOpen){
@@ -1620,7 +1798,7 @@ class Cart extends Entity{
 
 	getSaveData(){
 		if (this.isTechnical){return ""}
-		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name, this.fuel, this.oxygen, this.water];
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name, this.fuel, this.oxygen, this.water, this.spacing.x, this.spacing.y];
 		return(parameters.join(" "));
 	}
 
@@ -1650,6 +1828,10 @@ class Cart extends Entity{
 		for (let a = 0; a < parameterNames.length; a++){
 			this[parameterNames[a]] = numberParams[a + 8];
 		}
+		parameterNames = ["x", "y"];
+		for (let a = 0; a < parameterNames.length; a++){
+			this.spacing[parameterNames[a]] = numberParams[a + 11];
+		}
 		this.tp(parseFloat(parameters[1]), parseFloat(parameters[2]));
 	}
 }
@@ -1665,7 +1847,7 @@ class CartFiller extends Box{
 		this.water = 0;
 		this.oxygen = 0;
 		this[this.type]();
-		maP.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	rocketType(){
@@ -1793,7 +1975,7 @@ class WaterTank extends ObjectHitbox{
 	constructor(x1, y1, x2,y2){
 		super(x1, x2, y1, y2);
 		this.interactive = true;
-		this.map.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	draw(){
@@ -1801,7 +1983,7 @@ class WaterTank extends ObjectHitbox{
 	}
 
 	interact(){
-		if (immediateApi.constructor.name === "Server"){
+		if (immediateApi.isServer && !immediateApi.isClient){
 			baseBackend.supplies.water -= 20;
 			return;
 		}//TODO inventory sync
@@ -1817,14 +1999,14 @@ class WaterTank extends ObjectHitbox{
 	}
 
 	forceEvents(data){
-		console.log(data);
+		console.log("WaterTank forceEvents " + data);
 		let parameters = data.split(" ");
 		if (parameters[1] === ""){return}
 		if (parameters.length < 3){
 			this[parameters[1]]();
 			return;
 		}
-		console.log(parameters[1]);
+		console.log("WaterTank forceEvents " + parameters[1]);
 		this[parameters[1]]();
 	}
 }
@@ -1922,12 +2104,46 @@ class PushOutBox extends Box{
 
 
 class MeltdownParticle extends Particle{
-	constructor(maP = map){
-		super(0, 0, 100, undefined, maP);
+	constructor(temp, maP = immediateApi.map){
+		super(0, 0, 300, undefined, maP);
+		this.temp = temp;
 	}
 
 	draw(){
+		draw.temperatureIndicator(this.temp / 20);
+		if (this.life < 100){return} 
 		draw.meltdownParticle();
+	}
+}
+
+
+class BreachParticle extends Particle{
+	constructor(maP = immediateApi.map){
+		super(0, 0, 150, undefined, maP);
+	}
+
+	draw(){
+		if (Math.floor(this.life / 30) % 2 === 0){
+			draw.breachIndicator(300);
+		}
+	}
+}
+
+class BlackoutParticle extends Particle{
+	constructor(ent = immediateApi.getPlayer(), life = 300, size = 300){
+		super(0, 0, life, {x1: -size / 2, y1: -size / 2, x2: size / 2, y2: size / 2}, ent.map);
+		this.bind(ent);
+	}
+
+	draw(){
+		draw.blackoutParticle(this);
+	}
+}
+
+
+class BaseIndicatorsInterface extends Interface{
+	constructor(){
+		super();
 	}
 }
 

@@ -51,7 +51,7 @@ function keyDownHandler(){
 			p.speedMultipliers[2] = 1;
 			d = true;
 		}
-		new InteractivityHitbox(p);
+		p.interactivityHitbox.actuate();
 		if (d) {
 			baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 		}

@@ -98,7 +98,7 @@ class LevelEditor{
 		new MainTerminal(2220, 2240, 980, 1020);
 		new Cart(900, 3700);
 		new VentTerminal(1180, 1260, 840, 920, 3);
-		new VentTerminal(2920, 3000, 1420, 1500, 3);
+		new VentTerminal(2920, 3000, 1420, 1500, 8);
 		let a = new ObjectHitbox(2660, 2760, 1400, 1500);
 		a.draw = function(){
 			draw.oxygenTank(this, baseBackend.supplies.oxygen);
@@ -637,7 +637,6 @@ class Ladder extends BackgroundImage{
 		let a = new Box(this.x, this.y, this.hitbox, undefined, -1000, this.map);
 		a.shifter = shift;
 		a.shifter2 = shift2;
-		a.tickPlaceholderMain 
 		a.tickPlaceholderMain = function(){
 			if (this.touchSpecific(immediateApi.getPlayer())){
 				baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
@@ -702,6 +701,7 @@ class VentEntryBox extends Box{
 	tickPlaceholderMain(){
 		if (immediateApi.getPlayer().inventory.mainhand[0].isWrench && this.touchSpecific(immediateApi.getPlayer())){
 			this.timer--;
+			new VentParticle(this.timer / this.maxTimer, immediateApi.getPlayer());
 		} else {
 			this.timer = this.maxTimer;
 		}
@@ -709,6 +709,20 @@ class VentEntryBox extends Box{
 			immediateApi.getPlayer().move((this.shifter.x + this.shifter2.x) * this.mult, (this.shifter.y + this.shifter2.y) * this.mult);
 			this.timer = this.maxTimer;
 		}
+	}
+}
+
+
+class VentParticle extends Particle{
+	constructor(percentage = 0.5, ent = immediateApi.getPlayer()) {
+		super(0, 0, 1, {x1:-10, x2: 10, y1:-50, y2: -30}, ent.map);
+		this.ent = ent;
+		this.percentage = percentage;
+		this.bind(ent);
+	}
+
+	draw(){
+		draw.ventParticle(this, this.percentage);
 	}
 }
 

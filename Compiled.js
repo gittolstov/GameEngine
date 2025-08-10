@@ -101,6 +101,11 @@ class Draw{
 			this.rocket2 = new Image;
 			this.terminal2 = new Image;
 			this.doorTerm = new Image;
+			this.arrowImage = new Image;
+			this.cog = new Image;
+			this.temperature = new Image;
+			this.breach = new Image;
+			this.blackout = new Image;
 			this.wallImg = [new Image, new Image, new Image, new Image];
 			this.symbols = [new Image, new Image, new Image, new Image, new Image, new Image];
 			this.doors[0].src = "textures/door1.png";
@@ -153,6 +158,11 @@ class Draw{
 			this.el1.src = "textures/Elevator.png";
 			this.el2.src = "textures/NoElevator.png";
 			this.terminal2.src = "textures/mainTerminalFrame.png";
+			this.arrowImage.src = "textures/Arrow.png";
+			this.cog.src = "textures/Cog.png";
+			this.temperature.src = "textures/Temperature.png";
+			this.breach.src = "textures/Breach.png";
+			this.blackout.src = "textures/Blackout.png";
 			this.fireImg[0].src = "textures/Fire.png";
 			this.fireImg[1].src = "textures/Fire2.png";
 			this.bulletImg.src = "textures/Bullet.png";
@@ -173,11 +183,21 @@ class Draw{
 			this.particleImg[3].src = "textures/Particle4.png";
 			this.particleImg[4].src = "textures/Particle5.png";
 			this.particleImg[5].src = "textures/Particle6.png";
-			this.amogusLegs = [new Image, new Image, new Image, new Image];
-			this.amogusLegs[0].src = "textures/AmogusLegs0.png";
-			this.amogusLegs[1].src = "textures/AmogusLegs1.png";
-			this.amogusLegs[2].src = "textures/AmogusLegs2.png";
-			this.amogusLegs[3].src = "textures/AmogusLegs3.png";
+			this.playerLegs = [new Image, new Image, new Image, new Image];
+			this.playerLegs[0].src = "textures/Legs0.png";
+			this.playerLegs[1].src = "textures/Legs1.png";
+			this.playerLegs[2].src = "textures/Legs2.png";
+			this.playerLegs[3].src = "textures/Legs3.png";
+			this.torsoIdle = [new Image, new Image, new Image, new Image]
+			this.torsoIdle[0].src = "textures/TorsoIdleRed.png";
+			this.torsoIdle[1].src = "textures/TorsoIdleYellow.png";
+			this.torsoIdle[2].src = "textures/TorsoIdleBlue.png";
+			this.torsoIdle[3].src = "textures/TorsoIdleGreen.png";
+			this.torsoHolding = [new Image, new Image, new Image, new Image]
+			this.torsoHolding[0].src = "textures/TorsoHoldingRed.png";
+			this.torsoHolding[1].src = "textures/TorsoHoldingYellow.png";
+			this.torsoHolding[2].src = "textures/TorsoHoldingBlue.png";
+			this.torsoHolding[3].src = "textures/TorsoHoldingGreen.png";
 		} else {
 			this.isFalse = true;
 		}
@@ -200,9 +220,25 @@ class Draw{
 		this.can.restore();
 	}
 
-	amogus(ent, num){
+	amogus(ent, num){//currently unavaliable images
 		this.modifyContextMatrix(/*turn(ent.mouseShift.x, ent.mouseShift.y).angle*/0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), ent.walkAnimationTechnicalities.turn/*ent.turn*/);
 		this.can.drawImage(this.amogusLegs[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		this.can.restore();
+	}
+
+	legs(ent, num){
+		this.modifyContextMatrix(/*turn(ent.mouseShift.x, ent.mouseShift.y).angle*/0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), ent.walkAnimationTechnicalities.turn/*ent.turn*/);
+		this.can.drawImage(this.playerLegs[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		this.can.restore();
+	}
+
+	torso(ent, num){
+		this.modifyContextMatrix(/*turn(ent.mouseShift.x, ent.mouseShift.y).angle*/0, ent.x + ent.map.xshift(), ent.y + ent.map.yshift(), ent.walkAnimationTechnicalities.turn/*ent.turn*/);
+		if (ent.inventory.mainhand[0].isPlaceholder){
+			this.can.drawImage(this.torsoIdle[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		} else {
+			this.can.drawImage(this.torsoHolding[num], ent.hitbox.x1, ent.hitbox.y1, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
+		}
 		this.can.restore();
 	}
 	
@@ -313,8 +349,8 @@ class Draw{
 	waterTank(obj, water){
 		this.can.fillStyle = "black";
 		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5);
-		this.can.fillStyle = "rgb(200, 200, 200)";
-		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y1 + obj.map.yshift() + (obj.hitbox.y2 - obj.hitbox.y1) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y2 - obj.hitbox.y1) * 0.5 * water / 20);
+		this.can.fillStyle = "rgba(41, 172, 252, 1)";
+		this.can.fillRect((obj.x + obj.hitbox.x1 + obj.map.xshift()) + (obj.hitbox.x2 - obj.hitbox.x1) / 3, obj.y + obj.hitbox.y2 + obj.map.yshift() + (obj.hitbox.y1 - obj.hitbox.y2) * 0.25, (obj.hitbox.x2 - obj.hitbox.x1) / 3, (obj.hitbox.y1 - obj.hitbox.y2) * 0.5 * water / 20);
 		this.can.drawImage(this.tank, obj.x + obj.hitbox.x1 + obj.map.xshift(), obj.y + obj.hitbox.y1 + obj.map.yshift(), obj.hitbox.x2 - obj.hitbox.x1, obj.hitbox.y2 - obj.hitbox.y1);
 	}
 
@@ -420,7 +456,6 @@ class Draw{
 		this.can.fillRect(30, 30, owner.hp / owner.maxHp * 200, 15);
 	}
 
-
 	ventBg(part){
 		this.can.drawImage(this.ventInterface, part.hitbox.x1, part.hitbox.y1, part.hitbox.x2 - part.hitbox.x1, part.hitbox.y2 - part.hitbox.y1);
 	}
@@ -514,7 +549,40 @@ class Draw{
 
 	meltdownParticle(){
 		this.can.fillStyle = "rgba(255, 0, 0, 0.15)";
-		this.can.fillRect(0, 0, this.map.size, this.map.size);
+		this.can.fillRect(0, 0, immediateApi.map.size, immediateApi.map.size);
+	}
+
+	blackoutParticle(ptl){
+		this.can.globalAlpha = 0.45;
+		this.can.fillStyle = "black";
+		let sizex = ptl.hitbox.x2 - ptl.hitbox.x1;
+		let sizey = ptl.hitbox.y2 - ptl.hitbox.y1;
+		this.can.fillRect(0, 0, ptl.map.size, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.x1);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, sizey);
+		this.can.fillRect(ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x2, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.map.size - ptl.coordinates.x - ptl.map.xshift() - ptl.hitbox.x2, sizey);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y2, ptl.map.size, ptl.map.size - ptl.coordinates.y - ptl.map.yshift() - ptl.hitbox.y2);
+		this.can.drawImage(this.blackout, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, sizex, sizey);
+		this.can.fillRect(0, 0, ptl.map.size, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.x1);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, sizey);
+		this.can.fillRect(ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x2, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.map.size - ptl.coordinates.x - ptl.map.xshift() - ptl.hitbox.x2, sizey);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y2, ptl.map.size, ptl.map.size - ptl.coordinates.y - ptl.map.yshift() - ptl.hitbox.y2);
+		this.can.drawImage(this.blackout, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, sizex, sizey);
+		this.can.fillRect(0, 0, ptl.map.size, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.x1);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, sizey);
+		this.can.fillRect(ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x2, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, ptl.map.size - ptl.coordinates.x - ptl.map.xshift() - ptl.hitbox.x2, sizey);
+		this.can.fillRect(0, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y2, ptl.map.size, ptl.map.size - ptl.coordinates.y - ptl.map.yshift() - ptl.hitbox.y2);
+		this.can.drawImage(this.blackout, ptl.coordinates.x + ptl.map.xshift() + ptl.hitbox.x1, ptl.coordinates.y + ptl.map.yshift() + ptl.hitbox.y1, sizex, sizey);
+		this.can.globalAlpha = 1;
+	}
+
+	temperatureIndicator(temp){
+		this.can.fillStyle = "red";
+		this.can.fillRect(immediateApi.map.size * 0.918, immediateApi.map.size * 0.1475, immediateApi.map.size * 0.014, -immediateApi.map.size * 0.042 * temp);
+		this.can.drawImage(this.temperature,  immediateApi.map.size * 0.9, immediateApi.map.size * 0.1, immediateApi.map.size * 0.05, immediateApi.map.size * 0.05);
+	}
+
+	breachIndicator(temp){
+		this.can.drawImage(this.breach,  immediateApi.map.size * 0.875, 0, immediateApi.map.size * 0.1, immediateApi.map.size * 0.1);
 	}
 
 	grid1(x1, y1, y2, maP){
@@ -525,6 +593,31 @@ class Draw{
 	grid2(y1, x1, x2, maP){
 		this.can.fillStyle = "rgba(0, 200, 0, 0.2)";
 		this.can.fillRect(x1 + maP.xshift(), y1 - 2 + maP.yshift(), x2 - x1, 2);
+	}
+
+	ventParticle(ptl, percentage = 0.5){
+		let x0 = ptl.coordinates.x + ptl.map.xshift() + (ptl.hitbox.x1 + ptl.hitbox.x2) / 2;
+		let y0 = ptl.coordinates.y + ptl.map.yshift() + (ptl.hitbox.y1 + ptl.hitbox.y2) / 2;
+		this.can.beginPath();
+		this.can.moveTo(x0, y0);
+		this.can.arc(x0, y0, ptl.hitbox.x2 * 0.6, 0.5 * Math.PI, (0.5 - percentage * 2) * Math.PI);
+		this.can.moveTo(x0, y0);
+		this.can.fillStyle = "orange";
+		this.can.fill();
+		this.can.drawImage(this.cog, ptl.coordinates.x + ptl.hitbox.x1 + ptl.map.xshift(), ptl.coordinates.y + ptl.hitbox.y1 + ptl.map.yshift(), ptl.hitbox.x2 - ptl.hitbox.x1, ptl.hitbox.y2 - ptl.hitbox.y1);
+	}
+
+	arrowParticle(x, y, maP, x2, y2, scale = 1){
+		this.modifyContextMatrix(turn(x2, y2).angle - Math.PI/2, x + maP.xshift(), y + maP.yshift(), turn(x2, y2).side);
+		this.can.drawImage(this.arrowImage, -scale/2, -scale/2, scale, scale);
+		this.can.restore();
+	}
+
+	floatingExpression(box, yshift, color = "darkgrey", text = "[ E ]"){
+		this.can.textAlign = "center";
+		this.can.fillStyle = color;
+		this.can.font = "7px arial";
+		this.can.fillText(text, box.coordinates.x + box.map.xshift(), box.coordinates.y + yshift + box.map.yshift());
 	}
 
 	wall1(obj, side){
@@ -636,7 +729,7 @@ function keyDownHandler(){
 			p.speedMultipliers[2] = 1;
 			d = true;
 		}
-		new InteractivityHitbox(p);
+		p.interactivityHitbox.actuate();
 		if (d) {
 			baseBackend.cart.block.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 		}
@@ -730,7 +823,7 @@ class Box{
 		this.map.reloadBoxActiveList();
 		this.reloadLoadingZone();
 		this.damageSetter();
-		this.map.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	draw(){
@@ -1371,7 +1464,7 @@ class Entity{//создаёт сущность с параметрами, хит
 		this.map.reloadEntityActiveList();
 		this.isTechnical = isTechnical;
 		if (!this.isTechnical){
-			this.map.assignIndividualId(this);
+			immediateApi.assignIndividualId(this);
 		}
 	}
 
@@ -1614,7 +1707,7 @@ class Entity{//создаёт сущность с параметрами, хит
 	}
 
 	forceRemove(){
-		this.map.removeIndividualId(this);
+		immediateApi.removeIndividualId(this);
 	}
 
 	damagePlaceholder(){}
@@ -1943,8 +2036,6 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		this.fieldWidth = width;
 		this.fieldHeight = height;
 		this.renderCenterpoint = {xshift: 0, yshift: 0};
-		this.individualObjects = [];//used for server-client data exchange
-		this.individualObjectCounter = 1;
 		this.entityList = [];
 		this.entityListActive = [];
 		this.boxList = [];
@@ -2114,7 +2205,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 		return this.renderCenterpoint.yshift;
 	}
 
-	reloadEnemies(){
+	/*reloadEnemies(){
 		for (let a = 0; a < this.entityListActive.length; a++){
 			if (this.entityList[this.entityListActive[a]] === undefined || this.entityList[this.entityListActive[a]].shadowRealmSibasAttempt === undefined){continue}
 			this.entityList[this.entityListActive[a]].shadowRealmSibasAttempt();
@@ -2123,39 +2214,7 @@ class Map{//size - это размер 1 экрана, width и height - раз�
 			if (this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]] === undefined){continue}
 			this.shadowRealm.entityList[this.shadowRealm.entityListActive[a]].shadowRealmReturnAttempt();
 		}
-	}
-
-	checkCounter(){
-		if (this.individualObjects[this.individualObjectCounter] !== undefined){
-			this.individualObjectCounter++;
-			this.checkCounter();
-		}
-	}
-
-	assignIndividualId(obj){
-		this.checkCounter();
-		obj.individualId = this.individualObjectCounter;
-		this.individualObjects[this.individualObjectCounter] = obj;
-		this.individualObjectCounter++;
-	}
-
-	reassignIndividualId(obj, id){
-		if (this.individualObjects[id] === undefined){
-			this.individualObjects[id] = obj;
-			obj.individualId = [id];
-			return;
-		}
-		this.individualObjects[obj.individualId] = this.individualObjects[id];
-		this.individualObjects[obj.individualId].individualId = obj.individualId;
-		obj.individualId = id;
-		this.individualObjects[id] = obj;
-	}
-
-	removeIndividualId(obj){
-		if (obj.individualId === undefined){return}
-		this.individualObjects[obj.individualId] = undefined;
-		obj.individualId = -obj.individualId;
-	}
+	}*/
 }
 
 
@@ -2170,7 +2229,7 @@ class ShadowRealm extends Map{
 }
 
 
-class Interface{
+class Interface{//a template for onscreen interface
 	constructor(x1 = 100, x2 = 500, y1 = 200, y2 = 400){
 		this.cursor = {x: 0, y: 0};
 		this.elements = [];
@@ -2258,20 +2317,47 @@ class InterfaceElement{
 
 class InteractivityHitbox extends Box{
 	constructor(owner = immediateApi.getPlayer()){
-		super(0, 0, owner.scaledHitbox(2));
+		super(0, 0, owner.scaledHitbox(2), {type: "generic", amount: 0, iFrame: 100000});
 		this.owner = owner;
+		this.actuated = false;
 		this.bind(owner);
-		this.tickMove();
+		this.redCounter = 0;
 	}
 
-	tickPlaceholder1(){
+	actuate(){
+		this.actuated = true;
+		this.redCounter = 10;
+		this.tickPlaceholderMain();
+	}
+
+	draw(){
+		if (this.owner !== immediateApi.getPlayer()){return}
 		let cont = this.contactAnyway();
+		if (this.redCounter > 0){
+			this.redCounter--;
+		}
 		for (let a in cont){
 			if (cont[a].interactive){
-				cont[a].interact(this.owner);
+				if (this.redCounter > 0){
+					draw.floatingExpression(this, -20, "red", "[ E ]");
+				} else {
+					draw.floatingExpression(this, -20, "white", "[ E ]");
+				}
+				return;
 			}
 		}
-		this.remove();
+	}
+
+	tickPlaceholderMain(){
+		if (this.actuated){
+			let cont = this.contactAnyway();
+			for (let a in cont){
+				if (cont[a].interactive){
+					cont[a].interact(this.owner);
+				}
+			}
+			this.actuated = false;
+		}
 	}
 }
 
@@ -2343,7 +2429,7 @@ class DevKit{
 		for (let c = 0; c < 2; c++){
 			new Praetorian();
 		}
-		map.reloadEnemies();
+		//map.reloadEnemies();
 	}
 
 	worldBorder(){
@@ -2431,6 +2517,7 @@ class Player extends Entity{
 				this.player.target = list[0];
 			}
 		}
+		this.interactivityHitbox = new InteractivityHitbox(this);
 		x = new Primary;
 		x.statMultipliers = [0.8, 1, 0.5, 1, 10, 1, 1, 1, 1, 1];
 		let f = new WeaponHandle;
@@ -2452,11 +2539,14 @@ class Player extends Entity{
 		this.inventory.mainhand[0] = new PlaceholderItem;
 		this.inventory.mainhand[0] = new PlaceholderItem;
 		this.previousReceivedState = this.hp;
+		this.overwriteClient = false;
 		new HUD(this.inventory, this);
 	}
 
 	draw(){
-		draw.amogus(this, Math.floor(this.walkAnimationTechnicalities.stepAnimation/this.walkAnimationTechnicalities.ticksPerStep));
+		//draw.amogus(this, Math.floor(this.walkAnimationTechnicalities.stepAnimation/this.walkAnimationTechnicalities.ticksPerStep));
+		draw.torso(this, immediateApi.players.indexOf(this));
+		draw.legs(this, Math.floor(this.walkAnimationTechnicalities.stepAnimation/this.walkAnimationTechnicalities.ticksPerStep));
 	}
 
 	outOfSight(x, y){
@@ -2508,7 +2598,27 @@ class Player extends Entity{
 	}
 
 	deathPlaceholder1(){
-		console.log("game over")
+		console.log("game over");
+		this.overwriteClient = true;
+		immediateApi.listAsDead(this.individualId);
+	}
+	
+	checkDeath(){
+		if (this.hp <= 0 && this.hp > -1000){
+			//this.map.entityList[this.id] = undefined;
+			this.map.entityZones[this.loadingZone.x][this.loadingZone.y][this.zoneId] = undefined;
+			for (let a = 0; a < this.bindedHitboxes.length; a++){
+				if(this.bindedHitboxes[a] === undefined){continue}
+				this.bindedHitboxes[a].remove();
+			}
+			for (let a = 0; a < this.bindedParticles.length; a++){
+				if(this.bindedParticles[a] === undefined){continue}
+				this.bindedParticles[a].life = 0;
+			}
+			//this.map.removeIndividualId(this);
+			this.map.reloadEntityActiveList();
+			this.deathPlaceholder1();
+		}
 	}
 	
 	upPress(){
@@ -2582,18 +2692,18 @@ class Player extends Entity{
 			for (let a = 0; a < this.bindedHitboxes.length; a++){
 				this.bindedHitboxes[a].reloadLoadingZone();
 			}
-			this.map.reloadEnemies();
+			//this.map.reloadEnemies(); //legacy code
 		}
 	}
 
 	getSaveData(){
 		if (this.isTechnical){return ""}
-		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name, this.moveVectoring.x, this.moveVectoring.y];
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.maxHp, this.defence, this.constructor.name, this.moveVectoring.x, this.moveVectoring.y, this.overwriteClient];
 		return(parameters.join(" "));
 	}
 
 	setSaveData(parameters){
-		if ((this.map.individualObjects[parseFloat(parameters[0])] !== immediateApi.getPlayer()) || immediateApi.constructor.name === "Server"){
+		if ((immediateApi.individualObjects[parseFloat(parameters[0])] !== immediateApi.getPlayer()) || immediateApi.isServer || "true" == parameters[10]){
 			//console.log("player data edited" + parameters[1]);
 			let parameterNames = ["individualId", "x", "y", "life", "hp", "maxHp", "defence"];
 			let numberParams = parameters.map(Number);
@@ -2825,10 +2935,11 @@ let InterfaceElement = Classesjs.InterfaceElement;
 let InteractivityHitbox = Classesjs.InteractivityHitbox;
 let DevKit = Classesjs.DevKit;
 */
+let gruntList = [];
 
 
 class Glyphid extends Entity{
-    constructor(size, hp, damage, defence, x = 0, y = 0){
+    constructor(size, hp, damage, defence, x = 0, y = 0){//TODO remove id
         super(x, y, hp, defence, {x1: -1 * size, x2: size, y1: -1 * size, y2: size, additional: []}, map);
         /*while (true){
             this.x = Math.floor(Math.random() * map.size * map.fieldHeight);
@@ -2846,6 +2957,8 @@ class Glyphid extends Entity{
         this.enemyDamageMultiplier = 0;
 		this.glyphid = true;
         this.isPraetorian = false;
+		//gruntList.push(this);//TODO remove
+
     }
 
     tickPlaceholder1(){
@@ -2853,7 +2966,7 @@ class Glyphid extends Entity{
         this.side = (this.aggro.x - this.x) / Math.abs(this.aggro.x - this.x) + 0.00001;
     }
 
-	pickAggro(){
+	pickAggro(){//returns closest current player
 		let minimumDist = 1000000;
 		let minimum = 0;
 		for (let a = 0; a < map.api.players.length; a++){
@@ -2876,9 +2989,9 @@ class Glyphid extends Entity{
 	}
 
 	repickAggro(){
-		let dist = euclidianDistance(this.x, this.y, this.mainAggro, this.mainAggro);
+		let dist = euclidianDistance(this.x, this.y, this.mainAggro.x, this.mainAggro.y);
 		for (let a = 0; a < map.api.players.length; a++){
-			if (dist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y) * 5){
+			if (dist > euclidianDistance(this.x, this.y, map.api.players[a].x, map.api.players[a].y) * 5){// times FIVE!!!
 				this.mainAggro = this.pickAggro();
 				return;
 			}
@@ -2894,12 +3007,12 @@ class Glyphid extends Entity{
 			this.posCheck.x = this.x;
 			this.posCheck.y = this.y;
 		}
-		if (euclidianDistance(this.x, this.y, this.aggro.x, this.aggro.y) < 10){
-			if (this.aggro.distance === 0){
+		if (euclidianDistance(this.x, this.y, this.aggro.x, this.aggro.y) < 10){//TODO maybe change to manhattan distance
+			if (this.aggro.constructor.name == "PathfindingPoint"){if (this.aggro.distance[immediateApi.players.indexOf(this.mainAggro)] === 0){
 				this.aggro = this.mainAggro;
 				this.onRoute = 0;
 				return;
-			}
+			}}
 			if (this.onRoute > 0){
 				this.onRoute--;
 				return;
@@ -2920,7 +3033,10 @@ class Glyphid extends Entity{
 	}
 
     deathPlaceholder1(){
-        map.api.getPlayer().killCount++;
+        immediateApi.getPlayer().killCount++;
+		immediateApi.listAsDead(this.individualId);
+		console.log(immediateApi.deadList);
+		this.logEvent("remove");
 		this.deathPlaceholder2();
     }
 
@@ -2940,14 +3056,14 @@ class Glyphid extends Entity{
 	}
 
     shadowRealmSibasAttempt(){//TODO исправить референс на карту
-        if (this.minimalDistanceToPlayer() > immediateApi.getPlayer().map.size * 2){
+        /*if (this.minimalDistanceToPlayer() > immediateApi.getPlayer().map.size * 2){
             this.mapTransfer(this.map.shadowRealm);
-        }
+        }*/
     }
     shadowRealmReturnAttempt(){
-        if (this.minimalDistanceToPlayer() <= immediateApi.getPlayer().map.size * 2){
+        /*if (this.minimalDistanceToPlayer() <= immediateApi.getPlayer().map.size * 2){
             this.mapTransfer(this.map.backLink);
-        }
+        }*/
     }
 
 	getSaveData(){
@@ -2973,7 +3089,7 @@ class Glyphid extends Entity{
 			}
 		}
 		if (numberParams[8] < 0){
-			this.aggro = map.individualObjects[-numberParams[8]];
+			this.aggro = immediateApi.individualObjects[-numberParams[8]];
 			return;
 		}
 		this.aggro = baseBackend.wayPoints[numberParams[8]];
@@ -3003,7 +3119,7 @@ class MeleeAttackHitbox extends Box{
 
     tickPlaceholderMain(){
 		let t = false;
-		for (let a = 0; a < this.map.api.players; a++){
+		for (let a = 0; a < this.map.api.players.length; a++){
 			if (this.touchSpecific(this.map.api.players[a])){
 				t = true;
 				break;
@@ -3042,8 +3158,8 @@ class MeleeAttackHitbox extends Box{
 
 
 class Grunt extends Glyphid{
-    constructor(x = 0, y = 0){
-        super(10, 10, 5, 20, x, y);
+    constructor(x = 0, y = 0){//TODO remove id
+        super(10, 10, 5, 20, x, y);//TODO remove id
     }
 
     draw(){
@@ -3424,10 +3540,16 @@ class BloodParticle extends Particle{
 }
 
 
-class EletroParticle extends Particle{
-    constructor(block){
-        super(block.x, block.y, 20, {x1: -1, x2: 1, y1: -1, y2: 1}, block.map);
+class ElectroParticle extends Particle{
+    constructor(block, direction = 0, size = 1, speedModifier = 1){
+        super(block.x, block.y, 20, {x1: -size, x2: size, y1: -size, y2: size}, block.map);
         this.speedVectoring = {x: Math.random() * block.hitbox.x1 * 0.4 - block.hitbox.x1 * 0.2, y: Math.random() * block.hitbox.x1 * 0.4 - block.hitbox.x1 * 0.2};
+		if (direction > 0){
+			this.speedVectoring.x *= 4 * (direction === 1) + 1;
+			this.speedVectoring.y *= 4 * (direction === 2) + 1;
+		}
+		this.speedVectoring.x *= speedModifier;
+		this.speedVectoring.y *= speedModifier;
         this.accVectoring = {x: this.speedVectoring.x / 50, y: this.speedVectoring.y / 50};
     }
 
@@ -3457,8 +3579,8 @@ module.exports.Flamethrower = Flamethrower;
 module.exports.CaveGenerator = CaveGenerator;
 module.exports.WeaponEditor = WeaponEditor;
 module.exports.BloodParticle = BloodParticle;
-module.exports.EletroParticle = EletroParticle;*/
-//export {Glyphid, MeleeAttackHitbox, Grunt, Swarmer, Praetorian, Bullet, Weapon, Flame, Breaker, Missile, Flamethrower, CaveGenerator, WeaponEditor, BloodParticle, EletroParticle};
+module.exports.ElectroParticle = ElectroParticle;*/
+//export {Glyphid, MeleeAttackHitbox, Grunt, Swarmer, Praetorian, Bullet, Weapon, Flame, Breaker, Missile, Flamethrower, CaveGenerator, WeaponEditor, BloodParticle, ElectroParticle};
 /*let Formulasjs = require("./Formulas.js");
 let Classesjs = require("./Classes.js");
 let projections = Formulasjs.projections;
@@ -3804,7 +3926,7 @@ class LevelEditor{
 		new MainTerminal(2220, 2240, 980, 1020);
 		new Cart(900, 3700);
 		new VentTerminal(1180, 1260, 840, 920, 3);
-		new VentTerminal(2920, 3000, 1420, 1500, 3);
+		new VentTerminal(2920, 3000, 1420, 1500, 8);
 		let a = new ObjectHitbox(2660, 2760, 1400, 1500);
 		a.draw = function(){
 			draw.oxygenTank(this, baseBackend.supplies.oxygen);
@@ -4343,7 +4465,6 @@ class Ladder extends BackgroundImage{
 		let a = new Box(this.x, this.y, this.hitbox, undefined, -1000, this.map);
 		a.shifter = shift;
 		a.shifter2 = shift2;
-		a.tickPlaceholderMain 
 		a.tickPlaceholderMain = function(){
 			if (this.touchSpecific(immediateApi.getPlayer())){
 				baseBackend.cart.linked = [false, false, false, false, false, false, false, false, false];
@@ -4408,6 +4529,7 @@ class VentEntryBox extends Box{
 	tickPlaceholderMain(){
 		if (immediateApi.getPlayer().inventory.mainhand[0].isWrench && this.touchSpecific(immediateApi.getPlayer())){
 			this.timer--;
+			new VentParticle(this.timer / this.maxTimer, immediateApi.getPlayer());
 		} else {
 			this.timer = this.maxTimer;
 		}
@@ -4415,6 +4537,20 @@ class VentEntryBox extends Box{
 			immediateApi.getPlayer().move((this.shifter.x + this.shifter2.x) * this.mult, (this.shifter.y + this.shifter2.y) * this.mult);
 			this.timer = this.maxTimer;
 		}
+	}
+}
+
+
+class VentParticle extends Particle{
+	constructor(percentage = 0.5, ent = immediateApi.getPlayer()) {
+		super(0, 0, 1, {x1:-10, x2: 10, y1:-50, y2: -30}, ent.map);
+		this.ent = ent;
+		this.percentage = percentage;
+		this.bind(ent);
+	}
+
+	draw(){
+		draw.ventParticle(this, this.percentage);
 	}
 }
 
@@ -4553,15 +4689,15 @@ class BaseBackend{
 		this.generalPower = true;
 		this.rocketLanded = false;
 		this.ventDamage = 1;
-		this.ventDefence = true;
-		this.ventOn = true;
-		this.rocketCounter = -1;
-		this.rocketExplosionTimer = -1;
-		this.fuelConsumptionTimer = 0;
-		this.reactorTemperature = 0;
-		this.airCondition = 0;
-		this.oxygenTick = true;
-		this.stopped = false;
+		this.ventDefence = true;//damage in the ventillation (client also)
+		this.ventOn = true;//if vent is off (or reactor is offline) air condition gets worse
+		this.rocketCounter = -1;//if 150, rocket is inbound, restarts on every rocket. Server side.
+		this.rocketExplosionTimer = -1;//if 50, ends the game (server side)
+		this.fuelConsumptionTimer = 0;//when 10, subtracts reactor fuel. increases up to 10 every 10 ticks
+		this.reactorTemperature = 0;//calculates on both? if reaches 20, BOOM, game over
+		this.airCondition = 0;//calculated on server side, but should affect client side. If more than 12, damages the player. Ticks up to 20
+		this.oxygenTick = true;//a simple state machine used to subtract oxygen every other (second) FUEL tick from the supplies
+		this.stopped = false;//as far as I remember, can be used to stop the whole thing
 		for (let a = 0; a < 20; a++){
 			new Cell(this);
 		}
@@ -4569,11 +4705,14 @@ class BaseBackend{
 		this.cells[19].distance = 100;
 		this.cells[19].rarity = 150;
 		this.eventLog = "";
-		maP.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	startBackendTicks(){
 		setTimeout(() => {
+			for (let a in immediateApi.players){
+				immediateApi.players[a].tp(2910 + 20 * a, 4365);
+			}
 			baseBackend.cells[3].wiringBreakpoints[0].break();////
 			immediateApi.getPlayer().tickCounter = 0;
 			immediateApi.getPlayer().tickPlaceholder3 = function(){
@@ -4612,7 +4751,7 @@ class BaseBackend{
 		this.baseTick3();
 	}
 
-	baseTick2(){//gets nullified by Client
+	baseTick2(){//no longer ticks on client
 		if (this.stopped){
 			return;
 		}
@@ -4647,6 +4786,10 @@ class BaseBackend{
 		this.systemsTick();
 	}
 
+	baseTick2Client(){
+		this.meltdownIndicate();
+	}
+
 	baseTick3(){//gets nullified by Client
 		for (let a = 0; a < this.cells.length; a++){
 			this.cells[a].distance = 100;
@@ -4663,6 +4806,8 @@ class BaseBackend{
 		}
 	}
 
+	baseTick3Client(){}
+
 	systemsTick(){
 		if (this.fuelConsumptionTimer === 10 && this.generalPower){
 			this.fuelConsumptionTimer = 0;
@@ -4677,7 +4822,7 @@ class BaseBackend{
 			this.generalPower = false;
 		}
 		this.heatReactor((2 - 1 * this.coolingSystems[0].powered - 1 * this.coolingSystems[1].powered) * this.generalPower);
-		if (this.reactorTemperature > 15){
+		if (this.reactorTemperature > 20){
 			immediateApi.endgame();
 		}
 	}
@@ -4685,10 +4830,16 @@ class BaseBackend{
 	heatReactor(t){
 		if (t > 0){
 			this.reactorTemperature += t;
-			new MeltdownParticle();
 			//console.log("!!!meltdown!!!");
 		} else if (this.reactorTemperature > 0){
 			this.reactorTemperature--;
+		}
+		this.meltdownIndicate();
+	}
+
+	meltdownIndicate(){
+		if (this.reactorTemperature > 0){
+			new MeltdownParticle(this.reactorTemperature);
 		}
 	}
 
@@ -4737,7 +4888,7 @@ class BaseBackend{
 		let a = function(){
 			this.moving = true;
 			this.isOpen = false;
-			setTimeout((obj) => {obj.fake = false; new PushOutBox(20, this, 4); obj.moveTick(obj, 20); obj.moving = false; obj.isLocked = true;}, this.cooldown, this);
+			setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false; obj.isLocked = true;}, this.cooldown, this);
 		}
 		this.heavyDoors[0].close = a;
 		this.heavyDoors[9].close = a;
@@ -4835,19 +4986,29 @@ class BaseBackend{
 	}
 
 	locateClosest(ent){
-		let closest = immediateApi.getPlayer();
-		let dis = 10000;
+		let closest;
+		let dis = 1000000;
+		for (let i in immediateApi.players){
+			let d = euclidianDistance(immediateApi.players[i].x, immediateApi.players[i].y, ent.x, ent.y);
+			if (d < dis){
+				d = dis;
+				closest = immediateApi.players[i];
+			}
+		}
+		dis = 10000;
 		for (let b = 0; b < this.wayPoints.length; b++){
 			if (this.wayPoints[b] === undefined){continue}
-			if (euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y) <= dis && raycast(ent, 8, this.wayPoints[b])){
+			let d = euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y);
+			if (d <= dis && raycast(ent, 8, this.wayPoints[b])){
 				closest = this.wayPoints[b];
-				dis = euclidianDistance(ent.x, ent.y, this.wayPoints[b].x, this.wayPoints[b].y);
+				dis = d;
 			}
 		}
 		for (let b = 0; b < immediateApi.players.length; b++){
-			if (euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y) <= dis && raycast(ent, 8, immediateApi.players[b])){
+			let d = euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y);
+			if (d <= dis && raycast(ent, 8, immediateApi.players[b])){
 				closest = immediateApi.players[b];
-				dis = euclidianDistance(ent.x, ent.y, immediateApi.players[b].x, immediateApi.players[b].y);
+				dis = d;
 			}
 		}
 		return closest;
@@ -4892,7 +5053,7 @@ class BaseBackend{
 		if (this.rocketCondition()){
 			this.rocketLanded = false;
 			this.rocket.fake = true;
-			this.rocketInbound = false;
+			this.rocketIsInbound = false;
 			this.rocketExplosionTimer = -1;
 			this.mainTerminal.log("rocket launched successfully");
 			this.day++;
@@ -4972,7 +5133,7 @@ class MainTerminal extends ObjectHitbox{
 }
 
 
-class MainTerminalInterface extends Interface{
+class MainTerminalInterface extends Interface{//actually has the essential methods the terminal
 	constructor(backend = baseBackend){
 		super(0, 600, 150, 450);
 		this.backend = backend;
@@ -5044,7 +5205,7 @@ class MainTerminalInterface extends Interface{
 		this.textDisplay.draw = function(){
 			draw.text(this);
 		}
-		backend.map.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	log(txt, obj = this){
@@ -5076,6 +5237,7 @@ class MainTerminalInterface extends Interface{
 
 	briefElevatorOpening(){
 		this.changeElevatorState();
+		this.logEvent("briefElevatorOpening");
 		setTimeout((obj) => {obj.changeElevatorState()}, 5000, this);
 	}
 
@@ -5093,14 +5255,14 @@ class MainTerminalInterface extends Interface{
 		}
 	}
 
-	lockProtocol(){
+	lockProtocol(){//locks all doors except exits from base
 		this.logEvent("lockProtocol");
 		for (let a in baseBackend.heavyDoors){
 			baseBackend.heavyDoors[a].lock();
 		}
 	}
 
-	unlockProtocol(){
+	unlockProtocol(){//unlocks all doors except exits from base
 		this.logEvent("unlockProtocol");
 		if (!this.access){
 			return;
@@ -5127,7 +5289,7 @@ class MainTerminalInterface extends Interface{
 	grantAccess(){
 		this.logEvent("grantAccess");
 		this.access = true;
-		setTimeout((obj) => {obj.access = false}, 5000, this)
+		setTimeout((obj) => {console.log(obj.access);obj.access = false;console.log(obj.access);}, 5000, this);
 	}
 
 	unlockVault(){
@@ -5195,6 +5357,7 @@ class MainTerminalInterface extends Interface{
 		}
 		if (a && !this.blockLifterGiven){
 			immediateApi.getPlayer().give(new Resource(1, "blockLifter", undefined, "textures/blockLifter.png"));
+			this.log("Dispenced block lifter");
 		}
 	}
 
@@ -5231,6 +5394,99 @@ class MainTerminalInterface extends Interface{
 			return;
 		}
 		this[parameters[1]](parameters[2]);
+	}
+}
+
+
+class TutorialDrone extends Entity{
+	constructor(backend = baseBackend){
+		super();
+		this.pointing = false;
+		this.active = false;
+		this.goal = {x: 0, y: 0}
+		this.pointingDelay = 25;
+		this.pointingTimer = 0;
+		this.pointingShift = 0;
+		this.pointingPhases = 5;
+		this.pointingSize = 80;
+		this.backend = backend;
+		this.floorShortcuts = [];
+		let sh = this.backend.map.bgObjectZones;
+		for (let a in sh){
+			for (let b in sh[a]){
+				for (let c in sh[a][b]){
+					if (sh[a][b][c].constructor.name === "Ladder" || sh[a][b][c].constructor.name === "Elevator"){
+						this.floorShortcuts.push(sh[a][b][c]);
+					}
+				}
+			}
+		}
+	}
+
+	tickPlaceholder2(){
+		if (this.pointing){
+			if (this.pointingTimer >= this.pointingDelay){
+				this.pointingTimer = 0;
+				new ArrowParticle(this.correctGoal(), this.pointingDelay, this.pointingShift, this.pointingSize);
+				this.pointingShift += this.pointingSize / this.pointingPhases;
+				if (this.pointingShift >= this.pointingSize){
+					this.pointingShift = 0;
+				}
+			}
+			this.pointingTimer += 1;
+		}
+	}
+
+	correctGoal(){
+		if ((this.goal.y > 3000) === this.findPlayer().floor2){
+			return this.goal;
+		}
+		let min_l = 100000;
+		let closest = this.floorShortcuts[0]
+		for (let a in this.floorShortcuts){
+			let dst = euclidianDistance(immediateApi.getPlayer().x, immediateApi.getPlayer().y, this.floorShortcuts[a].x, this.floorShortcuts[a].y)
+			if (dst < min_l){
+				min_l = dst;
+				closest = this.floorShortcuts[a];
+			}
+		}
+		return closest;
+	}
+
+	startTutorial(){
+		
+	}
+
+	findPlayer(){
+		let a = immediateApi.getPlayer();
+		return {x: a.x, y: a.y, floor2: a.y > 3000};
+	}
+
+	pointToPlace(x, y){
+		this.pointing = true;
+		this.goal.x = x;
+		this.goal.y = y;
+	}
+}
+
+
+class ArrowParticle extends Particle{
+	constructor(goal, life = 50, shift = 0, sz = 80){
+		super(immediateApi.getPlayer().x, immediateApi.getPlayer().y, life, {x1: 0, x2: 0, y1: 0, y2: 0}, immediateApi.getPlayer().map);
+		this.goal = goal;
+		this.sz = sz;
+		this.shift = shift;
+	}
+
+	draw(){
+		let a = immediateApi.getPlayer();
+		let dx = a.x - this.goal.x;
+		let dy = a.y - this.goal.y;
+		let b = projections(dx, dy, 1);
+		let l = (dx ** 2 + dy ** 2) ** 0.5;
+		for (let i = 0; i < (l - this.shift) / this.sz && i < 640/this.sz; i++){
+			draw.arrowParticle(a.x - b.x * this.sz * i - this.shift * b.x, a.y - b.y * this.sz * i - this.shift * b.y, a.map, b.x, b.y, this.sz/3);
+		}
 	}
 }
 
@@ -5445,8 +5701,8 @@ class CellBox extends Box{
 	}
 
 	draw(){
-		/*if (this.cell.distance < 3){
-			draw.placeholderHitbox(this, this.cell.status * 0.01);
+		/*if (this.cell.voltage > 0){
+			draw.placeholderHitbox(this, this.cell.voltage * 0.005);
 		}*/
 	}
 
@@ -5583,14 +5839,10 @@ class WireBreakpoint extends ObjectHitbox{
 		this.whole = true;
 		this.interactive = true;
 		this.interface = new WiringInterface(this);
-		maP.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	interact(ent){
-		if (ent.secondTime){
-			delete ent.secondTime;
-			return;
-		}
 		if ((this.whole && !ent.activeInterfaces[4]) || (ent.touchingWires && !this.touched)){
 			return;
 		}
@@ -5607,13 +5859,12 @@ class WireBreakpoint extends ObjectHitbox{
 			ent.speedMultipliers[0] = 1;
 			delete ent.touchingWires;
 		}
-		ent.secondTime = true;
-		new InteractivityHitbox(ent);
+		//ent.interactivityHitbox.actuate();
 	}
 
 	draw(){
 		if (!this.whole){
-			new EletroParticle(this);
+			new ElectroParticle(this);
 		}
 	}
 
@@ -5715,7 +5966,7 @@ class BaseDoor extends ObjectHitbox{
 			this.interactive = true;
 		}
 		base.doors.push(this);
-		this.map.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	draw(){
@@ -5723,8 +5974,11 @@ class BaseDoor extends ObjectHitbox{
 		//console.log(this.stage);
 	}
 
-	interact(){
+	interact(outer = "unconfirmed"){
 		if (!this.moving){
+			if (outer !== "confirmed"){
+				immediateApi.protect(this.individualId, 40);
+			}
 			this.logEvent("interact");
 			this.moving = true;
 			if (this.fake){
@@ -5753,14 +6007,17 @@ class BaseDoor extends ObjectHitbox{
 
 	leverSwitch(){
 		if ((!this.isLocked && !this.isBlocked && this.powered)){
-			if (immediateApi.constructor.name === "Client"){
+			if (immediateApi.isClient && !immediateApi.isServer){
 				this.logEvent("leverSwitch");
 				return;
 			}
 			this.interact();
 			return;
 		}
-		if (immediateApi.constructor.name === "Client" && (!this.powered && !this.isLocked && !this.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
+		if (immediateApi.isClient && (!this.powered && !this.isLocked && !this.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "crowbar")){
+			for (let a = 0; a < 30; a++){
+				new ElectroParticle(this, this.direction + 1, 2, 0.1);
+			}
 			this.interact();
 			return;
 		}
@@ -5775,7 +6032,12 @@ class BaseDoor extends ObjectHitbox{
 	close(){
 		this.moving = true;
 		this.isOpen = false;
-		setTimeout((obj) => {obj.fake = false; new PushOutBox(20, this, 4); obj.moveTick(obj, 20); obj.moving = false}, this.cooldown, this);
+		setTimeout((obj) => {obj.fake = false; obj.pushOut(); obj.moveTick(obj, 20); obj.moving = false}, this.cooldown, this);
+	}
+
+	pushOut(){
+		new PushOutBox(20, this, 4);
+		this.logAllClientEvent("pushOut");
 	}
 
 	lock(){
@@ -5794,6 +6056,7 @@ class BaseDoor extends ObjectHitbox{
 	}
 
 	unblock(){
+		this.logEvent("unblock");
 		this.isBlocked = false;
 	}
 
@@ -5801,13 +6064,13 @@ class BaseDoor extends ObjectHitbox{
 		let a = Math.random() * 100;
 		let chance = 0.06;
 		if (this.isHeavy){
-			chance *= 4 * !this.powered + 1;
-			chance *= -0.5 * (this.isLocked && this.powered) + 1;
+			chance *= 4 * !this.powered + 1;//if not powered chance is 5 times more
+			chance *= -0.5 * (this.isLocked && this.powered) + 1;//if locked and powered chance is halved
 		} else {
 			chance = 2;
 		}
 		if (this.isBlocked){
-			chance = 0.03;
+			chance = 0.03;//if blocked chance is minimized anyway
 		}
 		if (a < chance){
 			this.breach();
@@ -5816,10 +6079,16 @@ class BaseDoor extends ObjectHitbox{
 	}
 
 	breach(){
-		this.isBlocked = true;
-		console.log("!!!door breached!!!");
+		this.isLocked = true;
+		console.log("!!!door breached!!! " + immediateApi.serverEventMayLogged);
 		this.open();
-	}	
+		this.logAllClientEvent("breachWarning");
+		this.breachWarning();
+	}
+
+	breachWarning(){
+		new BreachParticle();
+	}
 
 	getSaveData(){
 		if (this.isTechnical){return ""}
@@ -5847,12 +6116,21 @@ class BaseDoor extends ObjectHitbox{
 
 	logEvent(ev){
 		this.backend.eventLog += this.individualId + " " + ev + ";";
+		//console.log(ev + "logged");
+	}
+
+	logAllClientEvent(ev){
+		if (immediateApi.serverEventMayLogged){
+			immediateApi.logAllClientEvent(this.individualId + " " + ev + ";");
+		}
+		//immediateApi.serverEventMayLogged = true;
 	}
 
 	forceEvents(data){//one event
+		//console.log(data);
 		let parameters = data.split(" ");
 		if (parameters[1] === ""){return}
-		this[parameters[1]]();
+		this[parameters[1]]("confirmed");
 	}
 }
 
@@ -5901,11 +6179,12 @@ class DoorInterface extends Interface{
 			this.parentInterface.terminal.leverSwitch();
 		}
 		this.lockdown.functionality = function(){
-			this.parentInterface.terminal.block();
 			if (this.parentInterface.terminal.bound.isBlocked && immediateApi.getPlayer().inventory.mainhand[0].type === "blockLifter"){
 				this.parentInterface.terminal.bound.unblock();
 				immediateApi.getPlayer().inventory.mainhand[0].decrease(1);
 				this.parentInterface.terminal.bound.backend.mainTerminal.blockLifterGiven = false;
+			} else {
+				this.parentInterface.terminal.block();
 			}
 		}
 	}
@@ -5950,6 +6229,7 @@ class VentInterface extends Interface{
 	constructor(backend){
 		super(150, 450, 225, 375);
 		this.backend = backend;
+		immediateApi.assignIndividualId(this);
 		this.elements[0].draw = function(){
 			draw.ventBg(this);
 		}
@@ -5964,16 +6244,35 @@ class VentInterface extends Interface{
 		}
 		a = new InterfaceButton(240, 300, this, 100, true);
 		a.functionality = function(){this.parentInterface.defence()}
+		a.draw = function(){
+			draw.lever(this, this.parentInterface.backend.ventDefence);
+		}
 		a = new InterfaceButton(360, 300, this, 100, true);
 		a.functionality = function(){this.parentInterface.vent()}
+		a.draw = function(){
+			draw.lever(this, this.parentInterface.backend.ventOn);
+		}
 	}
 
 	defence(){
+		this.logEvent("defence");
 		this.backend.ventDefence = !this.backend.ventDefence;
 	}
 
 	vent(){
+		this.logEvent("vent");
 		this.backend.ventOn = !this.backend.ventOn;
+	}
+
+	logEvent(ev){
+		this.backend.eventLog += this.individualId + " " + ev + ";";
+		//console.log(ev + "logged");
+	}
+
+	forceEvents(data){
+		let parameters = data.split(" ");
+		if (parameters[1] === ""){return}
+		this[parameters[1]]("confirmed");
 	}
 }
 
@@ -6040,27 +6339,35 @@ class Cart extends Entity{
 		this.spacing = {x: 0, y: 0};
 		this.block = new ObjectHitbox(this.x + this.hitbox.x1, this.x + this.hitbox.x2, this.y + this.hitbox.y1, this.y + this.hitbox.y2, false, this.x, this.y, this.map);
 		this.block.draw = function(){}
-		maP.assignIndividualId(this.block);
+		immediateApi.assignIndividualId(this.block);
 		this.block.backlink = this;
 		this.block.interactive = true;
 		this.block.forceEvents = function(data){//only interact
 			let parameters = data.split(" ");
 			if (parameters[1] === ""){return}
-			this[parameters[1]](this.backlink.backend.map.individualObjects[parameters[2]], parameters[3], parameters[4]);
+			//console.log(data);
+			this[parameters[1]](immediateApi.individualObjects[parameters[2]], parseFloat(parameters[3]), parseFloat(parameters[4]), parseFloat(parameters[5]), parseFloat(parameters[6]), parameters[7] === "true");
 		}
-		this.block.interact = function(ent, x = immediateApi.getPlayer().x, y = immediateApi.getPlayer().y){
-			if (!this.backlink.linked[immediateApi.players.indexOf(ent)] && this.backlink.getIfLinked()){return}
-			this.backlink.backend.eventLog += this.individualId + " interact " + immediateApi.getPlayer().individualId + " " + x + " " + y + ";";
-			this.backlink.linked[immediateApi.players.indexOf(ent)] = !this.backlink.linked[immediateApi.players.indexOf(ent)];
-			if (this.backlink.linked[immediateApi.players.indexOf(ent)]){
-				this.backlink.spacing.x = this.x - x;
-				this.backlink.spacing.y = this.y - y;
+		this.block.interact = function(ent, x = immediateApi.getPlayer().x, y = immediateApi.getPlayer().y, selfx = this.x, selfy = this.y, linkedNoW = !this.backlink.linked[immediateApi.players.indexOf(ent)]){
+			//console.log(linkedNoW);
+			let isLinkeD = this.backlink.getIfLinked();
+			if (isLinkeD && linkedNoW === "true"){
+				//console.log(isLinkeD && linkedNoW);
+				return;
+			}
+			this.backlink.backend.eventLog += this.individualId + " interact " + immediateApi.getPlayer().individualId + " " + x + " " + y + " " + selfx + " " + selfy + " " + linkedNoW + ";";//no logEvent?
+			console.log(this.individualId + " interact " + immediateApi.getPlayer().individualId + " " + x + " " + y + ";");
+			this.backlink.linked[immediateApi.players.indexOf(ent)] = linkedNoW;
+			if (linkedNoW){
+				this.backlink.spacing.x = selfx - x;
+				this.backlink.spacing.y = selfy - y;
 				this.hitbox = {x1: -11.5, x2: 11.5, y1: -11.5, y2: 11.5};
 				immediateApi.getPlayer().speedMultipliers[2] = 0.8;
 			} else {
 				this.hitbox = {x1: -15, x2: 15, y1: -15, y2: 15};
 				immediateApi.getPlayer().speedMultipliers[2] = 1;
 			}
+			console.log(this.backlink.spacing.x, this.backlink.spacing.y);
 		}
 	}
 
@@ -6080,6 +6387,10 @@ class Cart extends Entity{
 		for (let a in immediateApi.players){
 			if (this.linked[a]){
 				this.tp(immediateApi.players[a].x + this.spacing.x, immediateApi.players[a].y + this.spacing.y);
+				if (immediateApi.players.indexOf(immediateApi.getPlayer()) == a){
+					immediateApi.protect(this.individualId, 20);
+					immediateApi.protect(this.block.individualId, 20);
+				}
 				return;
 			}
 			if (this.x - this.backend.heavyDoors[7].x > 0 && this.x - this.backend.heavyDoors[7].x < 60 && Math.abs(this.y - this.backend.heavyDoors[7].y) < 20 && !this.backend.heavyDoors[7].isOpen){
@@ -6134,7 +6445,7 @@ class Cart extends Entity{
 
 	getSaveData(){
 		if (this.isTechnical){return ""}
-		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name, this.fuel, this.oxygen, this.water];
+		let parameters = [this.individualId, this.x, this.y, this.life, this.hp, this.block.hitbox.x1, this.linked.join("#"), this.constructor.name, this.fuel, this.oxygen, this.water, this.spacing.x, this.spacing.y];
 		return(parameters.join(" "));
 	}
 
@@ -6164,6 +6475,10 @@ class Cart extends Entity{
 		for (let a = 0; a < parameterNames.length; a++){
 			this[parameterNames[a]] = numberParams[a + 8];
 		}
+		parameterNames = ["x", "y"];
+		for (let a = 0; a < parameterNames.length; a++){
+			this.spacing[parameterNames[a]] = numberParams[a + 11];
+		}
 		this.tp(parseFloat(parameters[1]), parseFloat(parameters[2]));
 	}
 }
@@ -6179,7 +6494,7 @@ class CartFiller extends Box{
 		this.water = 0;
 		this.oxygen = 0;
 		this[this.type]();
-		maP.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	rocketType(){
@@ -6307,7 +6622,7 @@ class WaterTank extends ObjectHitbox{
 	constructor(x1, y1, x2,y2){
 		super(x1, x2, y1, y2);
 		this.interactive = true;
-		this.map.assignIndividualId(this);
+		immediateApi.assignIndividualId(this);
 	}
 
 	draw(){
@@ -6315,7 +6630,7 @@ class WaterTank extends ObjectHitbox{
 	}
 
 	interact(){
-		if (immediateApi.constructor.name === "Server"){
+		if (immediateApi.isServer && !immediateApi.isClient){
 			baseBackend.supplies.water -= 20;
 			return;
 		}//TODO inventory sync
@@ -6331,14 +6646,14 @@ class WaterTank extends ObjectHitbox{
 	}
 
 	forceEvents(data){
-		console.log(data);
+		console.log("WaterTank forceEvents " + data);
 		let parameters = data.split(" ");
 		if (parameters[1] === ""){return}
 		if (parameters.length < 3){
 			this[parameters[1]]();
 			return;
 		}
-		console.log(parameters[1]);
+		console.log("WaterTank forceEvents " + parameters[1]);
 		this[parameters[1]]();
 	}
 }
@@ -6436,12 +6751,46 @@ class PushOutBox extends Box{
 
 
 class MeltdownParticle extends Particle{
-	constructor(maP = map){
-		super(0, 0, 100, undefined, maP);
+	constructor(temp, maP = immediateApi.map){
+		super(0, 0, 300, undefined, maP);
+		this.temp = temp;
 	}
 
 	draw(){
+		draw.temperatureIndicator(this.temp / 20);
+		if (this.life < 100){return} 
 		draw.meltdownParticle();
+	}
+}
+
+
+class BreachParticle extends Particle{
+	constructor(maP = immediateApi.map){
+		super(0, 0, 150, undefined, maP);
+	}
+
+	draw(){
+		if (Math.floor(this.life / 30) % 2 === 0){
+			draw.breachIndicator(300);
+		}
+	}
+}
+
+class BlackoutParticle extends Particle{
+	constructor(ent = immediateApi.getPlayer(), life = 300, size = 300){
+		super(0, 0, life, {x1: -size / 2, y1: -size / 2, x2: size / 2, y2: size / 2}, ent.map);
+		this.bind(ent);
+	}
+
+	draw(){
+		draw.blackoutParticle(this);
+	}
+}
+
+
+class BaseIndicatorsInterface extends Interface{
+	constructor(){
+		super();
 	}
 }
 
@@ -6527,7 +6876,7 @@ import {Draw} from "./Draw.js";
 import {keyDownHandler, keyUpHandler, mouseMoveHandler, clickHandler} from "./InputHandler.js";
 import {Box, Tool, PlaceholderItem, Resource, Particle, StatusEffect, Entity, ObjectHitbox, BackgroundImage, Map, ShadowRealm, Interface, InterfaceElement, InteractivityHitbox, DevKit} from "./Classes.js";
 import {Player, Inventory, HUD, ItemSlot, ItemSlotHotbar, Minimap, MapMarker} from "./Player.js";
-import {Glyphid, meleeAttackHitbox, Grunt, Swarmer, Praetorian, Bullet, Weapon, Flame, Breaker, Missile, Flamethrower, CaveGenerator, WeaponEditor, BloodParticle, EletroParticle} from "./Drg.js";
+import {Glyphid, meleeAttackHitbox, Grunt, Swarmer, Praetorian, Bullet, Weapon, Flame, Breaker, Missile, Flamethrower, CaveGenerator, WeaponEditor, BloodParticle, ElectroParticle} from "./Drg.js";
 import {WeaponHandle, Primary, ItemSlotWeapon} from "./AdvancedWeaponarySystems.js";
 import {LevelEditor, GridParticle, WallBlock, Rock, Stone, Floor, Ladder, VentEntry, VentEntryBox, Elevator, ElevatorBox, ElevatorButton, mainScheme} from "./LevelEditor.js";
 import {
@@ -6616,7 +6965,7 @@ let Flamethrower = Drgjs.Flamethrower;
 let CaveGenerator = Drgjs.CaveGenerator;
 let WeaponEditor = Drgjs.WeaponEditor;
 let BloodParticle = Drgjs.BloodParticle;
-let EletroParticle = Drgjs.EletroParticle;
+let ElectroParticle = Drgjs.ElectroParticle;
 let WeaponHandle = AdvancedWeaponarySystemsjs.WeaponHandle;
 let Primary = AdvancedWeaponarySystemsjs.Primary;
 let ItemSlotWeapon = AdvancedWeaponarySystemsjs.ItemSlotWeapon;
@@ -6665,7 +7014,10 @@ let BaseBackend = BaseBackendjs.BaseBackend;*/
 
 class Server{
 	constructor(route = true){
+		this.isServer = true;
+		this.isClient = true;
 		if (route){
+			this.isClient = false;
 			const http = require("http");
 			var fs = require('fs');
 			var path = require('path');
@@ -6729,8 +7081,8 @@ class Server{
 						})
 						.on('end', () => {
 							body = Buffer.concat(body).toString();// at this point, `body` has the entire request body stored in it as a string
-							immediateApi.clientInfo[parseInt(Array.from('some string')[0])] = body;
-							//console.log(body);
+							immediateApi.clientInfo[parseInt(Array.from(body[0]))] = body;//uses THE FIRST symbol in received data to choose a writing cell
+							//  console.log(immediateApi.clientInfo);
 						});
 						response.end();
 					} else {
@@ -6738,7 +7090,7 @@ class Server{
 						response.end(immediateApi.savedState);
 					}
 				}
-			}).listen(3000, "0.0.0.0");
+			}).listen(25565);//25565, "0.0.0.0"
 		}
 		this.devKit = new DevKit;
 		this.activePlayerId = 0;
@@ -6747,8 +7099,8 @@ class Server{
 		this.syncCounter = 0;
 		this.summoningCircle = {
 			Grunt: function(id, x, y, useless1, useless2, useless3, useless4){
-				let a = new Grunt(x, y);
-				a.map.reassignIndividualId(a, id);
+				let a = new Grunt(x, y, id);
+				immediateApi.reassignIndividualId(a, id);
 			},
 			Player: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
 			BaseDoor: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){},
@@ -6760,13 +7112,18 @@ class Server{
 			Cart: function(id, useless1, useless2, useless3, useless4, useless5, useless6, useless7 = undefined){}
 		}
 		this.defaultConstNameId = 7;//7 is id of constructor name by default
+		this.individualObjects = [];//used for server-client data exchange
+		this.individualObjectCounter = 1;
+		this.deadList = [];
+		this.serverEventLog = "";
+		this.serverEventMayLogged = true;
 	}
 
 	start(){
 		map = new Map(600, 10, 10, this);//document.getElementById("canv").width
 		this.map = map;
 		baseBackend = new BaseBackend(map);
-		this.players = [new Player, new Player];
+		this.players = [new Player, new Player, new Player, new Player];
 		//let a = new InterfaceElement(this.getPlayer().mainInterface, 250, 350, 250, 350);
 		//a.drawActive = function(){
 		//    draw.interface2(this);
@@ -6790,6 +7147,7 @@ class Server{
 	summonObject(parameters){
 		let objectData = parameters.map(Number);
 		this.summoningCircle[parameters[this.defaultConstNameId]](objectData[0], objectData[1], objectData[2], objectData[3], objectData[4], objectData[5], objectData[6]);
+		//console.log("summoned new object of type " + parameters[this.defaultConstNameId] + " of id " + objectData[0]);
 	}
 
 	inGameTime(){
@@ -6805,6 +7163,7 @@ class Server{
 				this.correctGameData(a);//id in clientInfo
 			}
 			this.savedState = this.sendServerData();
+			this.clearEventLog();
 			this.syncCounter = 0;
 			//console.log("tick: " + this.savedState);
 			return;
@@ -6832,20 +7191,27 @@ class Server{
 				saved += baseBackend.cells[a].wiringBreakpoints[b].getSaveData() + ";";
 			}
 		}
+		saved += this.getDeadData() + ";";
+		saved += "	";
+		saved += this.serverEventLog;
+		if (this.serverEventLog.length > 0){
+			console.log("server events logged: " + this.serverEventLog + "\n" + saved);
+		}
 		return saved;
 	}
 
 	correctGameData(num){
+		//console.log("correctGameData " + this.clientInfo[num]);
 		let data = this.clientInfo[num];
 		let parsedData = data.split("	");
 		let parsedEntityData = parsedData[1].split(";");
 		for (let a in parsedEntityData){
 			if (parsedEntityData[a] === ""){continue}
 			let parsedParams = parsedEntityData[a].split(" ");//пробел для разделения параметров внутри объекта
-			if (this.map.individualObjects[parseFloat(parsedParams[0])] === undefined){
+			if (this.individualObjects[parseFloat(parsedParams[0])] === undefined){
 				if (parseFloat(parsedParams[0]) < 0){
 					try {
-						this.map.individualObjects[-parseFloat(parsedParams[0])].kill();
+						this.individualObjects[-parseFloat(parsedParams[0])].kill();
 						console.log("DEATH!!!");
 						continue;
 					} catch {
@@ -6855,33 +7221,105 @@ class Server{
 				console.error("no such object: " + parsedParams[0]);
 				continue;
 			}
-			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
+			this.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
 		}
 		try{
-		var parsedEvents = parsedData[2].split(";");//events handled by individual ids
+			var parsedEvents = parsedData[2].split(";");//events handled by individual ids
+			//console.log(parsedEvents + " event");
 		} catch {console.error("empty package")}
 		for (let a in parsedEvents){
 			//console.log(parsedEvents[a]);
 			if (parsedEvents[a] === "") {continue}
 			let parsedParams = parsedEvents[a].split(" ");
 			try{
-			this.map.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+				this.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
 			} catch {
 				console.log(parsedEvents[a]);
+			}
+		}
+		parsedEvents = parsedData[3].split(";");//server events handled by individual ids (global events)
+		for (let a in parsedEvents){
+			//console.log(parsedEvents[a]);
+			if (parsedEvents[a] === "") {continue}
+			let parsedParams = parsedEvents[a].split(" ");
+			try{
+				this.serverEventMayLogged = false;
+				this.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+				this.serverEventMayLogged = true;
+				//this.logAllClientEvent(parsedEvents[a] + ";");
+				console.log(parsedEvents[a]);
+			} catch {
+				console.error(parsedEvents[a]);
+				this.serverEventMayLogged = true;
 			}
 		}
 		parsedData[2] = "";
 		this.clientInfo[num] = parsedData.join("	");
 	}
 
-	endgame(){
-		for (let a = 0; a < this.map.api.players; a++){
-			this.map.api.players[a].kill();
+	getDeadData(){
+		//console.log("DEAD " + this.deadList.join(" "));
+		return "DEAD " + this.deadList.join(" ");
+	}
+
+	listAsDead(num){
+		if (this.deadList.indexOf(num) === -1){
+			this.deadList.push(num);
 		}
+	}
+
+	endgame(){
+		for (let a = 0; a < this.players.length; a++){
+			this.players[a].kill();
+			this.players[a].overwriteClient = true;
+		}
+		console.log("GAME OVER");
 	}
 
 	getPlayer(){
 		return this.players[this.activePlayerId];
+	}
+
+	checkCounter(){
+		if (this.individualObjects[this.individualObjectCounter] !== undefined){
+			this.individualObjectCounter++;
+			this.checkCounter();
+		}
+	}
+
+	assignIndividualId(obj){
+		this.checkCounter();
+		obj.individualId = this.individualObjectCounter;
+		this.individualObjects[this.individualObjectCounter] = obj;
+		this.individualObjectCounter++;
+	}
+
+	reassignIndividualId(obj, id){
+		if (this.individualObjects[id] === undefined){
+			this.individualObjects[id] = obj;
+			obj.individualId = [id];
+			return;
+		}
+		this.individualObjects[obj.individualId] = this.individualObjects[id];
+		this.individualObjects[obj.individualId].individualId = obj.individualId;
+		obj.individualId = id;
+		this.individualObjects[id] = obj;
+	}
+
+	removeIndividualId(obj){
+		if (obj.individualId === undefined){return}
+		this.individualObjects[obj.individualId] = undefined;
+		obj.individualId = -obj.individualId;
+	}
+
+	clearEventLog(){
+		this.serverEventLog = "";
+	}
+
+	protect(){}
+
+	logAllClientEvent(ev){//Logs event, but only on server side. Use for important events, that need to be executed on every client
+		this.serverEventLog += ev;
 	}
 }
 
@@ -6891,17 +7329,21 @@ class Client extends Server{
 		super(false);
 		this.previousObjects = [];
 		setTimeout(() => {
-				baseBackend.baseTick3 = function(){}
-				baseBackend.baseTick2 = function(){}
+				baseBackend.baseTick3 = baseBackend.baseTick3Client
+				baseBackend.baseTick2 = baseBackend.baseTick2Client
 			}, 5
 		);
 		this.clientNumber = -1;
+		this.isServer = false;
 		this.eventLog = "";
+		this.serverEventLog = "";
+		this.overwriteProtection = {};
+		this.serverEventMayLogged = true;
 	}
 
 	inGameTime(){
 		setInterval((obj) => {
-			map.tick(obj.getPlayer());
+			obj.getPlayer().map.tick(obj.getPlayer());
 			obj.sync();
 		}, map.framerate, this);
 	}
@@ -6913,9 +7355,15 @@ class Client extends Server{
 			this.handleNewObjects(this.savedState);
 			this.correctGameData(this.savedState);
 			this.syncCounter = 0;
-			return;
 		}
 		this.syncCounter++;
+		for (let a in this.overwriteProtection){
+			this.overwriteProtection[a]--;
+			if (this.overwriteProtection[a] <= 0){
+				delete this.overwriteProtection[a];
+			}
+			if (Number.isNaN(this.overwriteProtection[a])){console.log(" FUCK ")}
+		}
 	}
 
 	handleNewObjects(data){
@@ -6924,25 +7372,27 @@ class Client extends Server{
 		let counter = 0;
 		for (let a in parsedEntityData){
 			if (parsedEntityData[a] === ""){continue}
+			if (parsedEntityData[a].startsWith("DEAD")){
+				let deadData = parsedEntityData[a].split(" ");
+				for (let c in deadData){
+					let d = immediateApi.individualObjects[deadData[c]];
+					if (typeof d !== "undefined"){
+						d.remove();
+						d.forceRemove();
+					}
+				}
+				continue;
+			}
 			let b = parseInt(parsedEntityData[a].split(" ")[0]);
-			if (b === this.previousObjects[counter]){
+			if (b === this.previousObjects[counter]){//сравниваем с позицией из предыдущего списка
 				counter++;
 			} else {
-				let c = this.previousObjects.indexOf(b);
-				if (c === -1){
-					console.log("1 less obj than needed");
+				let c = this.previousObjects.indexOf(b);//ищем в предыдущем списке
+				if (c === -1){//если не нашли в предыдущих значит объект новый для клиента - создаём
+					// console.log("1 less obj than needed " + b);
 					this.summonObject(parsedEntityData[a].split(" "));
 				} else {
-					if (c > counter){
-						for (let d = counter; d < c; d++){
-							let toKill = this.map.individualObjects[this.previousObjects[d]];
-							toKill.remove();
-							toKill.forceRemove();
-						}
-						counter = c + 1;
-					} else {
-						console.error("FUCKING FUCKS");
-					}
+					counter = c + 1;
 				}
 			}
 		}
@@ -6967,6 +7417,8 @@ class Client extends Server{
 		saved += "	";
 		saved += baseBackend.eventLog;
 		saved += this.eventLog;
+		saved += "	";
+		saved += this.serverEventLog;
 		this.clearEventLog();
 		baseBackend.clearEventLog();
 		//console.log(saved);
@@ -6982,11 +7434,11 @@ class Client extends Server{
 		})
 		.then(function(text){
 			immediateApi.savedState = text;
-			console.log("data from server received");
+			//console.log("data from server received");
 		})
 	}
 
-	sendDataToServer(data){
+	sendDataToServer(data){//data is a string with structure: activeplayerdata-TAB-server_affecting_events-all_client_events
 		let url = '/';
 		fetch(url, {
 			method: "post",
@@ -6998,35 +7450,75 @@ class Client extends Server{
 		})
 	}
 
-	correctGameData(data){
+	correctGameData(data){//data is a string with structure: entity_getdata-TAB-events
 		let parsedData = data.split("	");
 		let parsedEntityData = parsedData[0].split(";");
 		for (let a in parsedEntityData){
-			if (parsedEntityData[a] === ""){continue}
+			if (parsedEntityData[a] === "" || parsedEntityData[a].startsWith("DEAD")){continue}
 			let parsedParams = parsedEntityData[a].split(" ");//пробел для разделения параметров внутри объекта
-			if (this.map.individualObjects[parseFloat(parsedParams[0])] === undefined){
-				if (parseFloat(parsedParams[0]) < 0){
+			if (this.overwriteProtection[[parseFloat(parsedParams[0])]] > 0){continue}
+			if (this.individualObjects[parseFloat(parsedParams[0])] === undefined){
+				if (parseFloat(parsedParams[0]) < 0){//gets negative index when the object is pretty much DEAD
 					try {
-						this.map.individualObjects[-parseFloat(parsedParams[0])].kill();
+						this.individualObjects[-parseFloat(parsedParams[0])].kill();
 						console.log("DEATH!!!");
 						continue;
 					} catch {
 						console.error(-parseFloat(parsedParams[0]));
+						console.error("Oi chap, something went HORRID");
 					}
 				}
 				console.error("no such object: " + parsedParams[0]);
 				continue;
 			}
-			this.map.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
+			this.individualObjects[parseFloat(parsedParams[0])].setSaveData(parsedParams);
+		}
+		let parsedEvents;
+		try{
+			parsedEvents = parsedData[1].split(";");//server events handled by individual ids (global events)
+		} catch {
+			console.log("feck")
+			parsedEvents = parsedData[1].split(";");//server events handled by individual ids (global events)
+		}
+		for (let a in parsedEvents){
+			//console.log(parsedEvents[a]);
+			if (parsedEvents[a] === "") {continue}
+			let parsedParams = parsedEvents[a].split(" ");
+			try{
+				this.serverEventMayLogged = false;
+				this.individualObjects[parseFloat(parsedParams[0])].forceEvents(parsedEvents[a]);
+				this.serverEventMayLogged = true;
+				//this.logAllClientEvent(parsedEvents[a] + ";");
+			} catch {
+				console.error(parsedEvents[a]);
+			}
 		}
 	}
 
 	clearEventLog(){
 		this.eventLog = "";
+		this.serverEventLog = "";
+	}
+
+	protect(number, ticks){
+		this.overwriteProtection[number] = ticks;
+	}
+
+	logAllClientEvent(ev){//Logs event. Use for important events, that need to be executed on every client. Use with caution, since some clients may be inactive and not receive 
+		this.serverEventLog += ev + "" + this.activePlayerId;
 	}
 }
 
-
+/*setInterval(() => {// remove
+			b = "";
+			for(a in gruntList){
+				if (gruntList[a].hp <= 0){continue}
+				b += gruntList[a].individualId + " ";
+			}
+			console.log(b);
+			return;
+}, 8000)*/
+			
 let map
 let baseBackend
 const screenSizeMultiplier = 0.6;//document.getElementById("canv").height / parseInt(document.getElementById("wrapper").style.height.slice(0, document.getElementById("wrapper").style.height.length - 2));
@@ -7038,5 +7530,6 @@ baseBackend.activateWaypoints();
 baseBackend.startBackendTicks();
 new ShadowRealm(map);
 let draw = new Draw(drawingAllowed);
+
 
 let magicConstant1 = -5;
