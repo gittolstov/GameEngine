@@ -217,7 +217,7 @@ class Server{
 						response.end(immediateApi.savedState);
 					}
 				}
-			}).listen(25565);//25565, "0.0.0.0"
+			}).listen(3000);//25565, "0.0.0.0"
 		}
 		this.devKit = new DevKit;
 		this.activePlayerId = 0;
