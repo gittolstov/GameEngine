@@ -174,7 +174,6 @@ class Server{
 							contentType = 'audio/wav';
 							break;
 					}
-
 					fs.readFile(filePath, function(error, content) {
 						if (error) {
 							if(error.code == 'ENOENT'){

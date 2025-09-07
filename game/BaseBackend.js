@@ -750,7 +750,7 @@ class MainTerminalInterface extends Interface{//actually has the essential metho
 
 class TutorialDrone extends Entity{
 	constructor(backend = baseBackend){
-		super();
+		super(undefined, undefined, undefined, undefined, {x1: -15, x2: 15, y1: -15, y2: 15});
 		this.pointing = false;
 		this.active = false;
 		this.goal = {x: 0, y: 0}
@@ -759,6 +759,8 @@ class TutorialDrone extends Entity{
 		this.pointingShift = 0;
 		this.pointingPhases = 5;
 		this.pointingSize = 80;
+		this.animationStage = 0;
+		this.animationLength = 40;
 		this.backend = backend;
 		this.floorShortcuts = [];
 		let sh = this.backend.map.bgObjectZones;
@@ -773,7 +775,16 @@ class TutorialDrone extends Entity{
 		}
 	}
 
+	draw(){
+		if (this.animationStage > this.animationLength){
+			this.animationStage = 0;
+		}
+		this.animationStage++;
+		draw.tutorialDrone(this, +(this.animationStage > this.animationLength / 2));
+	}
+
 	tickPlaceholder2(){
+		this.tp(immediateApi.getPlayer().x + 30, immediateApi.getPlayer().y - 30);
 		if (this.pointing){
 			if (this.pointingTimer >= this.pointingDelay){
 				this.pointingTimer = 0;

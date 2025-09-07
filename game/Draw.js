@@ -53,6 +53,7 @@ class Draw{
 			this.temperature = new Image;
 			this.breach = new Image;
 			this.blackout = new Image;
+			this.drone = [new Image, new Image];
 			this.wallImg = [new Image, new Image, new Image, new Image];
 			this.symbols = [new Image, new Image, new Image, new Image, new Image, new Image];
 			this.doors[0].src = "textures/door1.png";
@@ -123,6 +124,8 @@ class Draw{
 			this.symbols[3].src = "textures/symb4.png";
 			this.symbols[4].src = "textures/symb5.png";
 			this.symbols[5].src = "textures/symb6.png";
+			this.drone[0].src = "textures/drone1.png";
+			this.drone[1].src = "textures/drone2.png";
 			this.particleImg = [new Image, new Image, new Image, new Image, new Image, new Image];
 			this.particleImg[0].src = "textures/Particle1.png";
 			this.particleImg[1].src = "textures/Particle2.png";
@@ -195,6 +198,10 @@ class Draw{
 	
 	bullet(ent){
 		this.can.drawImage(this.bulletImg, ent.x + ent.hitbox.x1 / 5 + ent.map.xshift(), ent.y + ent.hitbox.y1 / 5 + ent.map.yshift(), ent.hitbox.x2 - ent.hitbox.x1 / 5, ent.hitbox.y2 - ent.hitbox.y1 / 5);
+	}
+
+	tutorialDrone(ent, stage = 0){
+		this.can.drawImage(this.drone[stage], ent.x + ent.hitbox.x1 + ent.map.xshift(), ent.y + ent.hitbox.y1 - 1 + ent.map.yshift() + stage * 2, ent.hitbox.x2 - ent.hitbox.x1, ent.hitbox.y2 - ent.hitbox.y1);
 	}
 
 	object(obj){
